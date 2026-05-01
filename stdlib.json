@@ -1,0 +1,51 @@
+[
+  {
+    "simplicityhl_name": "assert_eq8",
+    "section": "Assertions",
+    "input_type": "u8, u8",
+    "output_type": "()",
+    "description": "Assert that two `u8` values are equal. Panic otherwise."
+  },
+  {
+    "simplicityhl_name": "assert_none8",
+    "section": "Assertions",
+    "input_type": "Option<u8>",
+    "output_type": "()",
+    "description": "Assert that an `Option<u8>` value is `None`. Panic otherwise."
+  },
+  {
+    "simplicityhl_name": "or",
+    "section": "Boolean logic",
+    "input_type": "bool, bool",
+    "output_type": "bool",
+    "description": "Logical OR."
+  },
+  {
+    "simplicityhl_name": "and",
+    "section": "Boolean logic",
+    "input_type": "bool, bool",
+    "output_type": "bool",
+    "description": "Logical AND."
+  },
+  {
+    "simplicityhl_name": "assert_relative_distance",
+    "section": "Timelocks",
+    "input_type": "Distance",
+    "output_type": "()",
+    "description": "Assert that the current input is spent in a transaction that can only appear a distance of at least the specified `Distance` blocks after the input's UTXO. Panic otherwise."
+  },
+  {
+    "simplicityhl_name": "assert_relative_duration",
+    "section": "Timelocks",
+    "input_type": "Duration",
+    "output_type": "()",
+    "description": "Assert that the current input is spent in a transaction that can only appear a duration of at least the specified `Duration` units of 512 seconds after the input's UTXO. Panic otherwise."
+  },
+  {
+    "simplicityhl_name": "eq_Confidential",
+    "section": "Equality",
+    "input_type": "Confidential, Confidential",
+    "output_type": "bool",
+    "description": "Check if two `Confidential` values are equal."
+  }
+]
