@@ -1,0 +1,10 @@
+[package]
+name = "simplicityhl_std"
+edition = "2024"
+rust-version = "1.91.0"
+version = "0.1.0"
+
+[dependencies]
+smplx-std = { version = ">=0.0.5, <0.1.0" }
+
+anyhow = { version = "1.0.101" }
