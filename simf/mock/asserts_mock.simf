@@ -1,3 +1,5 @@
+// todo: switch to function import when available
+
 pub fn assert_eq8(a: u8, b: u8) {
     assert!(jet::eq_8(a, b));
 }
