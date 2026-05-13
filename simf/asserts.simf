@@ -53,4 +53,5 @@ pub fn assert_none256(val: Option<u256>) {
     assert!(is_none::<u256>(val));
 }
 
+// todo: remove after module functionality is implemented
 fn main() {}
