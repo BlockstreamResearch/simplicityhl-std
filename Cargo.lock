@@ -1225,9 +1225,9 @@ dependencies = [
 
 [[package]]
 name = "simplicityhl"
-version = "0.6.0-rc.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a9ddf4ccfaaaa2a4597ed9494d702727e467b080572330458d2964f3ddae89a"
+checksum = "25de8990174fe3e1a843df138cacc4265d05839ebd2550c18b9196f567d55e81"
 dependencies = [
  "base64 0.21.7",
  "chumsky",
@@ -1257,7 +1257,9 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 
 [[package]]
 name = "smplx-build"
-version = "0.0.4"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3170d79eafea8c119d0b491014aaf2054679ba8c285c453c2acb879b52896b5e"
 dependencies = [
  "glob",
  "globwalk",
@@ -1274,7 +1276,9 @@ dependencies = [
 
 [[package]]
 name = "smplx-macros"
-version = "0.0.4"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05e591d0bb8c971f38ea525b5e1bc18a39b369bc1fdecc07632120142afb7e34"
 dependencies = [
  "smplx-build",
  "smplx-test",
@@ -1283,7 +1287,9 @@ dependencies = [
 
 [[package]]
 name = "smplx-regtest"
-version = "0.0.4"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b42c1ad54f123195eb90543e88a2e3b1519a11479862ac29a5cd7a0e24f13d7"
 dependencies = [
  "electrsd",
  "hex",
@@ -1297,7 +1303,9 @@ dependencies = [
 
 [[package]]
 name = "smplx-sdk"
-version = "0.0.4"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe05e7d0f9cef029968453f087f323df01f92e13fc240796a732cffac734074a"
 dependencies = [
  "bip39",
  "bitcoin_hashes",
@@ -1315,7 +1323,9 @@ dependencies = [
 
 [[package]]
 name = "smplx-std"
-version = "0.0.4"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8465bd3dae0d1bf37c88f2ba4144e5b5157d390a3c5e56016ff04b64ee9fc199"
 dependencies = [
  "either",
  "serde",
@@ -1327,7 +1337,9 @@ dependencies = [
 
 [[package]]
 name = "smplx-test"
-version = "0.0.4"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1025e34b6101ab8e92b6baa4807227894ca324e0405d22a703c2ddd6c5af979"
 dependencies = [
  "electrsd",
  "proc-macro2",

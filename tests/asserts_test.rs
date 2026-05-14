@@ -1,4 +1,4 @@
-use simplex::simplicityhl::elements::{Script, Txid};
+use simplex::simplicityhl::elements::{Script};
 
 use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
 
@@ -15,18 +15,18 @@ fn get_asserts_test_script(context: &simplex::TestContext) -> (AssertsMockProgra
     (asserts_program, asserts_script)
 }
 
-fn fund_script(context: &simplex::TestContext) -> anyhow::Result<Txid> {
+fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
     let signer = context.get_default_signer();
 
     let (_, asserts_script) = get_asserts_test_script(context);
 
-    let txid = signer.send(asserts_script.clone(), 50)?;
-    println!("Broadcast: {}", txid);
+    let tx_receipt = signer.send(asserts_script.clone(), 50)?;
+    println!("Broadcast: {}", tx_receipt);
 
-    Ok(txid)
+    Ok(()) 
 }
 
-fn spend_script(context: &simplex::TestContext) -> anyhow::Result<Txid> {
+fn spend_script(context: &simplex::TestContext) -> anyhow::Result<()> {
     let signer = context.get_default_signer();
     let provider = context.get_default_provider();
 
@@ -44,25 +44,16 @@ fn spend_script(context: &simplex::TestContext) -> anyhow::Result<Txid> {
         RequiredSignature::None,
     );
 
-    let txid = signer.broadcast(&ft)?;
-    println!("Broadcast: {}", txid);
+    let tx_receipt = signer.broadcast(&ft)?;
+    println!("Broadcast: {}", tx_receipt);
 
-    Ok(txid)
+    Ok(())
 }
 
 #[simplex::test]
 fn asserts_test(context: simplex::TestContext) -> anyhow::Result<()> {
-    let provider = context.get_default_provider();
-
-    let txid = fund_script(&context)?;
-
-    provider.wait(&txid)?;
-    println!("Confirmed");
-
-    let txid = spend_script(&context)?;
-
-    provider.wait(&txid)?;
-    println!("Confirmed");
+    fund_script(&context)?;
+    spend_script(&context)?;
 
     Ok(())
 }
