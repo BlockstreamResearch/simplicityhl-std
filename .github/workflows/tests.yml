@@ -1,0 +1,61 @@
+name: Smplx-tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - dev
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: full
+
+jobs:
+  simplex-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [ "1.91.0" ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          submodules: true
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+
+      - name: Use Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install simplex-cli
+        uses: ./.github/actions/setup-smplx
+
+      - name: Generate contract artifacts
+        shell: bash
+        run: |
+          simplex build
+
+      - name: Build
+        run: |
+          cargo build --workspace --all-features --verbose
+
+      - name: Test
+        run: |
+          simplex test --nocapture
