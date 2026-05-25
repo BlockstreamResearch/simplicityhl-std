@@ -70,7 +70,7 @@ fn assert_eq8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> 
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
@@ -86,7 +86,7 @@ fn assert_eq16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
@@ -102,7 +102,7 @@ fn assert_eq32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
@@ -118,7 +118,7 @@ fn assert_eq64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
@@ -134,7 +134,7 @@ fn assert_eq256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
@@ -150,7 +150,7 @@ fn assert_none8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
@@ -166,7 +166,7 @@ fn assert_none16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
@@ -182,7 +182,7 @@ fn assert_none32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
@@ -198,7 +198,7 @@ fn assert_none64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
@@ -215,7 +215,7 @@ fn assert_none128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
@@ -232,7 +232,7 @@ fn assert_none256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
 
     assert!(
         txid_result.is_err(),
-        "Expected a test to fail but it succeeded"
+        "Expected this test to fail but it succeeded"
     );
 
     Ok(())
