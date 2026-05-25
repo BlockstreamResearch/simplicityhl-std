@@ -1,0 +1,71 @@
+// todo: switch to function import when available
+pub fn checked_add_16(a: u16, b: u16) -> Option<u16> {
+    let (carry, sum): (bool, u16) = jet::add_16(a, b);
+
+    match carry {
+        true => None,
+        false => Some(sum),
+    }
+}
+
+pub fn safe_add_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_add_16(a, b))
+}
+
+pub fn checked_subtract_16(a: u16, b: u16) -> Option<u16> {
+    let (borrow, diff): (bool, u16) = jet::subtract_16(a, b);
+    match borrow {
+        true => None,
+        false => Some(diff),
+    }
+}
+
+pub fn safe_subtract_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_subtract_16(a, b))
+}
+
+pub fn checked_multiply_16(a: u16, b: u16) -> Option<u16> {
+    let result: u32 = jet::multiply_16(a, b);
+
+    let (high, low): (u16, u16) = <u32>::into(result);
+
+    match jet::is_zero_16(high) {
+        true => Some(low),
+        false => None,
+    }
+}
+
+pub fn safe_multiply_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_multiply_16(a, b))
+}
+
+fn main() {
+    let maxU16: u16 = 0xffff;
+
+    let fittingU16: Option<u16> = checked_add_16(1, 2);
+    assert!(jet::eq_16(unwrap(fittingU16), 3));
+
+    let overflowingU16: Option<u16> = checked_add_16(maxU16, 1);
+    assert!(is_none::<u16>(overflowingU16));
+
+    let fittingU16: u16 = safe_add_16(1, 2);
+    assert!(jet::eq_16(fittingU16, 3));
+
+    let fittingU16: Option<u16> = checked_subtract_16(maxU16, 1);
+    assert!(jet::eq_16(unwrap(fittingU16), 0xfffe));
+
+    let overflowingU16: Option<u16> = checked_subtract_16(1, 2);
+    assert!(is_none::<u16>(overflowingU16));
+
+    let fittingU16: u16 = safe_subtract_16(10, 2);
+    assert!(jet::eq_16(fittingU16, 8));
+
+    let fittingU16: Option<u16> = checked_multiply_16(3, 2);
+    assert!(jet::eq_16(unwrap(fittingU16), 6));
+
+    let overflowingU16: Option<u16> = checked_multiply_16(maxU16, 2);
+    assert!(is_none::<u16>(overflowingU16));
+
+    let fittingU16: u16 = safe_multiply_16(1, 2);
+    assert!(jet::eq_16(fittingU16, 2));
+}
