@@ -1,0 +1,49 @@
+/// Returns the sum of two u32 values wrapped in Some, or None if the result overflows u32
+pub fn checked_add_32(a: u32, b: u32) -> Option<u32> {
+    let (carry, sum): (bool, u32) = jet::add_32(a, b);
+
+    match carry {
+        true => None,
+        false => Some(sum),
+    }
+}
+
+/// Returns the sum of two u32 values, panics if the result overflows u32
+pub fn safe_add_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_add_32(a, b))
+}
+
+/// Returns the sum of two u32 values, panics if the result overflows u32
+pub fn checked_subtract_32(a: u32, b: u32) -> Option<u32> {
+    let (borrow, diff): (bool, u32) = jet::subtract_32(a, b);
+
+    match borrow {
+        true => None,
+        false => Some(diff),
+    }
+}
+
+/// Returns the difference of two u32 values, panics if the result overflows u32
+pub fn safe_subtract_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_subtract_32(a, b))
+}
+
+/// Returns the product of two u32 values wrapped in Some, or None if the result overflows u32
+pub fn checked_multiply_32(a: u32, b: u32) -> Option<u32> {
+    let result: u64 = jet::multiply_32(a, b);
+
+    let (high, low): (u32, u32) = <u64>::into(result);
+
+    match jet::is_zero_32(high) {
+        true => Some(low),
+        false => None,
+    }
+}
+
+/// Returns the product of two u32 values, panics if the result overflows u32
+pub fn safe_multiply_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_multiply_32(a, b))
+}
+
+// todo: remove after module functionality is implemented
+fn main() {}
