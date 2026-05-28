@@ -1,0 +1,72 @@
+// todo: switch to function import when available
+pub fn checked_add_8(a: u8, b: u8) -> Option<u8> {
+    let (carry, sum): (bool, u8) = jet::add_8(a, b);
+
+    match carry {
+        true => None,
+        false => Some(sum),
+    }
+}
+
+pub fn safe_add_8(a: u8, b: u8) -> u8 {
+    unwrap(checked_add_8(a, b))
+}
+
+pub fn checked_subtract_8(a: u8, b: u8) -> Option<u8> {
+    let (borrow, diff): (bool, u8) = jet::subtract_8(a, b);
+
+    match borrow {
+        true => None,
+        false => Some(diff),
+    }
+}
+
+pub fn safe_subtract_8(a: u8, b: u8) -> u8 {
+    unwrap(checked_subtract_8(a, b))
+}
+
+pub fn checked_multiply_8(a: u8, b: u8) -> Option<u8> {
+    let result: u16 = jet::multiply_8(a, b);
+
+    let (high, low): (u8, u8) = <u16>::into(result);
+
+    match jet::is_zero_8(high) {
+        true => Some(low),
+        false => None,
+    }
+}
+
+pub fn safe_multiply_8(a: u8, b: u8) -> u8 {
+    unwrap(checked_multiply_8(a, b))
+}
+
+fn main() {
+    let maxU8: u8 = 0xff;
+
+    let fittingU8: Option<u8> = checked_add_8(1, 2);
+    assert!(jet::eq_8(unwrap(fittingU8), 3));
+
+    let overflowingU8: Option<u8> = checked_add_8(maxU8, 1);
+    assert!(is_none::<u8>(overflowingU8));
+
+    let fittingU8: u8 = safe_add_8(1, 2);
+    assert!(jet::eq_8(fittingU8, 3));
+
+    let fittingU8: Option<u8> = checked_subtract_8(maxU8, 1);
+    assert!(jet::eq_8(unwrap(fittingU8), 0xfe));
+
+    let overflowingU8: Option<u8> = checked_subtract_8(1, 2);
+    assert!(is_none::<u8>(overflowingU8));
+
+    let fittingU8: u8 = safe_subtract_8(10, 2);
+    assert!(jet::eq_8(fittingU8, 8));
+
+    let fittingU8: Option<u8> = checked_multiply_8(3, 2);
+    assert!(jet::eq_8(unwrap(fittingU8), 6));
+
+    let overflowingU8: Option<u8> = checked_multiply_8(maxU8, 2);
+    assert!(is_none::<u8>(overflowingU8));
+
+    let fittingU8: u8 = safe_multiply_8(1, 2);
+    assert!(jet::eq_8(fittingU8, 2));
+}
