@@ -73,6 +73,9 @@ fn assert_eq8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> 
         "Expected this test to fail but it succeeded"
     );
 
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
     Ok(())
 }
 
@@ -88,6 +91,9 @@ fn assert_eq16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
         txid_result.is_err(),
         "Expected this test to fail but it succeeded"
     );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
 
     Ok(())
 }
@@ -105,6 +111,9 @@ fn assert_eq32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
         "Expected this test to fail but it succeeded"
     );
 
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
     Ok(())
 }
 
@@ -120,6 +129,9 @@ fn assert_eq64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
         txid_result.is_err(),
         "Expected this test to fail but it succeeded"
     );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
 
     Ok(())
 }
@@ -137,6 +149,9 @@ fn assert_eq256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
         "Expected this test to fail but it succeeded"
     );
 
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
     Ok(())
 }
 
@@ -152,6 +167,9 @@ fn assert_none8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
         txid_result.is_err(),
         "Expected this test to fail but it succeeded"
     );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
 
     Ok(())
 }
@@ -169,6 +187,9 @@ fn assert_none16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
         "Expected this test to fail but it succeeded"
     );
 
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
     Ok(())
 }
 
@@ -184,6 +205,9 @@ fn assert_none32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
         txid_result.is_err(),
         "Expected this test to fail but it succeeded"
     );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
 
     Ok(())
 }
@@ -201,9 +225,11 @@ fn assert_none64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
         "Expected this test to fail but it succeeded"
     );
 
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
     Ok(())
 }
-
 
 #[simplex::test]
 fn assert_none128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
@@ -218,9 +244,11 @@ fn assert_none128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
         "Expected this test to fail but it succeeded"
     );
 
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
     Ok(())
 }
-
 
 #[simplex::test]
 fn assert_none256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
@@ -234,6 +262,9 @@ fn assert_none256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
         txid_result.is_err(),
         "Expected this test to fail but it succeeded"
     );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
 
     Ok(())
 }
