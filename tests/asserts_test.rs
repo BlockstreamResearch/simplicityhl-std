@@ -26,7 +26,7 @@ fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
     Ok(()) 
 }
 
-fn spend_script(context: &simplex::TestContext) -> anyhow::Result<()> {
+fn spend_script(context: &simplex::TestContext, flag: u8) -> anyhow::Result<()> {
     let signer = context.get_default_signer();
     let provider = context.get_default_provider();
 
@@ -36,7 +36,7 @@ fn spend_script(context: &simplex::TestContext) -> anyhow::Result<()> {
 
     let mut ft = FinalTransaction::new();
 
-    let witness = AssertsMockWitness {};
+    let witness = AssertsMockWitness {flag: flag};
 
     ft.add_program_input(
         PartialInput::new(asserts_utxos[0].clone()),
@@ -51,9 +51,220 @@ fn spend_script(context: &simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn asserts_test(context: simplex::TestContext) -> anyhow::Result<()> {
+fn asserts_test_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 0;
+
     fund_script(&context)?;
-    spend_script(&context)?;
+    spend_script(&context, flag)?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_eq8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 1;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_eq16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 2;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_eq32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 3;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_eq64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 4;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_eq256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 5;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_none8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 6;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_none16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 7;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_none32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 8;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_none64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 9;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_none128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 10;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
+
+    Ok(())
+}
+
+#[simplex::test]
+fn assert_none256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let flag: u8 = 11;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(&context, flag);
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert_eq!(err, "Failed to prune program: Jet failed during execution");
 
     Ok(())
 }
