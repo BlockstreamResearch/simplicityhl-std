@@ -40,9 +40,21 @@ pub fn safe_multiply_64(a: u64, b: u64) -> u64 {
     unwrap(checked_multiply_64(a, b))
 }
 
+pub fn checked_divide_64(a: u64, b: u64) -> Option<u64> {
+    match jet::is_zero_64(b) {
+        true => None,
+        false => Some(jet::divide_64(a, b)),
+    }
+}
+
+pub fn safe_divide_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_divide_64(a, b))
+}
+
 fn main() {
     let maxU64: u64 = 0xffffffffffffffff;
 
+    // add
     let fittingU64: Option<u64> = checked_add_64(1, 2);
     assert!(jet::eq_64(unwrap(fittingU64), 3));
 
@@ -52,6 +64,7 @@ fn main() {
     let fittingU64: u64 = safe_add_64(1, 2);
     assert!(jet::eq_64(fittingU64, 3));
 
+    // substract
     let fittingU64: Option<u64> = checked_subtract_64(maxU64, 1);
     assert!(jet::eq_64(unwrap(fittingU64), 0xfffffffffffffffe));
 
@@ -61,6 +74,7 @@ fn main() {
     let fittingU64: u64 = safe_subtract_64(10, 2);
     assert!(jet::eq_64(fittingU64, 8));
 
+    // multiply
     let fittingU64: Option<u64> = checked_multiply_64(3, 2);
     assert!(jet::eq_64(unwrap(fittingU64), 6));
 
@@ -68,5 +82,15 @@ fn main() {
     assert!(is_none::<u64>(overflowingU64));
 
     let fittingU64: u64 = safe_multiply_64(1, 2);
+    assert!(jet::eq_64(fittingU64, 2));
+
+    // divide
+    let fittingU64: Option<u64> = checked_divide_64(4, 2);
+    assert!(jet::eq_64(unwrap(fittingU64), 2));
+
+    let overflowingU64: Option<u64> = checked_divide_64(5, 0);
+    assert!(is_none::<u64>(overflowingU64));
+
+    let fittingU64: u64 = safe_divide_64(5, 2);
     assert!(jet::eq_64(fittingU64, 2));
 }

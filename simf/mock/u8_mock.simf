@@ -40,9 +40,21 @@ pub fn safe_multiply_8(a: u8, b: u8) -> u8 {
     unwrap(checked_multiply_8(a, b))
 }
 
+pub fn checked_divide_8(a: u8, b: u8) -> Option<u8> {
+    match jet::is_zero_8(b) {
+        true => None,
+        false => Some(jet::divide_8(a, b)),
+    }
+}
+
+pub fn safe_divide_8(a: u8, b: u8) -> u8 {
+    unwrap(checked_divide_8(a, b))
+}
+
 fn main() {
     let maxU8: u8 = 0xff;
 
+    // add
     let fittingU8: Option<u8> = checked_add_8(1, 2);
     assert!(jet::eq_8(unwrap(fittingU8), 3));
 
@@ -52,6 +64,7 @@ fn main() {
     let fittingU8: u8 = safe_add_8(1, 2);
     assert!(jet::eq_8(fittingU8, 3));
 
+    // substract
     let fittingU8: Option<u8> = checked_subtract_8(maxU8, 1);
     assert!(jet::eq_8(unwrap(fittingU8), 0xfe));
 
@@ -61,6 +74,7 @@ fn main() {
     let fittingU8: u8 = safe_subtract_8(10, 2);
     assert!(jet::eq_8(fittingU8, 8));
 
+    // multiply
     let fittingU8: Option<u8> = checked_multiply_8(3, 2);
     assert!(jet::eq_8(unwrap(fittingU8), 6));
 
@@ -68,5 +82,15 @@ fn main() {
     assert!(is_none::<u8>(overflowingU8));
 
     let fittingU8: u8 = safe_multiply_8(1, 2);
+    assert!(jet::eq_8(fittingU8, 2));
+
+    // divide
+    let fittingU8: Option<u8> = checked_divide_8(4, 2);
+    assert!(jet::eq_8(unwrap(fittingU8), 2));
+
+    let overflowingU8: Option<u8> = checked_divide_8(5, 0);
+    assert!(is_none::<u8>(overflowingU8));
+
+    let fittingU8: u8 = safe_divide_8(5, 2);
     assert!(jet::eq_8(fittingU8, 2));
 }

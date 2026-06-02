@@ -45,5 +45,18 @@ pub fn safe_multiply_8(a: u8, b: u8) -> u8 {
     unwrap(checked_multiply_8(a, b))
 }
 
+/// Returns the quotient of two u8 values wrapped in Some, or None if the result overflows u8
+pub fn checked_divide_8(a: u8, b: u8) -> Option<u8> {
+    match jet::is_zero_8(b) {
+        true => None,
+        false => Some(jet::divide_8(a, b)),
+    }
+}
+
+/// Returns the quotient of two u8 values, panics if the result overflows u8
+pub fn safe_divide_8(a: u8, b: u8) -> u8 {
+    unwrap(checked_divide_8(a, b))
+}
+
 // todo: remove after module functionality is implemented
 fn main() {}

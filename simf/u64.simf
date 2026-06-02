@@ -45,5 +45,18 @@ pub fn safe_multiply_64(a: u64, b: u64) -> u64 {
     unwrap(checked_multiply_64(a, b))
 }
 
+/// Returns the quotient of two u64 values wrapped in Some, or None if the result overflows u64
+pub fn checked_divide_64(a: u64, b: u64) -> Option<u64> {
+    match jet::is_zero_64(b) {
+        true => None,
+        false => Some(jet::divide_64(a, b)),
+    }
+}
+
+/// Returns the quotient of two u64 values, panics if the result overflows u64
+pub fn safe_divide_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_divide_64(a, b))
+}
+
 // todo: remove after module functionality is implemented
 fn main() {}

@@ -40,9 +40,21 @@ pub fn safe_multiply_32(a: u32, b: u32) -> u32 {
     unwrap(checked_multiply_32(a, b))
 }
 
+pub fn checked_divide_32(a: u32, b: u32) -> Option<u32> {
+    match jet::is_zero_32(b) {
+        true => None,
+        false => Some(jet::divide_32(a, b)),
+    }
+}
+
+pub fn safe_divide_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_divide_32(a, b))
+}
+
 fn main() {
     let maxU32: u32 = 0xffffffff;
 
+    // add
     let fittingU32: Option<u32> = checked_add_32(1, 2);
     assert!(jet::eq_32(unwrap(fittingU32), 3));
 
@@ -52,6 +64,7 @@ fn main() {
     let fittingU32: u32 = safe_add_32(1, 2);
     assert!(jet::eq_32(fittingU32, 3));
 
+    // substract
     let fittingU32: Option<u32> = checked_subtract_32(maxU32, 1);
     assert!(jet::eq_32(unwrap(fittingU32), 0xfffffffe));
 
@@ -61,6 +74,7 @@ fn main() {
     let fittingU32: u32 = safe_subtract_32(10, 2);
     assert!(jet::eq_32(fittingU32, 8));
 
+    // multiply
     let fittingU32: Option<u32> = checked_multiply_32(3, 2);
     assert!(jet::eq_32(unwrap(fittingU32), 6));
 
@@ -68,5 +82,15 @@ fn main() {
     assert!(is_none::<u32>(overflowingU32));
 
     let fittingU32: u32 = safe_multiply_32(1, 2);
+    assert!(jet::eq_32(fittingU32, 2));
+
+    // divide
+    let fittingU32: Option<u32> = checked_divide_32(4, 2);
+    assert!(jet::eq_32(unwrap(fittingU32), 2));
+
+    let overflowingU32: Option<u32> = checked_divide_32(5, 0);
+    assert!(is_none::<u32>(overflowingU32));
+
+    let fittingU32: u32 = safe_divide_32(5, 2);
     assert!(jet::eq_32(fittingU32, 2));
 }
