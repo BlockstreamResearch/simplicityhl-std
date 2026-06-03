@@ -1,5 +1,5 @@
 // todo: switch to function import when available
-pub fn checked_add_32(a: u32, b: u32) -> Option<u32> {
+fn checked_add_32(a: u32, b: u32) -> Option<u32> {
     let (carry, sum): (bool, u32) = jet::add_32(a, b);
 
     match carry {
@@ -8,11 +8,11 @@ pub fn checked_add_32(a: u32, b: u32) -> Option<u32> {
     }
 }
 
-pub fn safe_add_32(a: u32, b: u32) -> u32 {
+fn safe_add_32(a: u32, b: u32) -> u32 {
     unwrap(checked_add_32(a, b))
 }
 
-pub fn checked_subtract_32(a: u32, b: u32) -> Option<u32> {
+fn checked_subtract_32(a: u32, b: u32) -> Option<u32> {
     let (borrow, diff): (bool, u32) = jet::subtract_32(a, b);
 
     match borrow {
@@ -21,11 +21,11 @@ pub fn checked_subtract_32(a: u32, b: u32) -> Option<u32> {
     }
 }
 
-pub fn safe_subtract_32(a: u32, b: u32) -> u32 {
+fn safe_subtract_32(a: u32, b: u32) -> u32 {
     unwrap(checked_subtract_32(a, b))
 }
 
-pub fn checked_multiply_32(a: u32, b: u32) -> Option<u32> {
+fn checked_multiply_32(a: u32, b: u32) -> Option<u32> {
     let result: u64 = jet::multiply_32(a, b);
     
     let (high, low): (u32, u32) = <u64>::into(result);
@@ -36,18 +36,18 @@ pub fn checked_multiply_32(a: u32, b: u32) -> Option<u32> {
     }
 }
 
-pub fn safe_multiply_32(a: u32, b: u32) -> u32 {
+fn safe_multiply_32(a: u32, b: u32) -> u32 {
     unwrap(checked_multiply_32(a, b))
 }
 
-pub fn checked_divide_32(a: u32, b: u32) -> Option<u32> {
+fn checked_divide_32(a: u32, b: u32) -> Option<u32> {
     match jet::is_zero_32(b) {
         true => None,
         false => Some(jet::divide_32(a, b)),
     }
 }
 
-pub fn safe_divide_32(a: u32, b: u32) -> u32 {
+fn safe_divide_32(a: u32, b: u32) -> u32 {
     unwrap(checked_divide_32(a, b))
 }
 

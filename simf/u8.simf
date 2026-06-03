@@ -1,5 +1,5 @@
 /// Returns the sum of two u8 values wrapped in Some, or None if the result overflows u8
-pub fn checked_add_8(a: u8, b: u8) -> Option<u8> {
+fn checked_add_8(a: u8, b: u8) -> Option<u8> {
     let (carry, sum): (bool, u8) = jet::add_8(a, b);
 
     match carry {
@@ -9,12 +9,12 @@ pub fn checked_add_8(a: u8, b: u8) -> Option<u8> {
 }
 
 /// Returns the sum of two u8 values, panics if the result overflows u8
-pub fn safe_add_8(a: u8, b: u8) -> u8 {
+fn safe_add_8(a: u8, b: u8) -> u8 {
     unwrap(checked_add_8(a, b))
 }
 
 /// Returns the difference of two u8 values wrapped in Some, or None if the result overflows u8
-pub fn checked_subtract_8(a: u8, b: u8) -> Option<u8> {
+fn checked_subtract_8(a: u8, b: u8) -> Option<u8> {
     let (borrow, diff): (bool, u8) = jet::subtract_8(a, b);
 
     match borrow {
@@ -24,12 +24,12 @@ pub fn checked_subtract_8(a: u8, b: u8) -> Option<u8> {
 }
 
 /// Returns the difference of two u8 values, panics if the result overflows u8
-pub fn safe_subtract_8(a: u8, b: u8) -> u8 {
+fn safe_subtract_8(a: u8, b: u8) -> u8 {
     unwrap(checked_subtract_8(a, b))
 }
 
 /// Returns the product of two u8 values wrapped in Some, or None if the result overflows u8
-pub fn checked_multiply_8(a: u8, b: u8) -> Option<u8> {
+fn checked_multiply_8(a: u8, b: u8) -> Option<u8> {
     let result: u16 = jet::multiply_8(a, b);
 
     let (high, low): (u8, u8) = <u16>::into(result);
@@ -41,12 +41,12 @@ pub fn checked_multiply_8(a: u8, b: u8) -> Option<u8> {
 }
 
 /// Returns the product of two u8 values, panics if the result overflows u8
-pub fn safe_multiply_8(a: u8, b: u8) -> u8 {
+fn safe_multiply_8(a: u8, b: u8) -> u8 {
     unwrap(checked_multiply_8(a, b))
 }
 
 /// Returns the quotient of two u8 values wrapped in Some, or None if the result overflows u8
-pub fn checked_divide_8(a: u8, b: u8) -> Option<u8> {
+fn checked_divide_8(a: u8, b: u8) -> Option<u8> {
     match jet::is_zero_8(b) {
         true => None,
         false => Some(jet::divide_8(a, b)),
@@ -54,7 +54,7 @@ pub fn checked_divide_8(a: u8, b: u8) -> Option<u8> {
 }
 
 /// Returns the quotient of two u8 values, panics if the result overflows u8
-pub fn safe_divide_8(a: u8, b: u8) -> u8 {
+fn safe_divide_8(a: u8, b: u8) -> u8 {
     unwrap(checked_divide_8(a, b))
 }
 

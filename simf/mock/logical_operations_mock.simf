@@ -1,13 +1,13 @@
 // todo: switch to function import when available
-pub fn not(bit: bool) -> bool {
+fn not(bit: bool) -> bool {
    <u1>::into(jet::complement_1(<bool>::into(bit)))
 }
 
-pub fn or(a: bool, b: bool) -> bool {
+fn or(a: bool, b: bool) -> bool {
    <u1>::into(jet::or_1(<bool>::into(a), <bool>::into(b)))
 }
 
-pub fn and(a: bool, b: bool) -> bool {
+fn and(a: bool, b: bool) -> bool {
    <u1>::into(jet::and_1(<bool>::into(a), <bool>::into(b)))
 }
 

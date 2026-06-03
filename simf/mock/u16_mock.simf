@@ -1,5 +1,5 @@
 // todo: switch to function import when available
-pub fn checked_add_16(a: u16, b: u16) -> Option<u16> {
+fn checked_add_16(a: u16, b: u16) -> Option<u16> {
     let (carry, sum): (bool, u16) = jet::add_16(a, b);
 
     match carry {
@@ -8,11 +8,11 @@ pub fn checked_add_16(a: u16, b: u16) -> Option<u16> {
     }
 }
 
-pub fn safe_add_16(a: u16, b: u16) -> u16 {
+fn safe_add_16(a: u16, b: u16) -> u16 {
     unwrap(checked_add_16(a, b))
 }
 
-pub fn checked_subtract_16(a: u16, b: u16) -> Option<u16> {
+fn checked_subtract_16(a: u16, b: u16) -> Option<u16> {
     let (borrow, diff): (bool, u16) = jet::subtract_16(a, b);
     match borrow {
         true => None,
@@ -20,11 +20,11 @@ pub fn checked_subtract_16(a: u16, b: u16) -> Option<u16> {
     }
 }
 
-pub fn safe_subtract_16(a: u16, b: u16) -> u16 {
+fn safe_subtract_16(a: u16, b: u16) -> u16 {
     unwrap(checked_subtract_16(a, b))
 }
 
-pub fn checked_multiply_16(a: u16, b: u16) -> Option<u16> {
+fn checked_multiply_16(a: u16, b: u16) -> Option<u16> {
     let result: u32 = jet::multiply_16(a, b);
 
     let (high, low): (u16, u16) = <u32>::into(result);
@@ -35,18 +35,18 @@ pub fn checked_multiply_16(a: u16, b: u16) -> Option<u16> {
     }
 }
 
-pub fn safe_multiply_16(a: u16, b: u16) -> u16 {
+fn safe_multiply_16(a: u16, b: u16) -> u16 {
     unwrap(checked_multiply_16(a, b))
 }
 
-pub fn checked_divide_16(a: u16, b: u16) -> Option<u16> {
+fn checked_divide_16(a: u16, b: u16) -> Option<u16> {
     match jet::is_zero_16(b) {
         true => None,
         false => Some(jet::divide_16(a, b)),
     }
 }
 
-pub fn safe_divide_16(a: u16, b: u16) -> u16 {
+fn safe_divide_16(a: u16, b: u16) -> u16 {
     unwrap(checked_divide_16(a, b))
 }
 

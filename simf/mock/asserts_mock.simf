@@ -1,45 +1,45 @@
 // todo: switch to function import when available
-pub fn assert_eq8(a: u8, b: u8) { // 1
+fn assert_eq8(a: u8, b: u8) { // 1
     assert!(jet::eq_8(a, b));
 }
 
-pub fn assert_eq16(a: u16, b: u16) { // 2
+fn assert_eq16(a: u16, b: u16) { // 2
     assert!(jet::eq_16(a, b));
 }
 
-pub fn assert_eq32(a: u32, b: u32) { // 3
+fn assert_eq32(a: u32, b: u32) { // 3
     assert!(jet::eq_32(a, b));
 }
 
-pub fn assert_eq64(a: u64, b: u64) { // 4
+fn assert_eq64(a: u64, b: u64) { // 4
     assert!(jet::eq_64(a, b));
 }
 
-pub fn assert_eq256(a: u256, b: u256) { // 5
+fn assert_eq256(a: u256, b: u256) { // 5
     assert!(jet::eq_256(a, b));
 }
 
-pub fn assert_none8(val: Option<u8>) { // 6
+fn assert_none8(val: Option<u8>) { // 6
     assert!(is_none::<u8>(val));
 }
 
-pub fn assert_none16(val: Option<u16>) { // 7
+fn assert_none16(val: Option<u16>) { // 7
     assert!(is_none::<u16>(val));
 }
 
-pub fn assert_none32(val: Option<u32>) { // 8
+fn assert_none32(val: Option<u32>) { // 8
     assert!(is_none::<u32>(val));
 }
 
-pub fn assert_none64(val: Option<u64>) { // 9
+fn assert_none64(val: Option<u64>) { // 9
     assert!(is_none::<u64>(val));
 }
 
-pub fn assert_none128(val: Option<u128>) { // 10
+fn assert_none128(val: Option<u128>) { // 10
     assert!(is_none::<u128>(val));
 }
 
-pub fn assert_none256(val: Option<u256>) { // 11
+fn assert_none256(val: Option<u256>) { // 11
     assert!(is_none::<u256>(val));
 }
 
