@@ -50,46 +50,144 @@ fn safe_divide_16(a: u16, b: u16) -> u16 {
     unwrap(checked_divide_16(a, b))
 }
 
+// helper
+fn if_test_this_function(index: u8, flag: u8) -> bool {
+   jet::eq_8(index, flag)
+}
+
 fn main() {
-    let maxU16: u16 = 0xffff;
+    let function_index: u8 = witness::FUNCTION_INDEX;
+    let if_test_overflow: bool = witness::IF_TEST_OVERFLOW;
+
+    let first_arg: u16 = witness::FIRST_ARG;
+    let second_arg: u16 = witness::SECOND_ARG;
+    let result: u16 = witness::RESULT;
 
     // add
-    let fittingU16: Option<u16> = checked_add_16(1, 2);
-    assert!(jet::eq_16(unwrap(fittingU16), 3));
+    match if_test_this_function(0, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU16: Option<u16> = checked_add_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowingU16));
+                },
+                false => {
+                    let fittingU16: Option<u16> = checked_add_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fittingU16), result));
+                }
+            }
+        },
+        false => (),
+    };
 
-    let overflowingU16: Option<u16> = checked_add_16(maxU16, 1);
-    assert!(is_none::<u16>(overflowingU16));
-
-    let fittingU16: u16 = safe_add_16(1, 2);
-    assert!(jet::eq_16(fittingU16, 3));
-
+    match if_test_this_function(1, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU16: u16 = safe_add_16(first_arg, second_arg);
+                },
+                false => {
+                    let fittingU16: u16 = safe_add_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fittingU16, result));
+                }
+            }
+        },
+        false => (),
+    };
+   
     // subtract
-    let fittingU16: Option<u16> = checked_subtract_16(maxU16, 1);
-    assert!(jet::eq_16(unwrap(fittingU16), 0xfffe));
+    match if_test_this_function(2, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU16: Option<u16> = checked_subtract_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowingU16));
+                },
+                false => {
+                    let fittingU16: Option<u16> = checked_subtract_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fittingU16), result));
+                }
+            }
+        },
+        false => (),
+    };
 
-    let overflowingU16: Option<u16> = checked_subtract_16(1, 2);
-    assert!(is_none::<u16>(overflowingU16));
-
-    let fittingU16: u16 = safe_subtract_16(10, 2);
-    assert!(jet::eq_16(fittingU16, 8));
+    match if_test_this_function(3, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU16: u16 = safe_subtract_16(first_arg, second_arg);
+                },
+                false => {
+                    let fittingU16: u16 = safe_subtract_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fittingU16, result));
+                }
+            }
+        },
+        false => (),
+    };
 
     // multiply
-    let fittingU16: Option<u16> = checked_multiply_16(3, 2);
-    assert!(jet::eq_16(unwrap(fittingU16), 6));
+    match if_test_this_function(4, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU16: Option<u16> = checked_multiply_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowingU16));
+                },
+                false => {
+                    let fittingU16: Option<u16> = checked_multiply_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fittingU16), result));
+                }
+            }
+        },
+        false => (),
+    };
 
-    let overflowingU16: Option<u16> = checked_multiply_16(maxU16, 2);
-    assert!(is_none::<u16>(overflowingU16));
+    match if_test_this_function(5, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU16: u16 = safe_multiply_16(first_arg, second_arg);
+                },
+                false => {
+                    let fittingU16: u16 = safe_multiply_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fittingU16, result));
+                }
+            }
+        },
+        false => (),
+    };
 
-    let fittingU16: u16 = safe_multiply_16(1, 2);
-    assert!(jet::eq_16(fittingU16, 2));
+    // divide 
+    match if_test_this_function(6, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU16: Option<u16> = checked_divide_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowingU16));
+                },
+                false => {
+                    let fittingU16: Option<u16> = checked_divide_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fittingU16), result));
+                }
+            }
+        },
+        false => (),
+    };
 
-    // divide
-    let fittingU16: Option<u16> = checked_divide_16(4, 2);
-    assert!(jet::eq_16(unwrap(fittingU16), 2));
-
-    let overflowingU16: Option<u16> = checked_divide_16(maxU16, 0);
-    assert!(is_none::<u16>(overflowingU16));
-
-    let fittingU16: u16 = safe_divide_16(4, 2);
-    assert!(jet::eq_16(fittingU16, 2));
+    match if_test_this_function(7, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU16: u16 = safe_divide_16(first_arg, second_arg);
+                },
+                false => {
+                    let fittingU16: u16 = safe_divide_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fittingU16, result));
+                }
+            }
+        },
+        false => (),
+    };
 }
