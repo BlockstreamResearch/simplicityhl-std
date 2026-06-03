@@ -51,46 +51,144 @@ fn safe_divide_32(a: u32, b: u32) -> u32 {
     unwrap(checked_divide_32(a, b))
 }
 
+// helper
+fn if_test_this_function(index: u8, flag: u8) -> bool {
+   jet::eq_8(index, flag)
+}
+
 fn main() {
-    let maxU32: u32 = 0xffffffff;
+    let function_index: u8 = witness::FUNCTION_INDEX;
+    let if_test_overflow: bool = witness::IF_TEST_OVERFLOW;
+
+    let first_arg: u32 = witness::FIRST_ARG;
+    let second_arg: u32 = witness::SECOND_ARG;
+    let result: u32 = witness::RESULT;
 
     // add
-    let fittingU32: Option<u32> = checked_add_32(1, 2);
-    assert!(jet::eq_32(unwrap(fittingU32), 3));
+    match if_test_this_function(0, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU32: Option<u32> = checked_add_32(first_arg, second_arg);
+                    assert!(is_none::<u32>(overflowingU32));
+                },
+                false => {
+                    let fittingU32: Option<u32> = checked_add_32(first_arg, second_arg);
+                    assert!(jet::eq_32(unwrap(fittingU32), result));
+                }
+            }
+        },
+        false => (),
+    };
 
-    let overflowingU32: Option<u32> = checked_add_32(maxU32, 1);
-    assert!(is_none::<u32>(overflowingU32));
-
-    let fittingU32: u32 = safe_add_32(1, 2);
-    assert!(jet::eq_32(fittingU32, 3));
-
+    match if_test_this_function(1, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU32: u32 = safe_add_32(first_arg, second_arg);
+                },
+                false => {
+                    let fittingU32: u32 = safe_add_32(first_arg, second_arg);
+                    assert!(jet::eq_32(fittingU32, result));
+                }
+            }
+        },
+        false => (),
+    };
+   
     // subtract
-    let fittingU32: Option<u32> = checked_subtract_32(maxU32, 1);
-    assert!(jet::eq_32(unwrap(fittingU32), 0xfffffffe));
+    match if_test_this_function(2, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU32: Option<u32> = checked_subtract_32(first_arg, second_arg);
+                    assert!(is_none::<u32>(overflowingU32));
+                },
+                false => {
+                    let fittingU32: Option<u32> = checked_subtract_32(first_arg, second_arg);
+                    assert!(jet::eq_32(unwrap(fittingU32), result));
+                }
+            }
+        },
+        false => (),
+    };
 
-    let overflowingU32: Option<u32> = checked_subtract_32(1, 2);
-    assert!(is_none::<u32>(overflowingU32));
-
-    let fittingU32: u32 = safe_subtract_32(10, 2);
-    assert!(jet::eq_32(fittingU32, 8));
+    match if_test_this_function(3, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU32: u32 = safe_subtract_32(first_arg, second_arg);
+                },
+                false => {
+                    let fittingU32: u32 = safe_subtract_32(first_arg, second_arg);
+                    assert!(jet::eq_32(fittingU32, result));
+                }
+            }
+        },
+        false => (),
+    };
 
     // multiply
-    let fittingU32: Option<u32> = checked_multiply_32(3, 2);
-    assert!(jet::eq_32(unwrap(fittingU32), 6));
+    match if_test_this_function(4, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU32: Option<u32> = checked_multiply_32(first_arg, second_arg);
+                    assert!(is_none::<u32>(overflowingU32));
+                },
+                false => {
+                    let fittingU32: Option<u32> = checked_multiply_32(first_arg, second_arg);
+                    assert!(jet::eq_32(unwrap(fittingU32), result));
+                }
+            }
+        },
+        false => (),
+    };
 
-    let overflowingU32: Option<u32> = checked_multiply_32(maxU32, 2);
-    assert!(is_none::<u32>(overflowingU32));
+    match if_test_this_function(5, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU32: u32 = safe_multiply_32(first_arg, second_arg);
+                },
+                false => {
+                    let fittingU32: u32 = safe_multiply_32(first_arg, second_arg);
+                    assert!(jet::eq_32(fittingU32, result));
+                }
+            }
+        },
+        false => (),
+    };
 
-    let fittingU32: u32 = safe_multiply_32(1, 2);
-    assert!(jet::eq_32(fittingU32, 2));
+    // divide 
+    match if_test_this_function(6, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU32: Option<u32> = checked_divide_32(first_arg, second_arg);
+                    assert!(is_none::<u32>(overflowingU32));
+                },
+                false => {
+                    let fittingU32: Option<u32> = checked_divide_32(first_arg, second_arg);
+                    assert!(jet::eq_32(unwrap(fittingU32), result));
+                }
+            }
+        },
+        false => (),
+    };
 
-    // divide
-    let fittingU32: Option<u32> = checked_divide_32(4, 2);
-    assert!(jet::eq_32(unwrap(fittingU32), 2));
-
-    let overflowingU32: Option<u32> = checked_divide_32(5, 0);
-    assert!(is_none::<u32>(overflowingU32));
-
-    let fittingU32: u32 = safe_divide_32(5, 2);
-    assert!(jet::eq_32(fittingU32, 2));
+    match if_test_this_function(7, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowingU32: u32 = safe_divide_32(first_arg, second_arg);
+                },
+                false => {
+                    let fittingU32: u32 = safe_divide_32(first_arg, second_arg);
+                    assert!(jet::eq_32(fittingU32, result));
+                }
+            }
+        },
+        false => (),
+    };
 }
