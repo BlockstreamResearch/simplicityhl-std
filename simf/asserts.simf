@@ -18,6 +18,8 @@ fn assert_eq64(a: u64, b: u64) {
     assert!(jet::eq_64(a, b));
 }
 
+// todo: assert_eq128
+
 /// Asserts that two u256 are equal
 fn assert_eq256(a: u256, b: u256) {
     assert!(jet::eq_256(a, b));

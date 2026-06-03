@@ -5,6 +5,21 @@ use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, Require
 use simplicityhl_std::artifacts::mock::asserts_mock::AssertsMockProgram;
 use simplicityhl_std::artifacts::mock::asserts_mock::derived_asserts_mock::{AssertsMockWitness, AssertsMockArguments};
 
+enum FunctionToTest {
+    HappyPath,
+    AssertEq8,
+    AssertEq16,
+    AssertEq32,
+    AssertEq64,
+    AssertEq256,
+    AssertNone8,
+    AssertNone16,
+    AssertNone32,
+    AssertNone64,
+    AssertNone128,
+    AssertNone256
+}
+
 fn get_asserts_test_script(context: &simplex::TestContext) -> (AssertsMockProgram, Script) {
     let arguments = AssertsMockArguments {};
 
@@ -26,7 +41,7 @@ fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
     Ok(()) 
 }
 
-fn spend_script(context: &simplex::TestContext, flag: u8) -> anyhow::Result<()> {
+fn spend_script(context: &simplex::TestContext, function_index: u8,) -> anyhow::Result<()> {
     let signer = context.get_default_signer();
     let provider = context.get_default_provider();
 
@@ -36,7 +51,7 @@ fn spend_script(context: &simplex::TestContext, flag: u8) -> anyhow::Result<()> 
 
     let mut ft = FinalTransaction::new();
 
-    let witness = AssertsMockWitness {flag: flag};
+    let witness = AssertsMockWitness {function_index: function_index};
 
     ft.add_program_input(
         PartialInput::new(asserts_utxos[0].clone()),
@@ -52,21 +67,21 @@ fn spend_script(context: &simplex::TestContext, flag: u8) -> anyhow::Result<()> 
 
 #[simplex::test]
 fn asserts_test_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 0;
+    let function_index = FunctionToTest::HappyPath;
 
     fund_script(&context)?;
-    spend_script(&context, flag)?;
+    spend_script(&context, function_index as u8)?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn assert_eq8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 1;
+    let function_index = FunctionToTest::AssertEq8;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
@@ -81,11 +96,11 @@ fn assert_eq8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> 
 
 #[simplex::test]
 fn assert_eq16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 2;
+    let function_index = FunctionToTest::AssertEq16;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
@@ -100,11 +115,11 @@ fn assert_eq16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
 
 #[simplex::test]
 fn assert_eq32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 3;
+    let function_index = FunctionToTest::AssertEq32;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
@@ -119,11 +134,11 @@ fn assert_eq32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
 
 #[simplex::test]
 fn assert_eq64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 4;
+    let function_index = FunctionToTest::AssertEq64;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
@@ -138,11 +153,11 @@ fn assert_eq64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
 
 #[simplex::test]
 fn assert_eq256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 5;
+    let function_index = FunctionToTest::AssertEq256;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
@@ -157,11 +172,11 @@ fn assert_eq256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
 
 #[simplex::test]
 fn assert_none8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 6;
+    let function_index = FunctionToTest::AssertNone8;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
@@ -176,11 +191,11 @@ fn assert_none8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
 
 #[simplex::test]
 fn assert_none16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 7;
+    let function_index = FunctionToTest::AssertNone16;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
@@ -195,11 +210,11 @@ fn assert_none16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 
 #[simplex::test]
 fn assert_none32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 8;
+    let function_index = FunctionToTest::AssertNone32;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
@@ -214,11 +229,11 @@ fn assert_none32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 
 #[simplex::test]
 fn assert_none64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 9;
+    let function_index = FunctionToTest::AssertNone64;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
@@ -233,11 +248,11 @@ fn assert_none64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 
 #[simplex::test]
 fn assert_none128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 10;
+    let function_index = FunctionToTest::AssertNone128;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
@@ -252,11 +267,11 @@ fn assert_none128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
 
 #[simplex::test]
 fn assert_none256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let flag: u8 = 11;
+    let function_index = FunctionToTest::AssertNone256;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, flag);
+    let txid_result = spend_script(&context, function_index as u8);
 
     assert!(
         txid_result.is_err(),
