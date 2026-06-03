@@ -64,7 +64,7 @@ fn main() {
     let fittingU32: u32 = safe_add_32(1, 2);
     assert!(jet::eq_32(fittingU32, 3));
 
-    // substract
+    // subtract
     let fittingU32: Option<u32> = checked_subtract_32(maxU32, 1);
     assert!(jet::eq_32(unwrap(fittingU32), 0xfffffffe));
 

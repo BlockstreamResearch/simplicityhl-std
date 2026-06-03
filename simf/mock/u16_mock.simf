@@ -63,7 +63,7 @@ fn main() {
     let fittingU16: u16 = safe_add_16(1, 2);
     assert!(jet::eq_16(fittingU16, 3));
 
-    // substract
+    // subtract
     let fittingU16: Option<u16> = checked_subtract_16(maxU16, 1);
     assert!(jet::eq_16(unwrap(fittingU16), 0xfffe));
 

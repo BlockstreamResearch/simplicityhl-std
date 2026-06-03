@@ -64,7 +64,7 @@ fn main() {
     let fittingU64: u64 = safe_add_64(1, 2);
     assert!(jet::eq_64(fittingU64, 3));
 
-    // substract
+    // subtract
     let fittingU64: Option<u64> = checked_subtract_64(maxU64, 1);
     assert!(jet::eq_64(unwrap(fittingU64), 0xfffffffffffffffe));
 
