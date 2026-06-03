@@ -8,3 +8,4 @@ version = "0.1.0"
 smplx-std = { version = ">=0.0.5, <0.1.0" }
 
 anyhow = { version = "1.0.101" }
+rand = "0.8.6"
