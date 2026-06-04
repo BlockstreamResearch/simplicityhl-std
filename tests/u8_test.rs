@@ -1,4 +1,4 @@
-use simplex::simplicityhl::elements::{Script};
+use simplex::simplicityhl::elements::Script;
 
 use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
 
@@ -6,6 +6,9 @@ use simplicityhl_std::artifacts::mock::u8_mock::U8MockProgram;
 use simplicityhl_std::artifacts::mock::u8_mock::derived_u8_mock::{U8MockArguments, U8MockWitness};
 
 use rand::Rng;
+
+mod helper;
+use helper::{IfTestOverflow, cast_to_bool};
 
 enum FunctionToTest {
     CheckedAdd8,
@@ -15,16 +18,7 @@ enum FunctionToTest {
     CheckedMultiply8,
     SafeMultiply8,
     CheckedDivide8,
-    SafeDivide8
-}
-
-enum IfTestOverflow {
-    NotOverflow, 
-    Overflow
-}
-
-fn cast_to_bool (if_overflow: IfTestOverflow) -> bool {
-    if_overflow as u8 == 1
+    SafeDivide8,
 }
 
 fn get_script(context: &simplex::TestContext) -> (U8MockProgram, Script) {
@@ -32,7 +26,8 @@ fn get_script(context: &simplex::TestContext) -> (U8MockProgram, Script) {
 
     let logical_operations_program = U8MockProgram::new(arguments);
 
-    let logical_operations_script = logical_operations_program.get_script_pubkey(context.get_network());
+    let logical_operations_script =
+        logical_operations_program.get_script_pubkey(context.get_network());
 
     (logical_operations_program, logical_operations_script)
 }
@@ -45,10 +40,17 @@ fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
     let tx_receipt = signer.send(logical_operations_script.clone(), 50)?;
     println!("Broadcast: {}", tx_receipt);
 
-    Ok(()) 
+    Ok(())
 }
 
-fn spend_script(context: &simplex::TestContext, function_index: FunctionToTest, if_test_overflow: bool, first_arg: u8, second_arg: u8, result: u8,) -> anyhow::Result<()> {
+fn spend_script(
+    context: &simplex::TestContext,
+    function_index: FunctionToTest,
+    if_test_overflow: IfTestOverflow,
+    first_arg: u8,
+    second_arg: u8,
+    result: u8,
+) -> anyhow::Result<()> {
     let signer = context.get_default_signer();
     let provider = context.get_default_provider();
 
@@ -58,11 +60,20 @@ fn spend_script(context: &simplex::TestContext, function_index: FunctionToTest, 
 
     let mut ft = FinalTransaction::new();
 
-    let witness = U8MockWitness {function_index: function_index as u8, if_test_overflow: if_test_overflow, first_arg: first_arg, second_arg: second_arg, result: result };
+    let witness = U8MockWitness {
+        function_index: function_index as u8,
+        if_test_overflow: cast_to_bool(if_test_overflow),
+        first_arg: first_arg,
+        second_arg: second_arg,
+        result: result,
+    };
 
     ft.add_program_input(
         PartialInput::new(asserts_utxos[0].clone()),
-        ProgramInput::new(Box::new(logical_operations_program.as_ref().clone()), Box::new(witness.clone())),
+        ProgramInput::new(
+            Box::new(logical_operations_program.as_ref().clone()),
+            Box::new(witness.clone()),
+        ),
         RequiredSignature::None,
     );
 
@@ -74,12 +85,19 @@ fn spend_script(context: &simplex::TestContext, function_index: FunctionToTest, 
 
 #[simplex::test]
 fn u8_test_checked_add_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let first_arg = rand::thread_rng().gen_range(0..=u8::MAX/2);
-    let second_arg = rand::thread_rng().gen_range(0..=u8::MAX/2);
-    let result  = first_arg + second_arg;
+    let first_arg = rand::thread_rng().gen_range(0..=u8::MAX / 2);
+    let second_arg = rand::thread_rng().gen_range(0..=u8::MAX / 2);
+    let result = first_arg + second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::CheckedAdd8, cast_to_bool(IfTestOverflow::NotOverflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedAdd8,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
@@ -88,22 +106,36 @@ fn u8_test_checked_add_8_not_overflow(context: simplex::TestContext) -> anyhow::
 fn u8_test_checked_add_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = u8::MAX;
     let second_arg = rand::thread_rng().gen_range(1..=u8::MAX);
-    let result  = 0;
+    let result = 0;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::CheckedAdd8, cast_to_bool(IfTestOverflow::Overflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedAdd8,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u8_test_safe_add_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let first_arg = rand::thread_rng().gen_range(0..=u8::MAX/2);
-    let second_arg = rand::thread_rng().gen_range(0..=u8::MAX/2);
-    let result  = first_arg + second_arg;
+    let first_arg = rand::thread_rng().gen_range(0..=u8::MAX / 2);
+    let second_arg = rand::thread_rng().gen_range(0..=u8::MAX / 2);
+    let result = first_arg + second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::SafeAdd8, cast_to_bool(IfTestOverflow::NotOverflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeAdd8,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
@@ -112,11 +144,18 @@ fn u8_test_safe_add_8_not_overflow(context: simplex::TestContext) -> anyhow::Res
 fn u8_test_safe_add_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = u8::MAX;
     let second_arg = rand::thread_rng().gen_range(1..=u8::MAX);
-    let result  = 0;
+    let result = 0;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, FunctionToTest::SafeAdd8, cast_to_bool(IfTestOverflow::Overflow), first_arg, second_arg, result);
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeAdd8,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
 
     assert!(
         txid_result.is_err(),
@@ -124,7 +163,10 @@ fn u8_test_safe_add_8_overflow(context: simplex::TestContext) -> anyhow::Result<
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317");
+    assert_eq!(
+        err,
+        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
+    );
 
     Ok(())
 }
@@ -133,22 +175,36 @@ fn u8_test_safe_add_8_overflow(context: simplex::TestContext) -> anyhow::Result<
 fn u8_test_checked_subtract_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX);
     let second_arg = rand::thread_rng().gen_range(0..=first_arg);
-    let result  = first_arg - second_arg;
+    let result = first_arg - second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::CheckedSubtract8, cast_to_bool(IfTestOverflow::NotOverflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedSubtract8,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u8_test_checked_subtract_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let first_arg = rand::thread_rng().gen_range(0..=u8::MAX-1);
-    let second_arg = rand::thread_rng().gen_range(first_arg+1..=u8::MAX);
+    let first_arg = rand::thread_rng().gen_range(0..=u8::MAX - 1);
+    let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u8::MAX);
     let result = 0;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::CheckedSubtract8, cast_to_bool(IfTestOverflow::Overflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedSubtract8,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
@@ -157,23 +213,37 @@ fn u8_test_checked_subtract_8_overflow(context: simplex::TestContext) -> anyhow:
 fn u8_test_safe_subtract_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX);
     let second_arg = rand::thread_rng().gen_range(0..=first_arg);
-    let result  = first_arg - second_arg;
+    let result = first_arg - second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::SafeSubtract8, cast_to_bool(IfTestOverflow::NotOverflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeSubtract8,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u8_test_safe_subtract_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let first_arg = rand::thread_rng().gen_range(0..=u8::MAX-1);
-    let second_arg = rand::thread_rng().gen_range(first_arg+1..=u8::MAX);
-    let result  = 0;
+    let first_arg = rand::thread_rng().gen_range(0..=u8::MAX - 1);
+    let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u8::MAX);
+    let result = 0;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, FunctionToTest::SafeSubtract8, cast_to_bool(IfTestOverflow::Overflow), first_arg, second_arg, result);
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeSubtract8,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
 
     assert!(
         txid_result.is_err(),
@@ -181,7 +251,10 @@ fn u8_test_safe_subtract_8_overflow(context: simplex::TestContext) -> anyhow::Re
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317");
+    assert_eq!(
+        err,
+        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
+    );
 
     Ok(())
 }
@@ -190,10 +263,17 @@ fn u8_test_safe_subtract_8_overflow(context: simplex::TestContext) -> anyhow::Re
 fn u8_test_checked_multiply_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
     let second_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
-    let result  = first_arg * second_arg;
+    let result = first_arg * second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::CheckedMultiply8, cast_to_bool(IfTestOverflow::NotOverflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedMultiply8,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
@@ -202,10 +282,17 @@ fn u8_test_checked_multiply_8_not_overflow(context: simplex::TestContext) -> any
 fn u8_test_checked_multiply_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = u8::MAX;
     let second_arg = rand::thread_rng().gen_range(2..=u8::MAX);
-    let result  = 0;
+    let result = 0;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::CheckedMultiply8, cast_to_bool(IfTestOverflow::Overflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedMultiply8,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
@@ -214,10 +301,17 @@ fn u8_test_checked_multiply_8_overflow(context: simplex::TestContext) -> anyhow:
 fn u8_test_safe_multiply_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
     let second_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
-    let result  = first_arg * second_arg;
+    let result = first_arg * second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::SafeMultiply8, cast_to_bool(IfTestOverflow::NotOverflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeMultiply8,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
@@ -226,11 +320,18 @@ fn u8_test_safe_multiply_8_not_overflow(context: simplex::TestContext) -> anyhow
 fn u8_test_safe_multiply_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = u8::MAX;
     let second_arg = rand::thread_rng().gen_range(2..=u8::MAX);
-    let result  = 0;
+    let result = 0;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, FunctionToTest::SafeMultiply8, cast_to_bool(IfTestOverflow::Overflow), first_arg, second_arg, result);
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeMultiply8,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
 
     assert!(
         txid_result.is_err(),
@@ -238,7 +339,10 @@ fn u8_test_safe_multiply_8_overflow(context: simplex::TestContext) -> anyhow::Re
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317");
+    assert_eq!(
+        err,
+        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
+    );
 
     Ok(())
 }
@@ -247,10 +351,17 @@ fn u8_test_safe_multiply_8_overflow(context: simplex::TestContext) -> anyhow::Re
 fn u8_test_checked_divide_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX);
     let second_arg = rand::thread_rng().gen_range(1..=u8::MAX);
-    let result  = first_arg / second_arg;
+    let result = first_arg / second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::CheckedDivide8, cast_to_bool(IfTestOverflow::NotOverflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedDivide8,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
@@ -262,7 +373,14 @@ fn u8_test_checked_divide_8_overflow(context: simplex::TestContext) -> anyhow::R
     let result = 0;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::CheckedDivide8, cast_to_bool(IfTestOverflow::Overflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedDivide8,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
@@ -271,10 +389,17 @@ fn u8_test_checked_divide_8_overflow(context: simplex::TestContext) -> anyhow::R
 fn u8_test_safe_divide_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX);
     let second_arg = rand::thread_rng().gen_range(1..=u8::MAX);
-    let result  = first_arg / second_arg;
+    let result = first_arg / second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, FunctionToTest::SafeDivide8, cast_to_bool(IfTestOverflow::NotOverflow), first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeDivide8,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
@@ -287,7 +412,14 @@ fn u8_test_safe_divide_8_overflow(context: simplex::TestContext) -> anyhow::Resu
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, FunctionToTest::SafeDivide8, cast_to_bool(IfTestOverflow::Overflow), first_arg, second_arg, result);
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeDivide8,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
 
     assert!(
         txid_result.is_err(),
@@ -295,7 +427,10 @@ fn u8_test_safe_divide_8_overflow(context: simplex::TestContext) -> anyhow::Resu
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317");
+    assert_eq!(
+        err,
+        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
+    );
 
     Ok(())
 }

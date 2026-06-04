@@ -1,16 +1,19 @@
-use simplex::simplicityhl::elements::{Script};
+use simplex::simplicityhl::elements::Script;
 
 use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
 
 use simplicityhl_std::artifacts::mock::logical_operations_mock::LogicalOperationsMockProgram;
-use simplicityhl_std::artifacts::mock::logical_operations_mock::derived_logical_operations_mock::{LogicalOperationsMockArguments, LogicalOperationsMockWitness};
+use simplicityhl_std::artifacts::mock::logical_operations_mock::derived_logical_operations_mock::{
+    LogicalOperationsMockArguments, LogicalOperationsMockWitness,
+};
 
 fn get_script(context: &simplex::TestContext) -> (LogicalOperationsMockProgram, Script) {
     let arguments = LogicalOperationsMockArguments {};
 
     let logical_operations_program = LogicalOperationsMockProgram::new(arguments);
 
-    let logical_operations_script = logical_operations_program.get_script_pubkey(context.get_network());
+    let logical_operations_script =
+        logical_operations_program.get_script_pubkey(context.get_network());
 
     (logical_operations_program, logical_operations_script)
 }
@@ -23,7 +26,7 @@ fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
     let tx_receipt = signer.send(logical_operations_script.clone(), 50)?;
     println!("Broadcast: {}", tx_receipt);
 
-    Ok(()) 
+    Ok(())
 }
 
 fn spend_script(context: &simplex::TestContext) -> anyhow::Result<()> {
@@ -40,7 +43,10 @@ fn spend_script(context: &simplex::TestContext) -> anyhow::Result<()> {
 
     ft.add_program_input(
         PartialInput::new(asserts_utxos[0].clone()),
-        ProgramInput::new(Box::new(logical_operations_program.as_ref().clone()), Box::new(witness.clone())),
+        ProgramInput::new(
+            Box::new(logical_operations_program.as_ref().clone()),
+            Box::new(witness.clone()),
+        ),
         RequiredSignature::None,
     );
 
