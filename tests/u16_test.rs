@@ -1,11 +1,16 @@
-use simplex::simplicityhl::elements::{Script};
+use simplex::simplicityhl::elements::Script;
 
 use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
 
 use simplicityhl_std::artifacts::mock::u16_mock::U16MockProgram;
-use simplicityhl_std::artifacts::mock::u16_mock::derived_u16_mock::{U16MockArguments, U16MockWitness};
+use simplicityhl_std::artifacts::mock::u16_mock::derived_u16_mock::{
+    U16MockArguments, U16MockWitness,
+};
 
 use rand::Rng;
+
+mod helper;
+use helper::{IfTestOverflow, cast_to_bool};
 
 enum FunctionToTest {
     CheckedAdd16,
@@ -15,7 +20,7 @@ enum FunctionToTest {
     CheckedMultiply16,
     SafeMultiply16,
     CheckedDivide16,
-    SafeDivide16
+    SafeDivide16,
 }
 
 fn get_script(context: &simplex::TestContext) -> (U16MockProgram, Script) {
@@ -23,7 +28,8 @@ fn get_script(context: &simplex::TestContext) -> (U16MockProgram, Script) {
 
     let logical_operations_program = U16MockProgram::new(arguments);
 
-    let logical_operations_script = logical_operations_program.get_script_pubkey(context.get_network());
+    let logical_operations_script =
+        logical_operations_program.get_script_pubkey(context.get_network());
 
     (logical_operations_program, logical_operations_script)
 }
@@ -36,10 +42,17 @@ fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
     let tx_receipt = signer.send(logical_operations_script.clone(), 50)?;
     println!("Broadcast: {}", tx_receipt);
 
-    Ok(()) 
+    Ok(())
 }
 
-fn spend_script(context: &simplex::TestContext, function_index: u8, if_test_overflow: bool, first_arg: u16, second_arg: u16, result: u16,) -> anyhow::Result<()> {
+fn spend_script(
+    context: &simplex::TestContext,
+    function_index: FunctionToTest,
+    if_test_overflow: IfTestOverflow,
+    first_arg: u16,
+    second_arg: u16,
+    result: u16,
+) -> anyhow::Result<()> {
     let signer = context.get_default_signer();
     let provider = context.get_default_provider();
 
@@ -49,11 +62,20 @@ fn spend_script(context: &simplex::TestContext, function_index: u8, if_test_over
 
     let mut ft = FinalTransaction::new();
 
-    let witness = U16MockWitness {function_index: function_index, if_test_overflow: if_test_overflow, first_arg: first_arg, second_arg: second_arg, result: result };
+    let witness = U16MockWitness {
+        function_index: function_index as u8,
+        if_test_overflow: cast_to_bool(if_test_overflow),
+        first_arg: first_arg,
+        second_arg: second_arg,
+        result: result,
+    };
 
     ft.add_program_input(
         PartialInput::new(asserts_utxos[0].clone()),
-        ProgramInput::new(Box::new(logical_operations_program.as_ref().clone()), Box::new(witness.clone())),
+        ProgramInput::new(
+            Box::new(logical_operations_program.as_ref().clone()),
+            Box::new(witness.clone()),
+        ),
         RequiredSignature::None,
     );
 
@@ -65,61 +87,77 @@ fn spend_script(context: &simplex::TestContext, function_index: u8, if_test_over
 
 #[simplex::test]
 fn u16_test_checked_add_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::CheckedAdd16;
-    let if_test_overflow = false;
-
-    let first_arg = rand::thread_rng().gen_range(0..=u16::MAX/2);
-    let second_arg = rand::thread_rng().gen_range(0..=u16::MAX/2);
-    let result  = first_arg + second_arg;
+    let first_arg = rand::thread_rng().gen_range(0..=u16::MAX / 2);
+    let second_arg = rand::thread_rng().gen_range(0..=u16::MAX / 2);
+    let result = first_arg + second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedAdd16,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_checked_add_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::CheckedAdd16;
-    let if_test_overflow = true;
-
     let first_arg = u16::MAX;
     let second_arg = rand::thread_rng().gen_range(1..=u16::MAX);
-    let result  = 0;
+    let result = 0;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedAdd16,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_safe_add_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::SafeAdd16;
-    let if_test_overflow = false;
-
-    let first_arg = rand::thread_rng().gen_range(0..=u16::MAX/2);
-    let second_arg = rand::thread_rng().gen_range(0..=u16::MAX/2);
-    let result  = first_arg + second_arg;
+    let first_arg = rand::thread_rng().gen_range(0..=u16::MAX / 2);
+    let second_arg = rand::thread_rng().gen_range(0..=u16::MAX / 2);
+    let result = first_arg + second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeAdd16,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_safe_add_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::SafeAdd16;
-    let if_test_overflow = true;
-
     let first_arg = u16::MAX;
     let second_arg = rand::thread_rng().gen_range(1..=u16::MAX);
-    let result  = 0;
+    let result = 0;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result);
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeAdd16,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
 
     assert!(
         txid_result.is_err(),
@@ -127,68 +165,87 @@ fn u16_test_safe_add_16_overflow(context: simplex::TestContext) -> anyhow::Resul
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317");
+    assert_eq!(
+        err,
+        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
+    );
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_checked_subtract_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::CheckedSubtract16;
-    let if_test_overflow = false;
-
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = rand::thread_rng().gen_range(0..=first_arg);
-    let result  = first_arg - second_arg;
+    let result = first_arg - second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedSubtract16,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_checked_subtract_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::CheckedSubtract16;
-    let if_test_overflow = true;
-
-    let first_arg = rand::thread_rng().gen_range(0..=u16::MAX-1);
-    let second_arg = rand::thread_rng().gen_range(first_arg+1..=u16::MAX);
+    let first_arg = rand::thread_rng().gen_range(0..=u16::MAX - 1);
+    let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u16::MAX);
     let result = 0;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedSubtract16,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_safe_subtract_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::SafeSubtract16;
-    let if_test_overflow = false;
-
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = rand::thread_rng().gen_range(0..=first_arg);
-    let result  = first_arg - second_arg;
+    let result = first_arg - second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeSubtract16,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_safe_subtract_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::SafeSubtract16;
-    let if_test_overflow = true;
-
-    let first_arg = rand::thread_rng().gen_range(0..=u16::MAX-1);
-    let second_arg = rand::thread_rng().gen_range(first_arg+1..=u16::MAX);
-    let result  = 0;
+    let first_arg = rand::thread_rng().gen_range(0..=u16::MAX - 1);
+    let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u16::MAX);
+    let result = 0;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result);
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeSubtract16,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
 
     assert!(
         txid_result.is_err(),
@@ -196,68 +253,87 @@ fn u16_test_safe_subtract_16_overflow(context: simplex::TestContext) -> anyhow::
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317");
+    assert_eq!(
+        err,
+        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
+    );
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_checked_multiply_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::CheckedMultiply16;
-    let if_test_overflow = false;
-
     let first_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
     let second_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
-    let result  = first_arg * second_arg;
+    let result = first_arg * second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedMultiply16,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_checked_multiply_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::CheckedMultiply16;
-    let if_test_overflow = true;
-
     let first_arg = u16::MAX;
     let second_arg = rand::thread_rng().gen_range(2..=u16::MAX);
-    let result  = 0;
+    let result = 0;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedMultiply16,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_safe_multiply_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::SafeMultiply16;
-    let if_test_overflow = false;
-
     let first_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
     let second_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
-    let result  = first_arg * second_arg;
+    let result = first_arg * second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeMultiply16,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_safe_multiply_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::SafeMultiply16;
-    let if_test_overflow = true;
-
     let first_arg = u16::MAX;
     let second_arg = rand::thread_rng().gen_range(2..=u16::MAX);
-    let result  = 0;
+    let result = 0;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result);
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeMultiply16,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
 
     assert!(
         txid_result.is_err(),
@@ -265,68 +341,87 @@ fn u16_test_safe_multiply_16_overflow(context: simplex::TestContext) -> anyhow::
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317");
+    assert_eq!(
+        err,
+        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
+    );
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_checked_divide_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::CheckedDivide16;
-    let if_test_overflow = false;
-
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = rand::thread_rng().gen_range(1..=u16::MAX);
-    let result  = first_arg / second_arg;
+    let result = first_arg / second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedDivide16,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_checked_divide_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::CheckedDivide16;
-    let if_test_overflow = true;
-
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = 0;
     let result = 0;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedDivide16,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_safe_divide_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::SafeDivide16;
-    let if_test_overflow = false;
-
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = rand::thread_rng().gen_range(1..=u16::MAX);
-    let result  = first_arg / second_arg;
+    let result = first_arg / second_arg;
 
     fund_script(&context)?;
-    spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeDivide16,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
 
     Ok(())
 }
 
 #[simplex::test]
 fn u16_test_safe_divide_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let function_index = FunctionToTest::SafeDivide16;
-    let if_test_overflow = true;
-
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = 0;
     let result = 0;
 
     fund_script(&context)?;
 
-    let txid_result = spend_script(&context, function_index as u8, if_test_overflow, first_arg, second_arg, result);
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeDivide16,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
 
     assert!(
         txid_result.is_err(),
@@ -334,7 +429,10 @@ fn u16_test_safe_divide_16_overflow(context: simplex::TestContext) -> anyhow::Re
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317");
+    assert_eq!(
+        err,
+        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
+    );
 
     Ok(())
 }
