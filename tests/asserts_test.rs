@@ -76,7 +76,7 @@ fn asserts_test_happy_path(context: simplex::TestContext) -> anyhow::Result<()> 
 }
 
 #[simplex::test]
-fn assert_eq8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_eq_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertEq8;
 
     fund_script(&context)?;
@@ -95,7 +95,7 @@ fn assert_eq8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> 
 }
 
 #[simplex::test]
-fn assert_eq16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_eq_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertEq16;
 
     fund_script(&context)?;
@@ -114,7 +114,7 @@ fn assert_eq16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
 }
 
 #[simplex::test]
-fn assert_eq32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_eq_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertEq32;
 
     fund_script(&context)?;
@@ -133,7 +133,7 @@ fn assert_eq32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
 }
 
 #[simplex::test]
-fn assert_eq64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_eq_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertEq64;
 
     fund_script(&context)?;
@@ -152,7 +152,7 @@ fn assert_eq64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
 }
 
 #[simplex::test]
-fn assert_eq256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_eq_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertEq256;
 
     fund_script(&context)?;
@@ -171,7 +171,7 @@ fn assert_eq256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
 }
 
 #[simplex::test]
-fn assert_none8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_none_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertNone8;
 
     fund_script(&context)?;
@@ -190,7 +190,7 @@ fn assert_none8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
 }
 
 #[simplex::test]
-fn assert_none16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_none_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertNone16;
 
     fund_script(&context)?;
@@ -209,7 +209,7 @@ fn assert_none16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 }
 
 #[simplex::test]
-fn assert_none32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_none_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertNone32;
 
     fund_script(&context)?;
@@ -228,7 +228,7 @@ fn assert_none32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 }
 
 #[simplex::test]
-fn assert_none64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_none_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertNone64;
 
     fund_script(&context)?;
@@ -247,7 +247,7 @@ fn assert_none64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 }
 
 #[simplex::test]
-fn assert_none128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_none_128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertNone128;
 
     fund_script(&context)?;
@@ -266,7 +266,7 @@ fn assert_none128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
 }
 
 #[simplex::test]
-fn assert_none256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+fn assert_none_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     let function_index = FunctionToTest::AssertNone256;
 
     fund_script(&context)?;
