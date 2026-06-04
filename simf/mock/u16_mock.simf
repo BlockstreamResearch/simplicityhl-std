@@ -68,12 +68,12 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU16: Option<u16> = checked_add_16(first_arg, second_arg);
-                    assert!(is_none::<u16>(overflowingU16));
+                    let overflowing_u16: Option<u16> = checked_add_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowing_u16));
                 },
                 false => {
-                    let fittingU16: Option<u16> = checked_add_16(first_arg, second_arg);
-                    assert!(jet::eq_16(unwrap(fittingU16), result));
+                    let fitting_u16: Option<u16> = checked_add_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fitting_u16), result));
                 }
             }
         },
@@ -84,11 +84,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU16: u16 = safe_add_16(first_arg, second_arg);
+                    let overflowing_u16: u16 = safe_add_16(first_arg, second_arg);
                 },
                 false => {
-                    let fittingU16: u16 = safe_add_16(first_arg, second_arg);
-                    assert!(jet::eq_16(fittingU16, result));
+                    let fitting_u16: u16 = safe_add_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fitting_u16, result));
                 }
             }
         },
@@ -100,12 +100,12 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU16: Option<u16> = checked_subtract_16(first_arg, second_arg);
-                    assert!(is_none::<u16>(overflowingU16));
+                    let overflowing_u16: Option<u16> = checked_subtract_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowing_u16));
                 },
                 false => {
-                    let fittingU16: Option<u16> = checked_subtract_16(first_arg, second_arg);
-                    assert!(jet::eq_16(unwrap(fittingU16), result));
+                    let fitting_u16: Option<u16> = checked_subtract_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fitting_u16), result));
                 }
             }
         },
@@ -116,11 +116,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU16: u16 = safe_subtract_16(first_arg, second_arg);
+                    let overflowing_u16: u16 = safe_subtract_16(first_arg, second_arg);
                 },
                 false => {
-                    let fittingU16: u16 = safe_subtract_16(first_arg, second_arg);
-                    assert!(jet::eq_16(fittingU16, result));
+                    let fitting_u16: u16 = safe_subtract_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fitting_u16, result));
                 }
             }
         },
@@ -132,12 +132,12 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU16: Option<u16> = checked_multiply_16(first_arg, second_arg);
-                    assert!(is_none::<u16>(overflowingU16));
+                    let overflowing_u16: Option<u16> = checked_multiply_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowing_u16));
                 },
                 false => {
-                    let fittingU16: Option<u16> = checked_multiply_16(first_arg, second_arg);
-                    assert!(jet::eq_16(unwrap(fittingU16), result));
+                    let fitting_u16: Option<u16> = checked_multiply_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fitting_u16), result));
                 }
             }
         },
@@ -148,11 +148,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU16: u16 = safe_multiply_16(first_arg, second_arg);
+                    let overflowing_u16: u16 = safe_multiply_16(first_arg, second_arg);
                 },
                 false => {
-                    let fittingU16: u16 = safe_multiply_16(first_arg, second_arg);
-                    assert!(jet::eq_16(fittingU16, result));
+                    let fitting_u16: u16 = safe_multiply_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fitting_u16, result));
                 }
             }
         },
@@ -164,12 +164,12 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU16: Option<u16> = checked_divide_16(first_arg, second_arg);
-                    assert!(is_none::<u16>(overflowingU16));
+                    let overflowing_u16: Option<u16> = checked_divide_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowing_u16));
                 },
                 false => {
-                    let fittingU16: Option<u16> = checked_divide_16(first_arg, second_arg);
-                    assert!(jet::eq_16(unwrap(fittingU16), result));
+                    let fitting_u16: Option<u16> = checked_divide_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fitting_u16), result));
                 }
             }
         },
@@ -180,11 +180,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU16: u16 = safe_divide_16(first_arg, second_arg);
+                    let overflowing_u16: u16 = safe_divide_16(first_arg, second_arg);
                 },
                 false => {
-                    let fittingU16: u16 = safe_divide_16(first_arg, second_arg);
-                    assert!(jet::eq_16(fittingU16, result));
+                    let fitting_u16: u16 = safe_divide_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fitting_u16, result));
                 }
             }
         },

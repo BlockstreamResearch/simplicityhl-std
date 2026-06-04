@@ -69,12 +69,12 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU8: Option<u8> = checked_add_8(first_arg, second_arg);
-                    assert!(is_none::<u8>(overflowingU8));
+                    let overflowing_u8: Option<u8> = checked_add_8(first_arg, second_arg);
+                    assert!(is_none::<u8>(overflowing_u8));
                 },
                 false => {
-                    let fittingU8: Option<u8> = checked_add_8(first_arg, second_arg);
-                    assert!(jet::eq_8(unwrap(fittingU8), result));
+                    let fitting_u8: Option<u8> = checked_add_8(first_arg, second_arg);
+                    assert!(jet::eq_8(unwrap(fitting_u8), result));
                 }
             }
         },
@@ -85,11 +85,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU8: u8 = safe_add_8(first_arg, second_arg);
+                    let overflowing_u8: u8 = safe_add_8(first_arg, second_arg);
                 },
                 false => {
-                    let fittingU8: u8 = safe_add_8(first_arg, second_arg);
-                    assert!(jet::eq_8(fittingU8, result));
+                    let fitting_u8: u8 = safe_add_8(first_arg, second_arg);
+                    assert!(jet::eq_8(fitting_u8, result));
                 }
             }
         },
@@ -101,12 +101,12 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU8: Option<u8> = checked_subtract_8(first_arg, second_arg);
-                    assert!(is_none::<u8>(overflowingU8));
+                    let overflowing_u8: Option<u8> = checked_subtract_8(first_arg, second_arg);
+                    assert!(is_none::<u8>(overflowing_u8));
                 },
                 false => {
-                    let fittingU8: Option<u8> = checked_subtract_8(first_arg, second_arg);
-                    assert!(jet::eq_8(unwrap(fittingU8), result));
+                    let fitting_u8: Option<u8> = checked_subtract_8(first_arg, second_arg);
+                    assert!(jet::eq_8(unwrap(fitting_u8), result));
                 }
             }
         },
@@ -117,11 +117,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU8: u8 = safe_subtract_8(first_arg, second_arg);
+                    let overflowing_u8: u8 = safe_subtract_8(first_arg, second_arg);
                 },
                 false => {
-                    let fittingU8: u8 = safe_subtract_8(first_arg, second_arg);
-                    assert!(jet::eq_8(fittingU8, result));
+                    let fitting_u8: u8 = safe_subtract_8(first_arg, second_arg);
+                    assert!(jet::eq_8(fitting_u8, result));
                 }
             }
         },
@@ -133,12 +133,12 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU8: Option<u8> = checked_multiply_8(first_arg, second_arg);
-                    assert!(is_none::<u8>(overflowingU8));
+                    let overflowing_u8: Option<u8> = checked_multiply_8(first_arg, second_arg);
+                    assert!(is_none::<u8>(overflowing_u8));
                 },
                 false => {
-                    let fittingU8: Option<u8> = checked_multiply_8(first_arg, second_arg);
-                    assert!(jet::eq_8(unwrap(fittingU8), result));
+                    let fitting_u8: Option<u8> = checked_multiply_8(first_arg, second_arg);
+                    assert!(jet::eq_8(unwrap(fitting_u8), result));
                 }
             }
         },
@@ -149,11 +149,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU8: u8 = safe_multiply_8(first_arg, second_arg);
+                    let overflowing_u8: u8 = safe_multiply_8(first_arg, second_arg);
                 },
                 false => {
-                    let fittingU8: u8 = safe_multiply_8(first_arg, second_arg);
-                    assert!(jet::eq_8(fittingU8, result));
+                    let fitting_u8: u8 = safe_multiply_8(first_arg, second_arg);
+                    assert!(jet::eq_8(fitting_u8, result));
                 }
             }
         },
@@ -165,12 +165,12 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU8: Option<u8> = checked_divide_8(first_arg, second_arg);
-                    assert!(is_none::<u8>(overflowingU8));
+                    let overflowing_u8: Option<u8> = checked_divide_8(first_arg, second_arg);
+                    assert!(is_none::<u8>(overflowing_u8));
                 },
                 false => {
-                    let fittingU8: Option<u8> = checked_divide_8(first_arg, second_arg);
-                    assert!(jet::eq_8(unwrap(fittingU8), result));
+                    let fitting_u8: Option<u8> = checked_divide_8(first_arg, second_arg);
+                    assert!(jet::eq_8(unwrap(fitting_u8), result));
                 }
             }
         },
@@ -181,11 +181,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowingU8: u8 = safe_divide_8(first_arg, second_arg);
+                    let overflowing_u8: u8 = safe_divide_8(first_arg, second_arg);
                 },
                 false => {
-                    let fittingU8: u8 = safe_divide_8(first_arg, second_arg);
-                    assert!(jet::eq_8(fittingU8, result));
+                    let fitting_u8: u8 = safe_divide_8(first_arg, second_arg);
+                    assert!(jet::eq_8(fitting_u8, result));
                 }
             }
         },
