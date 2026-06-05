@@ -51,21 +51,109 @@ fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn generate_test_data(
+    function_index: FunctionToTest,
+    if_same_values: bool,
+    if_none_value: bool,
+) -> AssertsMockWitness {
+    let mut witness: AssertsMockWitness = AssertsMockWitness {
+        function_index: 0,
+        first_arg_u8: DEFAULT_SOME_U8,
+        second_arg_u8: DEFAULT_SOME_U8,
+        first_arg_u16: DEFAULT_SOME_U16,
+        second_arg_u16: DEFAULT_SOME_U16,
+        first_arg_u32: DEFAULT_SOME_U32,
+        second_arg_u32: DEFAULT_SOME_U32,
+        first_arg_u64: DEFAULT_SOME_U64,
+        second_arg_u64: DEFAULT_SOME_U64,
+        first_arg_u128: DEFAULT_SOME_U128,
+        second_arg_u128: DEFAULT_SOME_U128,
+        first_arg_u256: DEFAULT_SOME_U256,
+        second_arg_u256: DEFAULT_SOME_U256,
+    };
+
+    match function_index {
+        FunctionToTest::AssertEq8 => {
+            let some_u8 = rand::thread_rng().gen_range(0..=u8::MAX);
+            witness.first_arg_u8 = Some(some_u8);
+
+            if if_same_values {
+                witness.second_arg_u8 = Some(some_u8);
+            };
+        }
+        FunctionToTest::AssertEq16 => {
+            let some_u16 = rand::thread_rng().gen_range(0..=u16::MAX);
+            witness.first_arg_u16 = Some(some_u16);
+
+            if if_same_values {
+                witness.second_arg_u16 = Some(some_u16);
+            }
+        }
+        FunctionToTest::AssertEq32 => {
+            let some_u32 = rand::thread_rng().gen_range(0..=u32::MAX);
+            witness.first_arg_u32 = Some(some_u32);
+
+            if if_same_values {
+                witness.second_arg_u32 = Some(some_u32);
+            }
+        }
+        FunctionToTest::AssertEq64 => {
+            let some_u64 = rand::thread_rng().gen_range(0..=u64::MAX);
+            witness.first_arg_u64 = Some(some_u64);
+
+            if if_same_values {
+                witness.second_arg_u64 = Some(some_u64);
+            }
+        }
+        FunctionToTest::AssertEq256 => {
+            let some_u8 = rand::thread_rng().gen_range(0..=u8::MAX);
+            witness.first_arg_u256 = Some([some_u8; 32]);
+
+            if if_same_values {
+                witness.second_arg_u256 = Some([some_u8; 32]);
+            }
+        }
+        FunctionToTest::AssertNone8 => {
+            if if_none_value {
+                witness.first_arg_u8 = None;
+            };
+        }
+        FunctionToTest::AssertNone16 => {
+            if if_none_value {
+                witness.first_arg_u16 = None;
+            };
+        }
+        FunctionToTest::AssertNone32 => {
+            if if_none_value {
+                witness.first_arg_u32 = None;
+            };
+        }
+        FunctionToTest::AssertNone64 => {
+            if if_none_value {
+                witness.first_arg_u64 = None;
+            };
+        }
+        FunctionToTest::AssertNone128 => {
+            if if_none_value {
+                witness.first_arg_u128 = None;
+            };
+        }
+        FunctionToTest::AssertNone256 => {
+            if if_none_value {
+                witness.first_arg_u256 = None;
+            };
+        }
+    }
+
+    witness.function_index = function_index as u8;
+    witness
+}
+
 fn spend_script(
     context: &simplex::TestContext,
     function_index: FunctionToTest,
-    first_arg_u8: Option<u8>,
-    second_arg_u8: Option<u8>,
-    first_arg_u16: Option<u16>,
-    second_arg_u16: Option<u16>,
-    first_arg_u32: Option<u32>,
-    second_arg_u32: Option<u32>,
-    first_arg_u64: Option<u64>,
-    second_arg_u64: Option<u64>,
-    first_arg_u128: Option<u128>,
-    second_arg_u128: Option<u128>,
-    first_arg_u256: Option<[u8; 32]>,
-    second_arg_u256: Option<[u8; 32]>,
+    if_same_values: bool,
+    if_none_value: bool,
 ) -> anyhow::Result<()> {
     let signer = context.get_default_signer();
     let provider = context.get_default_provider();
@@ -76,21 +164,8 @@ fn spend_script(
 
     let mut ft = FinalTransaction::new();
 
-    let witness = AssertsMockWitness {
-        function_index: function_index as u8,
-        first_arg_u8,
-        second_arg_u8,
-        first_arg_u16,
-        second_arg_u16,
-        first_arg_u32,
-        second_arg_u32,
-        first_arg_u64,
-        second_arg_u64,
-        first_arg_u128,
-        second_arg_u128,
-        first_arg_u256,
-        second_arg_u256,
-    };
+    let witness: AssertsMockWitness =
+        generate_test_data(function_index, if_same_values, if_none_value);
 
     ft.add_program_input(
         PartialInput::new(asserts_utxos[0].clone()),
@@ -109,24 +184,15 @@ fn spend_script(
 
 #[simplex::test]
 fn assert_eq_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let some_u8 = rand::thread_rng().gen_range(0..=u8::MAX);
+    let if_same_values = true;
+    let if_none_value = false;
 
     fund_script(&context)?;
     spend_script(
         &context,
         FunctionToTest::AssertEq8,
-        Some(some_u8),
-        Some(some_u8),
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -134,25 +200,16 @@ fn assert_eq_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
 
 #[simplex::test]
 fn assert_eq_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let some_u8 = rand::thread_rng().gen_range(1..=u8::MAX);
+    let if_same_values = false;
+    let if_none_value = false;
 
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertEq8,
-        Some(some_u8),
-        Some(0),
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
@@ -168,24 +225,15 @@ fn assert_eq_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
 
 #[simplex::test]
 fn assert_eq_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let some_u16: u16 = rand::thread_rng().gen_range(1..=u16::MAX);
+    let if_same_values = true;
+    let if_none_value = false;
 
     fund_script(&context)?;
     spend_script(
         &context,
         FunctionToTest::AssertEq16,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        Some(some_u16),
-        Some(some_u16),
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -193,25 +241,16 @@ fn assert_eq_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()> 
 
 #[simplex::test]
 fn assert_eq_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let some_u16: u16 = rand::thread_rng().gen_range(1..=u16::MAX);
+    let if_same_values = false;
+    let if_none_value = false;
 
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertEq16,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        Some(some_u16),
-        Some(0),
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
@@ -227,24 +266,15 @@ fn assert_eq_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
 
 #[simplex::test]
 fn assert_eq_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let some_u32: u32 = rand::thread_rng().gen_range(1..=u32::MAX);
+    let if_same_values = true;
+    let if_none_value = false;
 
     fund_script(&context)?;
     spend_script(
         &context,
         FunctionToTest::AssertEq32,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        Some(some_u32),
-        Some(some_u32),
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -252,25 +282,16 @@ fn assert_eq_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()> 
 
 #[simplex::test]
 fn assert_eq_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let some_u32: u32 = rand::thread_rng().gen_range(1..=u32::MAX);
+    let if_same_values = false;
+    let if_none_value = false;
 
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertEq32,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        Some(some_u32),
-        Some(0),
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
@@ -286,24 +307,15 @@ fn assert_eq_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
 
 #[simplex::test]
 fn assert_eq_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let some_u64: u64 = rand::thread_rng().gen_range(1..=u64::MAX);
+    let if_same_values = true;
+    let if_none_value = false;
 
     fund_script(&context)?;
     spend_script(
         &context,
         FunctionToTest::AssertEq64,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        Some(some_u64),
-        Some(some_u64),
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -311,25 +323,16 @@ fn assert_eq_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()> 
 
 #[simplex::test]
 fn assert_eq_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let some_u64: u64 = rand::thread_rng().gen_range(1..=u64::MAX);
+    let if_same_values = false;
+    let if_none_value = false;
 
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertEq64,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        Some(some_u64),
-        Some(0),
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
@@ -345,24 +348,15 @@ fn assert_eq_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
 
 #[simplex::test]
 fn assert_eq_256_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let some_u8: u8 = rand::thread_rng().gen_range(1..=u8::MAX);
+    let if_same_values = true;
+    let if_none_value = false;
 
     fund_script(&context)?;
     spend_script(
         &context,
         FunctionToTest::AssertEq256,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        Some([some_u8; 32]),
-        Some([some_u8; 32]),
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -370,25 +364,16 @@ fn assert_eq_256_happy_path(context: simplex::TestContext) -> anyhow::Result<()>
 
 #[simplex::test]
 fn assert_eq_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    let some_u8: u8 = rand::thread_rng().gen_range(1..=u8::MAX);
+    let if_same_values = false;
+    let if_none_value = false;
 
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertEq256,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        Some([some_u8; 32]),
-        Some([0; 32]),
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
@@ -404,22 +389,15 @@ fn assert_eq_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 
 #[simplex::test]
 fn assert_none_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = true;
+
     fund_script(&context)?;
     spend_script(
         &context,
         FunctionToTest::AssertNone8,
-        None,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -427,23 +405,16 @@ fn assert_none_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()>
 
 #[simplex::test]
 fn assert_none_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = false;
+
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
@@ -459,23 +430,16 @@ fn assert_none_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
 
 #[simplex::test]
 fn assert_none_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = true;
+
     fund_script(&context)?;
 
     spend_script(
         &context,
         FunctionToTest::AssertNone16,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        None,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -483,23 +447,16 @@ fn assert_none_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()
 
 #[simplex::test]
 fn assert_none_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = false;
+
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone16,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
@@ -515,23 +472,16 @@ fn assert_none_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
 
 #[simplex::test]
 fn assert_none_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = true;
+
     fund_script(&context)?;
 
     spend_script(
         &context,
         FunctionToTest::AssertNone32,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        None,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -539,23 +489,16 @@ fn assert_none_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()
 
 #[simplex::test]
 fn assert_none_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = false;
+
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone32,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
@@ -571,23 +514,16 @@ fn assert_none_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
 
 #[simplex::test]
 fn assert_none_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = true;
+
     fund_script(&context)?;
 
     spend_script(
         &context,
         FunctionToTest::AssertNone64,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        None,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -595,23 +531,16 @@ fn assert_none_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()
 
 #[simplex::test]
 fn assert_none_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = false;
+
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone64,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
@@ -627,23 +556,16 @@ fn assert_none_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
 
 #[simplex::test]
 fn assert_none_128_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = true;
+
     fund_script(&context)?;
 
     spend_script(
         &context,
         FunctionToTest::AssertNone128,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        None,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -651,23 +573,16 @@ fn assert_none_128_happy_path(context: simplex::TestContext) -> anyhow::Result<(
 
 #[simplex::test]
 fn assert_none_128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = false;
+
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone128,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
@@ -683,23 +598,16 @@ fn assert_none_128_unhappy_path(context: simplex::TestContext) -> anyhow::Result
 
 #[simplex::test]
 fn assert_none_256_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = true;
+
     fund_script(&context)?;
 
     spend_script(
         &context,
         FunctionToTest::AssertNone256,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        None,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     )?;
 
     Ok(())
@@ -707,23 +615,16 @@ fn assert_none_256_happy_path(context: simplex::TestContext) -> anyhow::Result<(
 
 #[simplex::test]
 fn assert_none_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+    let if_same_values: bool = false;
+    let if_none_value = false;
+
     fund_script(&context)?;
 
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone256,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U8,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U16,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U32,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U64,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U128,
-        DEFAULT_SOME_U256,
-        DEFAULT_SOME_U256,
+        if_same_values,
+        if_none_value,
     );
 
     assert!(
