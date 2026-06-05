@@ -8,7 +8,7 @@ use simplicityhl_std::artifacts::mock::u8_mock::derived_u8_mock::{U8MockArgument
 use rand::Rng;
 
 mod helper;
-use helper::{IfTestOverflow, cast_to_bool};
+use crate::helper::{NOT_TEST_OVERFLOW, TEST_OVERFLOW};
 
 enum FunctionToTest {
     CheckedAdd8,
@@ -46,7 +46,7 @@ fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
 fn spend_script(
     context: &simplex::TestContext,
     function_index: FunctionToTest,
-    if_test_overflow: IfTestOverflow,
+    if_test_overflow: bool,
     first_arg: u8,
     second_arg: u8,
     result: u8,
@@ -62,7 +62,7 @@ fn spend_script(
 
     let witness = U8MockWitness {
         function_index: function_index as u8,
-        if_test_overflow: cast_to_bool(if_test_overflow),
+        if_test_overflow,
         first_arg,
         second_arg,
         result,
@@ -93,7 +93,7 @@ fn u8_test_checked_add_8_not_overflow(context: simplex::TestContext) -> anyhow::
     spend_script(
         &context,
         FunctionToTest::CheckedAdd8,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -112,7 +112,7 @@ fn u8_test_checked_add_8_overflow(context: simplex::TestContext) -> anyhow::Resu
     spend_script(
         &context,
         FunctionToTest::CheckedAdd8,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -131,7 +131,7 @@ fn u8_test_safe_add_8_not_overflow(context: simplex::TestContext) -> anyhow::Res
     spend_script(
         &context,
         FunctionToTest::SafeAdd8,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -151,7 +151,7 @@ fn u8_test_safe_add_8_overflow(context: simplex::TestContext) -> anyhow::Result<
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeAdd8,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -181,7 +181,7 @@ fn u8_test_checked_subtract_8_not_overflow(context: simplex::TestContext) -> any
     spend_script(
         &context,
         FunctionToTest::CheckedSubtract8,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -200,7 +200,7 @@ fn u8_test_checked_subtract_8_overflow(context: simplex::TestContext) -> anyhow:
     spend_script(
         &context,
         FunctionToTest::CheckedSubtract8,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -219,7 +219,7 @@ fn u8_test_safe_subtract_8_not_overflow(context: simplex::TestContext) -> anyhow
     spend_script(
         &context,
         FunctionToTest::SafeSubtract8,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -239,7 +239,7 @@ fn u8_test_safe_subtract_8_overflow(context: simplex::TestContext) -> anyhow::Re
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeSubtract8,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -269,7 +269,7 @@ fn u8_test_checked_multiply_8_not_overflow(context: simplex::TestContext) -> any
     spend_script(
         &context,
         FunctionToTest::CheckedMultiply8,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -288,7 +288,7 @@ fn u8_test_checked_multiply_8_overflow(context: simplex::TestContext) -> anyhow:
     spend_script(
         &context,
         FunctionToTest::CheckedMultiply8,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -307,7 +307,7 @@ fn u8_test_safe_multiply_8_not_overflow(context: simplex::TestContext) -> anyhow
     spend_script(
         &context,
         FunctionToTest::SafeMultiply8,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -327,7 +327,7 @@ fn u8_test_safe_multiply_8_overflow(context: simplex::TestContext) -> anyhow::Re
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeMultiply8,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -357,7 +357,7 @@ fn u8_test_checked_divide_8_not_overflow(context: simplex::TestContext) -> anyho
     spend_script(
         &context,
         FunctionToTest::CheckedDivide8,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -376,7 +376,7 @@ fn u8_test_checked_divide_8_overflow(context: simplex::TestContext) -> anyhow::R
     spend_script(
         &context,
         FunctionToTest::CheckedDivide8,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -395,7 +395,7 @@ fn u8_test_safe_divide_8_not_overflow(context: simplex::TestContext) -> anyhow::
     spend_script(
         &context,
         FunctionToTest::SafeDivide8,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -415,7 +415,7 @@ fn u8_test_safe_divide_8_overflow(context: simplex::TestContext) -> anyhow::Resu
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeDivide8,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,

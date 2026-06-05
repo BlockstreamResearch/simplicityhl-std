@@ -1,8 +1,2 @@
-pub enum IfTestOverflow {
-    NotOverflow,
-    Overflow,
-}
-
-pub fn cast_to_bool(if_overflow: IfTestOverflow) -> bool {
-    if_overflow as u8 == 1
-}
+pub const TEST_OVERFLOW: bool = true;
+pub const NOT_TEST_OVERFLOW: bool = false;

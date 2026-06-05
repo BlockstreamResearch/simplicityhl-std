@@ -10,7 +10,7 @@ use simplicityhl_std::artifacts::mock::u32_mock::derived_u32_mock::{
 use rand::Rng;
 
 mod helper;
-use helper::{IfTestOverflow, cast_to_bool};
+use crate::helper::{NOT_TEST_OVERFLOW, TEST_OVERFLOW};
 
 enum FunctionToTest {
     CheckedAdd32,
@@ -48,7 +48,7 @@ fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
 fn spend_script(
     context: &simplex::TestContext,
     function_index: FunctionToTest,
-    if_test_overflow: IfTestOverflow,
+    if_test_overflow: bool,
     first_arg: u32,
     second_arg: u32,
     result: u32,
@@ -64,7 +64,7 @@ fn spend_script(
 
     let witness = U32MockWitness {
         function_index: function_index as u8,
-        if_test_overflow: cast_to_bool(if_test_overflow),
+        if_test_overflow,
         first_arg,
         second_arg,
         result,
@@ -95,7 +95,7 @@ fn u32_test_checked_add_32_not_overflow(context: simplex::TestContext) -> anyhow
     spend_script(
         &context,
         FunctionToTest::CheckedAdd32,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -114,7 +114,7 @@ fn u32_test_checked_add_32_overflow(context: simplex::TestContext) -> anyhow::Re
     spend_script(
         &context,
         FunctionToTest::CheckedAdd32,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -133,7 +133,7 @@ fn u32_test_safe_add_32_not_overflow(context: simplex::TestContext) -> anyhow::R
     spend_script(
         &context,
         FunctionToTest::SafeAdd32,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -153,7 +153,7 @@ fn u32_test_safe_add_32_overflow(context: simplex::TestContext) -> anyhow::Resul
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeAdd32,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -183,7 +183,7 @@ fn u32_test_checked_subtract_32_not_overflow(context: simplex::TestContext) -> a
     spend_script(
         &context,
         FunctionToTest::CheckedSubtract32,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -202,7 +202,7 @@ fn u32_test_checked_subtract_32_overflow(context: simplex::TestContext) -> anyho
     spend_script(
         &context,
         FunctionToTest::CheckedSubtract32,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -221,7 +221,7 @@ fn u32_test_safe_subtract_32_not_overflow(context: simplex::TestContext) -> anyh
     spend_script(
         &context,
         FunctionToTest::SafeSubtract32,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -241,7 +241,7 @@ fn u32_test_safe_subtract_32_overflow(context: simplex::TestContext) -> anyhow::
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeSubtract32,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -271,7 +271,7 @@ fn u32_test_checked_multiply_32_not_overflow(context: simplex::TestContext) -> a
     spend_script(
         &context,
         FunctionToTest::CheckedMultiply32,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -290,7 +290,7 @@ fn u32_test_checked_multiply_32_overflow(context: simplex::TestContext) -> anyho
     spend_script(
         &context,
         FunctionToTest::CheckedMultiply32,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -309,7 +309,7 @@ fn u32_test_safe_multiply_32_not_overflow(context: simplex::TestContext) -> anyh
     spend_script(
         &context,
         FunctionToTest::SafeMultiply32,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -329,7 +329,7 @@ fn u32_test_safe_multiply_32_overflow(context: simplex::TestContext) -> anyhow::
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeMultiply32,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -359,7 +359,7 @@ fn u32_test_checked_divide_32_not_overflow(context: simplex::TestContext) -> any
     spend_script(
         &context,
         FunctionToTest::CheckedDivide32,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -378,7 +378,7 @@ fn u32_test_checked_divide_32_overflow(context: simplex::TestContext) -> anyhow:
     spend_script(
         &context,
         FunctionToTest::CheckedDivide32,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -397,7 +397,7 @@ fn u32_test_safe_divide_32_not_overflow(context: simplex::TestContext) -> anyhow
     spend_script(
         &context,
         FunctionToTest::SafeDivide32,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -417,7 +417,7 @@ fn u32_test_safe_divide_32_overflow(context: simplex::TestContext) -> anyhow::Re
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeDivide32,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,

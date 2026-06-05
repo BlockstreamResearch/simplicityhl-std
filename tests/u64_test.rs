@@ -10,7 +10,7 @@ use simplicityhl_std::artifacts::mock::u64_mock::derived_u64_mock::{
 use rand::Rng;
 
 mod helper;
-use helper::{IfTestOverflow, cast_to_bool};
+use crate::helper::{NOT_TEST_OVERFLOW, TEST_OVERFLOW};
 
 enum FunctionToTest {
     CheckedAdd64,
@@ -48,7 +48,7 @@ fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
 fn spend_script(
     context: &simplex::TestContext,
     function_index: FunctionToTest,
-    if_test_overflow: IfTestOverflow,
+    if_test_overflow: bool,
     first_arg: u64,
     second_arg: u64,
     result: u64,
@@ -64,7 +64,7 @@ fn spend_script(
 
     let witness = U64MockWitness {
         function_index: function_index as u8,
-        if_test_overflow: cast_to_bool(if_test_overflow),
+        if_test_overflow,
         first_arg,
         second_arg,
         result,
@@ -95,7 +95,7 @@ fn u64_test_checked_add_64_not_overflow(context: simplex::TestContext) -> anyhow
     spend_script(
         &context,
         FunctionToTest::CheckedAdd64,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -114,7 +114,7 @@ fn u64_test_checked_add_64_overflow(context: simplex::TestContext) -> anyhow::Re
     spend_script(
         &context,
         FunctionToTest::CheckedAdd64,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -133,7 +133,7 @@ fn u64_test_safe_add_64_not_overflow(context: simplex::TestContext) -> anyhow::R
     spend_script(
         &context,
         FunctionToTest::SafeAdd64,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -153,7 +153,7 @@ fn u64_test_safe_add_64_overflow(context: simplex::TestContext) -> anyhow::Resul
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeAdd64,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -183,7 +183,7 @@ fn u64_test_checked_subtract_64_not_overflow(context: simplex::TestContext) -> a
     spend_script(
         &context,
         FunctionToTest::CheckedSubtract64,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -202,7 +202,7 @@ fn u64_test_checked_subtract_64_overflow(context: simplex::TestContext) -> anyho
     spend_script(
         &context,
         FunctionToTest::CheckedSubtract64,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -221,7 +221,7 @@ fn u64_test_safe_subtract_64_not_overflow(context: simplex::TestContext) -> anyh
     spend_script(
         &context,
         FunctionToTest::SafeSubtract64,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -241,7 +241,7 @@ fn u64_test_safe_subtract_64_overflow(context: simplex::TestContext) -> anyhow::
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeSubtract64,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -271,7 +271,7 @@ fn u64_test_checked_multiply_64_not_overflow(context: simplex::TestContext) -> a
     spend_script(
         &context,
         FunctionToTest::CheckedMultiply64,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -290,7 +290,7 @@ fn u64_test_checked_multiply_64_overflow(context: simplex::TestContext) -> anyho
     spend_script(
         &context,
         FunctionToTest::CheckedMultiply64,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -309,7 +309,7 @@ fn u64_test_safe_multiply_64_not_overflow(context: simplex::TestContext) -> anyh
     spend_script(
         &context,
         FunctionToTest::SafeMultiply64,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -329,7 +329,7 @@ fn u64_test_safe_multiply_64_overflow(context: simplex::TestContext) -> anyhow::
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeMultiply64,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -359,7 +359,7 @@ fn u64_test_checked_divide_64_not_overflow(context: simplex::TestContext) -> any
     spend_script(
         &context,
         FunctionToTest::CheckedDivide64,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -378,7 +378,7 @@ fn u64_test_checked_divide_64_overflow(context: simplex::TestContext) -> anyhow:
     spend_script(
         &context,
         FunctionToTest::CheckedDivide64,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -397,7 +397,7 @@ fn u64_test_safe_divide_64_not_overflow(context: simplex::TestContext) -> anyhow
     spend_script(
         &context,
         FunctionToTest::SafeDivide64,
-        IfTestOverflow::NotOverflow,
+        NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
@@ -417,7 +417,7 @@ fn u64_test_safe_divide_64_overflow(context: simplex::TestContext) -> anyhow::Re
     let txid_result = spend_script(
         &context,
         FunctionToTest::SafeDivide64,
-        IfTestOverflow::Overflow,
+        TEST_OVERFLOW,
         first_arg,
         second_arg,
         result,
