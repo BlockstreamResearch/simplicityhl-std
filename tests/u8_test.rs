@@ -63,9 +63,9 @@ fn spend_script(
     let witness = U8MockWitness {
         function_index: function_index as u8,
         if_test_overflow: cast_to_bool(if_test_overflow),
-        first_arg: first_arg,
-        second_arg: second_arg,
-        result: result,
+        first_arg,
+        second_arg,
+        result,
     };
 
     ft.add_program_input(
