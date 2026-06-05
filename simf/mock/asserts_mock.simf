@@ -1,47 +1,47 @@
 // todo: switch to function import when available
-fn assert_eq_8(a: u8, b: u8) { // 1
+fn assert_eq_8(a: u8, b: u8) { // 0
     assert!(jet::eq_8(a, b));
 }
 
-fn assert_eq_16(a: u16, b: u16) { // 2
+fn assert_eq_16(a: u16, b: u16) { // 1
     assert!(jet::eq_16(a, b));
 }
 
-fn assert_eq_32(a: u32, b: u32) { // 3
+fn assert_eq_32(a: u32, b: u32) { // 2
     assert!(jet::eq_32(a, b));
 }
 
-fn assert_eq_64(a: u64, b: u64) { // 4
+fn assert_eq_64(a: u64, b: u64) { // 3
     assert!(jet::eq_64(a, b));
 }
 
 // todo: assert_eq_128
 
-fn assert_eq_256(a: u256, b: u256) { // 5
+fn assert_eq_256(a: u256, b: u256) { // 4
     assert!(jet::eq_256(a, b));
 }
 
-fn assert_none_8(val: Option<u8>) { // 6
+fn assert_none_8(val: Option<u8>) { // 5
     assert!(is_none::<u8>(val));
 }
 
-fn assert_none_16(val: Option<u16>) { // 7
+fn assert_none_16(val: Option<u16>) { // 6
     assert!(is_none::<u16>(val));
 }
 
-fn assert_none_32(val: Option<u32>) { // 8
+fn assert_none_32(val: Option<u32>) { // 7
     assert!(is_none::<u32>(val));
 }
 
-fn assert_none_64(val: Option<u64>) { // 9
+fn assert_none_64(val: Option<u64>) { // 8
     assert!(is_none::<u64>(val));
 }
 
-fn assert_none_128(val: Option<u128>) { // 10
+fn assert_none_128(val: Option<u128>) { // 9
     assert!(is_none::<u128>(val));
 }
 
-fn assert_none_256(val: Option<u256>) { // 11
+fn assert_none_256(val: Option<u256>) { // 10
     assert!(is_none::<u256>(val));
 }
 
@@ -52,84 +52,99 @@ fn if_test_this_function(index: u8, flag: u8) -> bool {
 
 fn main() {
     let function_index: u8 = witness::FUNCTION_INDEX;
-    let if_happy_path: bool = if_test_this_function(0, function_index);
 
-    let some_u8: u8 = 255;
-    let some_u16: u16 = 65535;
-    let some_u32: u32 = 4294967295;
-    let some_u64: u64 = 18446744073709551615;
-    let some_u128: u128 = 340282366920938463463374607431768211455;
-    let some_u256: u256 = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
+    let first_arg_u8: Option<u8> = witness::FIRST_ARG_U8;
+    let second_arg_u8: Option<u8> = witness::SECOND_ARG_U8;
 
-    match if_happy_path {
+    let first_arg_u16: Option<u16> = witness::FIRST_ARG_U16;
+    let second_arg_u16: Option<u16> = witness::SECOND_ARG_U16;
+    
+    let first_arg_u32: Option<u32> = witness::FIRST_ARG_U32;
+    let second_arg_u32: Option<u32> = witness::SECOND_ARG_U32;
+
+    let first_arg_u64: Option<u64> = witness::FIRST_ARG_U64;
+    let second_arg_u64: Option<u64> = witness::SECOND_ARG_U64;
+
+    let first_arg_u128: Option<u128> = witness::FIRST_ARG_U128;
+    let second_arg_u128: Option<u128> = witness::SECOND_ARG_U128;
+
+    let first_arg_u256: Option<u256> = witness::FIRST_ARG_U256;
+    let second_arg_u256: Option<u256> = witness::SECOND_ARG_U256;
+
+    match if_test_this_function(0, function_index) {
         true => {
-            assert_eq_8(some_u8, some_u8);
-            assert_eq_16(some_u16, some_u16);
-            assert_eq_32(some_u32, some_u32);
-            assert_eq_64(some_u64, some_u64);
-            assert_eq_256(some_u256, some_u256);
-            
-            assert_none_8(None);
-            assert_none_16(None);
-            assert_none_32(None);
-            assert_none_64(None);
-            assert_none_128(None);
-            assert_none_256(None);
-        }, false => { 
-            match if_test_this_function(1, function_index) {
-                true => assert_eq_8(1, 2),
-                false => (),
-            };
+            assert_eq_8(unwrap(first_arg_u8), unwrap(second_arg_u8));
+        },
+        false => (),
+    };
 
-            match if_test_this_function(2, function_index) {
-                true => assert_eq_16(1, 2),
-                false => (),
-            };
+    match if_test_this_function(1, function_index) {
+        true => {
+            assert_eq_16(unwrap(first_arg_u16), unwrap(second_arg_u16));
+        },
+        false => (),
+    };
 
-            match if_test_this_function(3, function_index) {
-                true => assert_eq_32(1, 2),
-                false => (),
-            };
+    match if_test_this_function(2, function_index) {
+        true => {
+            assert_eq_32(unwrap(first_arg_u32), unwrap(second_arg_u32));
+        },
+        false => (),
+    };
 
-            match if_test_this_function(4, function_index) {
-                true => assert_eq_64(1, 2),
-                false => (),
-            };
+    match if_test_this_function(3, function_index) {
+        true => {
+            assert_eq_64(unwrap(first_arg_u64), unwrap(second_arg_u64));
+        },
+        false => (),
+    };
 
-            match if_test_this_function(5, function_index) {
-                true => assert_eq_256(1, 2),
-                false => (),
-            };
+    match if_test_this_function(4, function_index) {
+        true => {
+            assert_eq_256(unwrap(first_arg_u256), unwrap(second_arg_u256));
+        },
+        false => (),
+    };
 
-            match if_test_this_function(6, function_index) {
-                true => assert_none_8(Some(some_u8)),
-                false => (),
-            };
+    match if_test_this_function(5, function_index) {
+        true => {
+            assert_none_8(first_arg_u8);
+        },
+        false => (),
+    };
 
-            match if_test_this_function(7, function_index) {
-                true => assert_none_16(Some(some_u16)),
-                false => (),
-            };
+    match if_test_this_function(6, function_index) {
+        true => {
+            assert_none_16(first_arg_u16);
+        },
+        false => (),
+    };
 
-            match if_test_this_function(8, function_index) {
-                true => assert_none_32(Some(some_u32)),
-                false => (),
-            };
+    match if_test_this_function(7, function_index) {
+        true => {
+            assert_none_32(first_arg_u32);
+        },
+        false => (),
+    };
 
-            match if_test_this_function(9, function_index) {
-                true => assert_none_64(Some(some_u64)),
-                false => (),
-            };
+    match if_test_this_function(8, function_index) {
+        true => {
+            assert_none_64(first_arg_u64);
+        },
+        false => (),
+    };
 
-            match if_test_this_function(10, function_index) {
-                true => assert_none_128(Some(some_u128)),
-                false => (),
-            };
+    match if_test_this_function(9, function_index) {
+        true => {
+            assert_none_128(first_arg_u128);
+        },
+        false => (),
+    };
 
-            match if_test_this_function(11, function_index) {
-                true => assert_none_256(Some(some_u256)),
-                false => (),
-            };
-        }
-    }
+    match if_test_this_function(10, function_index) {
+        true => {
+            assert_none_256(first_arg_u256);
+        },
+        false => (),
+    };
 }
