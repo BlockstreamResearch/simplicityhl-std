@@ -13,12 +13,12 @@ use crate::helper::{NOT_TEST_OVERFLOW, TEST_OVERFLOW};
 enum FunctionToTest {
     CheckedAdd8,
     SafeAdd8,
-    CheckedSubtract8,
-    SafeSubtract8,
-    CheckedMultiply8,
-    SafeMultiply8,
-    CheckedDivide8,
-    SafeDivide8,
+    CheckedSub8,
+    SafeSub8,
+    CheckedMul8,
+    SafeMul8,
+    CheckedDiv8,
+    SafeDiv8,
 }
 
 fn get_script(context: &simplex::TestContext) -> (U8MockProgram, Script) {
@@ -172,7 +172,7 @@ fn u8_test_safe_add_8_overflow(context: simplex::TestContext) -> anyhow::Result<
 }
 
 #[simplex::test]
-fn u8_test_checked_subtract_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_checked_sub_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX);
     let second_arg = rand::thread_rng().gen_range(0..=first_arg);
     let result = first_arg - second_arg;
@@ -180,7 +180,7 @@ fn u8_test_checked_subtract_8_not_overflow(context: simplex::TestContext) -> any
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedSubtract8,
+        FunctionToTest::CheckedSub8,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -191,7 +191,7 @@ fn u8_test_checked_subtract_8_not_overflow(context: simplex::TestContext) -> any
 }
 
 #[simplex::test]
-fn u8_test_checked_subtract_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_checked_sub_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX - 1);
     let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u8::MAX);
     let result = 0;
@@ -199,7 +199,7 @@ fn u8_test_checked_subtract_8_overflow(context: simplex::TestContext) -> anyhow:
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedSubtract8,
+        FunctionToTest::CheckedSub8,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -210,7 +210,7 @@ fn u8_test_checked_subtract_8_overflow(context: simplex::TestContext) -> anyhow:
 }
 
 #[simplex::test]
-fn u8_test_safe_subtract_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_safe_sub_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX);
     let second_arg = rand::thread_rng().gen_range(0..=first_arg);
     let result = first_arg - second_arg;
@@ -218,7 +218,7 @@ fn u8_test_safe_subtract_8_not_overflow(context: simplex::TestContext) -> anyhow
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::SafeSubtract8,
+        FunctionToTest::SafeSub8,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -229,7 +229,7 @@ fn u8_test_safe_subtract_8_not_overflow(context: simplex::TestContext) -> anyhow
 }
 
 #[simplex::test]
-fn u8_test_safe_subtract_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_safe_sub_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX - 1);
     let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u8::MAX);
     let result = 0;
@@ -238,7 +238,7 @@ fn u8_test_safe_subtract_8_overflow(context: simplex::TestContext) -> anyhow::Re
 
     let txid_result = spend_script(
         &context,
-        FunctionToTest::SafeSubtract8,
+        FunctionToTest::SafeSub8,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -260,7 +260,7 @@ fn u8_test_safe_subtract_8_overflow(context: simplex::TestContext) -> anyhow::Re
 }
 
 #[simplex::test]
-fn u8_test_checked_multiply_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_checked_mul_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
     let second_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
     let result = first_arg * second_arg;
@@ -268,7 +268,7 @@ fn u8_test_checked_multiply_8_not_overflow(context: simplex::TestContext) -> any
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedMultiply8,
+        FunctionToTest::CheckedMul8,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -279,7 +279,7 @@ fn u8_test_checked_multiply_8_not_overflow(context: simplex::TestContext) -> any
 }
 
 #[simplex::test]
-fn u8_test_checked_multiply_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_checked_mul_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = u8::MAX;
     let second_arg = rand::thread_rng().gen_range(2..=u8::MAX);
     let result = 0;
@@ -287,7 +287,7 @@ fn u8_test_checked_multiply_8_overflow(context: simplex::TestContext) -> anyhow:
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedMultiply8,
+        FunctionToTest::CheckedMul8,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -298,7 +298,7 @@ fn u8_test_checked_multiply_8_overflow(context: simplex::TestContext) -> anyhow:
 }
 
 #[simplex::test]
-fn u8_test_safe_multiply_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_safe_mul_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
     let second_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
     let result = first_arg * second_arg;
@@ -306,7 +306,7 @@ fn u8_test_safe_multiply_8_not_overflow(context: simplex::TestContext) -> anyhow
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::SafeMultiply8,
+        FunctionToTest::SafeMul8,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -317,7 +317,7 @@ fn u8_test_safe_multiply_8_not_overflow(context: simplex::TestContext) -> anyhow
 }
 
 #[simplex::test]
-fn u8_test_safe_multiply_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_safe_mul_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = u8::MAX;
     let second_arg = rand::thread_rng().gen_range(2..=u8::MAX);
     let result = 0;
@@ -326,7 +326,7 @@ fn u8_test_safe_multiply_8_overflow(context: simplex::TestContext) -> anyhow::Re
 
     let txid_result = spend_script(
         &context,
-        FunctionToTest::SafeMultiply8,
+        FunctionToTest::SafeMul8,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -348,7 +348,7 @@ fn u8_test_safe_multiply_8_overflow(context: simplex::TestContext) -> anyhow::Re
 }
 
 #[simplex::test]
-fn u8_test_checked_divide_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_checked_div_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX);
     let second_arg = rand::thread_rng().gen_range(1..=u8::MAX);
     let result = first_arg / second_arg;
@@ -356,7 +356,7 @@ fn u8_test_checked_divide_8_not_overflow(context: simplex::TestContext) -> anyho
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedDivide8,
+        FunctionToTest::CheckedDiv8,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -367,7 +367,7 @@ fn u8_test_checked_divide_8_not_overflow(context: simplex::TestContext) -> anyho
 }
 
 #[simplex::test]
-fn u8_test_checked_divide_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_checked_div_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX);
     let second_arg = 0;
     let result = 0;
@@ -375,7 +375,7 @@ fn u8_test_checked_divide_8_overflow(context: simplex::TestContext) -> anyhow::R
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedDivide8,
+        FunctionToTest::CheckedDiv8,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -386,7 +386,7 @@ fn u8_test_checked_divide_8_overflow(context: simplex::TestContext) -> anyhow::R
 }
 
 #[simplex::test]
-fn u8_test_safe_divide_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_safe_div_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX);
     let second_arg = rand::thread_rng().gen_range(1..=u8::MAX);
     let result = first_arg / second_arg;
@@ -394,7 +394,7 @@ fn u8_test_safe_divide_8_not_overflow(context: simplex::TestContext) -> anyhow::
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::SafeDivide8,
+        FunctionToTest::SafeDiv8,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -405,7 +405,7 @@ fn u8_test_safe_divide_8_not_overflow(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u8_test_safe_divide_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u8_test_safe_div_8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u8::MAX);
     let second_arg = 0;
     let result = 0;
@@ -414,7 +414,7 @@ fn u8_test_safe_divide_8_overflow(context: simplex::TestContext) -> anyhow::Resu
 
     let txid_result = spend_script(
         &context,
-        FunctionToTest::SafeDivide8,
+        FunctionToTest::SafeDiv8,
         TEST_OVERFLOW,
         first_arg,
         second_arg,

@@ -12,7 +12,7 @@ fn safe_add_32(a: u32, b: u32) -> u32 {
     unwrap(checked_add_32(a, b))
 }
 
-fn checked_subtract_32(a: u32, b: u32) -> Option<u32> {
+fn checked_sub_32(a: u32, b: u32) -> Option<u32> {
     let (borrow, diff): (bool, u32) = jet::subtract_32(a, b);
 
     match borrow {
@@ -21,11 +21,11 @@ fn checked_subtract_32(a: u32, b: u32) -> Option<u32> {
     }
 }
 
-fn safe_subtract_32(a: u32, b: u32) -> u32 {
-    unwrap(checked_subtract_32(a, b))
+fn safe_sub_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_sub_32(a, b))
 }
 
-fn checked_multiply_32(a: u32, b: u32) -> Option<u32> {
+fn checked_mul_32(a: u32, b: u32) -> Option<u32> {
     let result: u64 = jet::multiply_32(a, b);
     
     let (high, low): (u32, u32) = <u64>::into(result);
@@ -36,19 +36,19 @@ fn checked_multiply_32(a: u32, b: u32) -> Option<u32> {
     }
 }
 
-fn safe_multiply_32(a: u32, b: u32) -> u32 {
-    unwrap(checked_multiply_32(a, b))
+fn safe_mul_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_mul_32(a, b))
 }
 
-fn checked_divide_32(a: u32, b: u32) -> Option<u32> {
+fn checked_div_32(a: u32, b: u32) -> Option<u32> {
     match jet::is_zero_32(b) {
         true => None,
         false => Some(jet::divide_32(a, b)),
     }
 }
 
-fn safe_divide_32(a: u32, b: u32) -> u32 {
-    unwrap(checked_divide_32(a, b))
+fn safe_div_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_div_32(a, b))
 }
 
 // helper
@@ -101,11 +101,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u32: Option<u32> = checked_subtract_32(first_arg, second_arg);
+                    let overflowing_u32: Option<u32> = checked_sub_32(first_arg, second_arg);
                     assert!(is_none::<u32>(overflowing_u32));
                 },
                 false => {
-                    let fitting_u32: Option<u32> = checked_subtract_32(first_arg, second_arg);
+                    let fitting_u32: Option<u32> = checked_sub_32(first_arg, second_arg);
                     assert!(jet::eq_32(unwrap(fitting_u32), result));
                 }
             }
@@ -117,10 +117,10 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u32: u32 = safe_subtract_32(first_arg, second_arg);
+                    let overflowing_u32: u32 = safe_sub_32(first_arg, second_arg);
                 },
                 false => {
-                    let fitting_u32: u32 = safe_subtract_32(first_arg, second_arg);
+                    let fitting_u32: u32 = safe_sub_32(first_arg, second_arg);
                     assert!(jet::eq_32(fitting_u32, result));
                 }
             }
@@ -133,11 +133,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u32: Option<u32> = checked_multiply_32(first_arg, second_arg);
+                    let overflowing_u32: Option<u32> = checked_mul_32(first_arg, second_arg);
                     assert!(is_none::<u32>(overflowing_u32));
                 },
                 false => {
-                    let fitting_u32: Option<u32> = checked_multiply_32(first_arg, second_arg);
+                    let fitting_u32: Option<u32> = checked_mul_32(first_arg, second_arg);
                     assert!(jet::eq_32(unwrap(fitting_u32), result));
                 }
             }
@@ -149,10 +149,10 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u32: u32 = safe_multiply_32(first_arg, second_arg);
+                    let overflowing_u32: u32 = safe_mul_32(first_arg, second_arg);
                 },
                 false => {
-                    let fitting_u32: u32 = safe_multiply_32(first_arg, second_arg);
+                    let fitting_u32: u32 = safe_mul_32(first_arg, second_arg);
                     assert!(jet::eq_32(fitting_u32, result));
                 }
             }
@@ -165,11 +165,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u32: Option<u32> = checked_divide_32(first_arg, second_arg);
+                    let overflowing_u32: Option<u32> = checked_div_32(first_arg, second_arg);
                     assert!(is_none::<u32>(overflowing_u32));
                 },
                 false => {
-                    let fitting_u32: Option<u32> = checked_divide_32(first_arg, second_arg);
+                    let fitting_u32: Option<u32> = checked_div_32(first_arg, second_arg);
                     assert!(jet::eq_32(unwrap(fitting_u32), result));
                 }
             }
@@ -181,10 +181,10 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u32: u32 = safe_divide_32(first_arg, second_arg);
+                    let overflowing_u32: u32 = safe_div_32(first_arg, second_arg);
                 },
                 false => {
-                    let fitting_u32: u32 = safe_divide_32(first_arg, second_arg);
+                    let fitting_u32: u32 = safe_div_32(first_arg, second_arg);
                     assert!(jet::eq_32(fitting_u32, result));
                 }
             }

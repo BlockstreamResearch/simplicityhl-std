@@ -15,12 +15,12 @@ use crate::helper::{NOT_TEST_OVERFLOW, TEST_OVERFLOW};
 enum FunctionToTest {
     CheckedAdd16,
     SafeAdd16,
-    CheckedSubtract16,
-    SafeSubtract16,
-    CheckedMultiply16,
-    SafeMultiply16,
-    CheckedDivide16,
-    SafeDivide16,
+    CheckedSub16,
+    SafeSub16,
+    CheckedMul16,
+    SafeMul16,
+    CheckedDiv16,
+    SafeDiv16,
 }
 
 fn get_script(context: &simplex::TestContext) -> (U16MockProgram, Script) {
@@ -174,7 +174,7 @@ fn u16_test_safe_add_16_overflow(context: simplex::TestContext) -> anyhow::Resul
 }
 
 #[simplex::test]
-fn u16_test_checked_subtract_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_checked_sub_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = rand::thread_rng().gen_range(0..=first_arg);
     let result = first_arg - second_arg;
@@ -182,7 +182,7 @@ fn u16_test_checked_subtract_16_not_overflow(context: simplex::TestContext) -> a
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedSubtract16,
+        FunctionToTest::CheckedSub16,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -193,7 +193,7 @@ fn u16_test_checked_subtract_16_not_overflow(context: simplex::TestContext) -> a
 }
 
 #[simplex::test]
-fn u16_test_checked_subtract_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_checked_sub_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX - 1);
     let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u16::MAX);
     let result = 0;
@@ -201,7 +201,7 @@ fn u16_test_checked_subtract_16_overflow(context: simplex::TestContext) -> anyho
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedSubtract16,
+        FunctionToTest::CheckedSub16,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -212,7 +212,7 @@ fn u16_test_checked_subtract_16_overflow(context: simplex::TestContext) -> anyho
 }
 
 #[simplex::test]
-fn u16_test_safe_subtract_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_safe_sub_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = rand::thread_rng().gen_range(0..=first_arg);
     let result = first_arg - second_arg;
@@ -220,7 +220,7 @@ fn u16_test_safe_subtract_16_not_overflow(context: simplex::TestContext) -> anyh
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::SafeSubtract16,
+        FunctionToTest::SafeSub16,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -231,7 +231,7 @@ fn u16_test_safe_subtract_16_not_overflow(context: simplex::TestContext) -> anyh
 }
 
 #[simplex::test]
-fn u16_test_safe_subtract_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_safe_sub_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX - 1);
     let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u16::MAX);
     let result = 0;
@@ -240,7 +240,7 @@ fn u16_test_safe_subtract_16_overflow(context: simplex::TestContext) -> anyhow::
 
     let txid_result = spend_script(
         &context,
-        FunctionToTest::SafeSubtract16,
+        FunctionToTest::SafeSub16,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -262,7 +262,7 @@ fn u16_test_safe_subtract_16_overflow(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u16_test_checked_multiply_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_checked_mul_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
     let second_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
     let result = first_arg * second_arg;
@@ -270,7 +270,7 @@ fn u16_test_checked_multiply_16_not_overflow(context: simplex::TestContext) -> a
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedMultiply16,
+        FunctionToTest::CheckedMul16,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -281,7 +281,7 @@ fn u16_test_checked_multiply_16_not_overflow(context: simplex::TestContext) -> a
 }
 
 #[simplex::test]
-fn u16_test_checked_multiply_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_checked_mul_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = u16::MAX;
     let second_arg = rand::thread_rng().gen_range(2..=u16::MAX);
     let result = 0;
@@ -289,7 +289,7 @@ fn u16_test_checked_multiply_16_overflow(context: simplex::TestContext) -> anyho
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedMultiply16,
+        FunctionToTest::CheckedMul16,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -300,7 +300,7 @@ fn u16_test_checked_multiply_16_overflow(context: simplex::TestContext) -> anyho
 }
 
 #[simplex::test]
-fn u16_test_safe_multiply_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_safe_mul_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
     let second_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
     let result = first_arg * second_arg;
@@ -308,7 +308,7 @@ fn u16_test_safe_multiply_16_not_overflow(context: simplex::TestContext) -> anyh
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::SafeMultiply16,
+        FunctionToTest::SafeMul16,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -319,7 +319,7 @@ fn u16_test_safe_multiply_16_not_overflow(context: simplex::TestContext) -> anyh
 }
 
 #[simplex::test]
-fn u16_test_safe_multiply_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_safe_mul_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = u16::MAX;
     let second_arg = rand::thread_rng().gen_range(2..=u16::MAX);
     let result = 0;
@@ -328,7 +328,7 @@ fn u16_test_safe_multiply_16_overflow(context: simplex::TestContext) -> anyhow::
 
     let txid_result = spend_script(
         &context,
-        FunctionToTest::SafeMultiply16,
+        FunctionToTest::SafeMul16,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -350,7 +350,7 @@ fn u16_test_safe_multiply_16_overflow(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u16_test_checked_divide_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_checked_div_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = rand::thread_rng().gen_range(1..=u16::MAX);
     let result = first_arg / second_arg;
@@ -358,7 +358,7 @@ fn u16_test_checked_divide_16_not_overflow(context: simplex::TestContext) -> any
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedDivide16,
+        FunctionToTest::CheckedDiv16,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -369,7 +369,7 @@ fn u16_test_checked_divide_16_not_overflow(context: simplex::TestContext) -> any
 }
 
 #[simplex::test]
-fn u16_test_checked_divide_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_checked_div_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = 0;
     let result = 0;
@@ -377,7 +377,7 @@ fn u16_test_checked_divide_16_overflow(context: simplex::TestContext) -> anyhow:
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedDivide16,
+        FunctionToTest::CheckedDiv16,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -388,7 +388,7 @@ fn u16_test_checked_divide_16_overflow(context: simplex::TestContext) -> anyhow:
 }
 
 #[simplex::test]
-fn u16_test_safe_divide_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_safe_div_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = rand::thread_rng().gen_range(1..=u16::MAX);
     let result = first_arg / second_arg;
@@ -396,7 +396,7 @@ fn u16_test_safe_divide_16_not_overflow(context: simplex::TestContext) -> anyhow
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::SafeDivide16,
+        FunctionToTest::SafeDiv16,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -407,7 +407,7 @@ fn u16_test_safe_divide_16_not_overflow(context: simplex::TestContext) -> anyhow
 }
 
 #[simplex::test]
-fn u16_test_safe_divide_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_test_safe_div_16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u16::MAX);
     let second_arg = 0;
     let result = 0;
@@ -416,7 +416,7 @@ fn u16_test_safe_divide_16_overflow(context: simplex::TestContext) -> anyhow::Re
 
     let txid_result = spend_script(
         &context,
-        FunctionToTest::SafeDivide16,
+        FunctionToTest::SafeDiv16,
         TEST_OVERFLOW,
         first_arg,
         second_arg,

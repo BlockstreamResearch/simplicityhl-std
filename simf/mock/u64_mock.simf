@@ -12,7 +12,7 @@ fn safe_add_64(a: u64, b: u64) -> u64 {
     unwrap(checked_add_64(a, b))
 }
 
-fn checked_subtract_64(a: u64, b: u64) -> Option<u64> {
+fn checked_sub_64(a: u64, b: u64) -> Option<u64> {
     let (borrow, diff): (bool, u64) = jet::subtract_64(a, b);
 
     match borrow {
@@ -21,11 +21,11 @@ fn checked_subtract_64(a: u64, b: u64) -> Option<u64> {
     }
 }
 
-fn safe_subtract_64(a: u64, b: u64) -> u64 {
-    unwrap(checked_subtract_64(a, b))
+fn safe_sub_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_sub_64(a, b))
 }
 
-fn checked_multiply_64(a: u64, b: u64) -> Option<u64> {
+fn checked_mul_64(a: u64, b: u64) -> Option<u64> {
     let result: u128 = jet::multiply_64(a, b);
     
     let (high, low): (u64, u64) = <u128>::into(result);
@@ -36,19 +36,19 @@ fn checked_multiply_64(a: u64, b: u64) -> Option<u64> {
     }
 }
 
-fn safe_multiply_64(a: u64, b: u64) -> u64 {
-    unwrap(checked_multiply_64(a, b))
+fn safe_mul_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_mul_64(a, b))
 }
 
-fn checked_divide_64(a: u64, b: u64) -> Option<u64> {
+fn checked_div_64(a: u64, b: u64) -> Option<u64> {
     match jet::is_zero_64(b) {
         true => None,
         false => Some(jet::divide_64(a, b)),
     }
 }
 
-fn safe_divide_64(a: u64, b: u64) -> u64 {
-    unwrap(checked_divide_64(a, b))
+fn safe_div_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_div_64(a, b))
 }
 
 // helper
@@ -101,11 +101,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u64: Option<u64> = checked_subtract_64(first_arg, second_arg);
+                    let overflowing_u64: Option<u64> = checked_sub_64(first_arg, second_arg);
                     assert!(is_none::<u64>(overflowing_u64));
                 },
                 false => {
-                    let fitting_u64: Option<u64> = checked_subtract_64(first_arg, second_arg);
+                    let fitting_u64: Option<u64> = checked_sub_64(first_arg, second_arg);
                     assert!(jet::eq_64(unwrap(fitting_u64), result));
                 }
             }
@@ -117,10 +117,10 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u64: u64 = safe_subtract_64(first_arg, second_arg);
+                    let overflowing_u64: u64 = safe_sub_64(first_arg, second_arg);
                 },
                 false => {
-                    let fitting_u64: u64 = safe_subtract_64(first_arg, second_arg);
+                    let fitting_u64: u64 = safe_sub_64(first_arg, second_arg);
                     assert!(jet::eq_64(fitting_u64, result));
                 }
             }
@@ -133,11 +133,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u64: Option<u64> = checked_multiply_64(first_arg, second_arg);
+                    let overflowing_u64: Option<u64> = checked_mul_64(first_arg, second_arg);
                     assert!(is_none::<u64>(overflowing_u64));
                 },
                 false => {
-                    let fitting_u64: Option<u64> = checked_multiply_64(first_arg, second_arg);
+                    let fitting_u64: Option<u64> = checked_mul_64(first_arg, second_arg);
                     assert!(jet::eq_64(unwrap(fitting_u64), result));
                 }
             }
@@ -149,10 +149,10 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u64: u64 = safe_multiply_64(first_arg, second_arg);
+                    let overflowing_u64: u64 = safe_mul_64(first_arg, second_arg);
                 },
                 false => {
-                    let fitting_u64: u64 = safe_multiply_64(first_arg, second_arg);
+                    let fitting_u64: u64 = safe_mul_64(first_arg, second_arg);
                     assert!(jet::eq_64(fitting_u64, result));
                 }
             }
@@ -165,11 +165,11 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u64: Option<u64> = checked_divide_64(first_arg, second_arg);
+                    let overflowing_u64: Option<u64> = checked_div_64(first_arg, second_arg);
                     assert!(is_none::<u64>(overflowing_u64));
                 },
                 false => {
-                    let fitting_u64: Option<u64> = checked_divide_64(first_arg, second_arg);
+                    let fitting_u64: Option<u64> = checked_div_64(first_arg, second_arg);
                     assert!(jet::eq_64(unwrap(fitting_u64), result));
                 }
             }
@@ -181,10 +181,10 @@ fn main() {
         true => {
             match if_test_overflow {
                 true => {
-                    let overflowing_u64: u64 = safe_divide_64(first_arg, second_arg);
+                    let overflowing_u64: u64 = safe_div_64(first_arg, second_arg);
                 },
                 false => {
-                    let fitting_u64: u64 = safe_divide_64(first_arg, second_arg);
+                    let fitting_u64: u64 = safe_div_64(first_arg, second_arg);
                     assert!(jet::eq_64(fitting_u64, result));
                 }
             }

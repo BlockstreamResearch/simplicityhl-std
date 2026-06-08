@@ -15,12 +15,12 @@ use crate::helper::{NOT_TEST_OVERFLOW, TEST_OVERFLOW};
 enum FunctionToTest {
     CheckedAdd32,
     SafeAdd32,
-    CheckedSubtract32,
-    SafeSubtract32,
-    CheckedMultiply32,
-    SafeMultiply32,
-    CheckedDivide32,
-    SafeDivide32,
+    CheckedSub32,
+    SafeSub32,
+    CheckedMul32,
+    SafeMul32,
+    CheckedDiv32,
+    SafeDiv32,
 }
 
 fn get_script(context: &simplex::TestContext) -> (U32MockProgram, Script) {
@@ -174,7 +174,7 @@ fn u32_test_safe_add_32_overflow(context: simplex::TestContext) -> anyhow::Resul
 }
 
 #[simplex::test]
-fn u32_test_checked_subtract_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_checked_sub_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
     let second_arg = rand::thread_rng().gen_range(0..=first_arg);
     let result = first_arg - second_arg;
@@ -182,7 +182,7 @@ fn u32_test_checked_subtract_32_not_overflow(context: simplex::TestContext) -> a
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedSubtract32,
+        FunctionToTest::CheckedSub32,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -193,7 +193,7 @@ fn u32_test_checked_subtract_32_not_overflow(context: simplex::TestContext) -> a
 }
 
 #[simplex::test]
-fn u32_test_checked_subtract_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_checked_sub_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u32::MAX - 1);
     let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u32::MAX);
     let result = 0;
@@ -201,7 +201,7 @@ fn u32_test_checked_subtract_32_overflow(context: simplex::TestContext) -> anyho
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedSubtract32,
+        FunctionToTest::CheckedSub32,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -212,7 +212,7 @@ fn u32_test_checked_subtract_32_overflow(context: simplex::TestContext) -> anyho
 }
 
 #[simplex::test]
-fn u32_test_safe_subtract_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_safe_sub_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
     let second_arg = rand::thread_rng().gen_range(0..=first_arg);
     let result = first_arg - second_arg;
@@ -220,7 +220,7 @@ fn u32_test_safe_subtract_32_not_overflow(context: simplex::TestContext) -> anyh
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::SafeSubtract32,
+        FunctionToTest::SafeSub32,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -231,7 +231,7 @@ fn u32_test_safe_subtract_32_not_overflow(context: simplex::TestContext) -> anyh
 }
 
 #[simplex::test]
-fn u32_test_safe_subtract_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_safe_sub_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u32::MAX - 1);
     let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u32::MAX);
     let result = 0;
@@ -240,7 +240,7 @@ fn u32_test_safe_subtract_32_overflow(context: simplex::TestContext) -> anyhow::
 
     let txid_result = spend_script(
         &context,
-        FunctionToTest::SafeSubtract32,
+        FunctionToTest::SafeSub32,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -262,7 +262,7 @@ fn u32_test_safe_subtract_32_overflow(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u32_test_checked_multiply_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_checked_mul_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=2_u32.pow(4));
     let second_arg = rand::thread_rng().gen_range(0..=2_u32.pow(4));
     let result = first_arg * second_arg;
@@ -270,7 +270,7 @@ fn u32_test_checked_multiply_32_not_overflow(context: simplex::TestContext) -> a
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedMultiply32,
+        FunctionToTest::CheckedMul32,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -281,7 +281,7 @@ fn u32_test_checked_multiply_32_not_overflow(context: simplex::TestContext) -> a
 }
 
 #[simplex::test]
-fn u32_test_checked_multiply_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_checked_mul_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = u32::MAX;
     let second_arg = rand::thread_rng().gen_range(2..=u32::MAX);
     let result = 0;
@@ -289,7 +289,7 @@ fn u32_test_checked_multiply_32_overflow(context: simplex::TestContext) -> anyho
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedMultiply32,
+        FunctionToTest::CheckedMul32,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -300,7 +300,7 @@ fn u32_test_checked_multiply_32_overflow(context: simplex::TestContext) -> anyho
 }
 
 #[simplex::test]
-fn u32_test_safe_multiply_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_safe_mul_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=2_u32.pow(4));
     let second_arg = rand::thread_rng().gen_range(0..=2_u32.pow(4));
     let result = first_arg * second_arg;
@@ -308,7 +308,7 @@ fn u32_test_safe_multiply_32_not_overflow(context: simplex::TestContext) -> anyh
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::SafeMultiply32,
+        FunctionToTest::SafeMul32,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -319,7 +319,7 @@ fn u32_test_safe_multiply_32_not_overflow(context: simplex::TestContext) -> anyh
 }
 
 #[simplex::test]
-fn u32_test_safe_multiply_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_safe_mul_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = u32::MAX;
     let second_arg = rand::thread_rng().gen_range(2..=u32::MAX);
     let result = 0;
@@ -328,7 +328,7 @@ fn u32_test_safe_multiply_32_overflow(context: simplex::TestContext) -> anyhow::
 
     let txid_result = spend_script(
         &context,
-        FunctionToTest::SafeMultiply32,
+        FunctionToTest::SafeMul32,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -350,7 +350,7 @@ fn u32_test_safe_multiply_32_overflow(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u32_test_checked_divide_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_checked_div_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
     let second_arg = rand::thread_rng().gen_range(1..=u32::MAX);
     let result = first_arg / second_arg;
@@ -358,7 +358,7 @@ fn u32_test_checked_divide_32_not_overflow(context: simplex::TestContext) -> any
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedDivide32,
+        FunctionToTest::CheckedDiv32,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -369,7 +369,7 @@ fn u32_test_checked_divide_32_not_overflow(context: simplex::TestContext) -> any
 }
 
 #[simplex::test]
-fn u32_test_checked_divide_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_checked_div_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
     let second_arg = 0;
     let result = 0;
@@ -377,7 +377,7 @@ fn u32_test_checked_divide_32_overflow(context: simplex::TestContext) -> anyhow:
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::CheckedDivide32,
+        FunctionToTest::CheckedDiv32,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -388,7 +388,7 @@ fn u32_test_checked_divide_32_overflow(context: simplex::TestContext) -> anyhow:
 }
 
 #[simplex::test]
-fn u32_test_safe_divide_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_safe_div_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
     let second_arg = rand::thread_rng().gen_range(1..=u32::MAX);
     let result = first_arg / second_arg;
@@ -396,7 +396,7 @@ fn u32_test_safe_divide_32_not_overflow(context: simplex::TestContext) -> anyhow
     fund_script(&context)?;
     spend_script(
         &context,
-        FunctionToTest::SafeDivide32,
+        FunctionToTest::SafeDiv32,
         NOT_TEST_OVERFLOW,
         first_arg,
         second_arg,
@@ -407,7 +407,7 @@ fn u32_test_safe_divide_32_not_overflow(context: simplex::TestContext) -> anyhow
 }
 
 #[simplex::test]
-fn u32_test_safe_divide_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_test_safe_div_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
     let second_arg = 0;
     let result = 0;
@@ -416,7 +416,7 @@ fn u32_test_safe_divide_32_overflow(context: simplex::TestContext) -> anyhow::Re
 
     let txid_result = spend_script(
         &context,
-        FunctionToTest::SafeDivide32,
+        FunctionToTest::SafeDiv32,
         TEST_OVERFLOW,
         first_arg,
         second_arg,
