@@ -9,6 +9,9 @@ use simplicityhl_std::artifacts::mock::asserts_mock::derived_asserts_mock::{
 
 use rand::Rng;
 
+mod helper;
+use crate::helper::cast_to_bool;
+
 enum FunctionToTest {
     AssertEq8,
     AssertEq16,
@@ -30,10 +33,14 @@ const DEFAULT_SOME_U64: Option<u64> = Some(0);
 const DEFAULT_SOME_U128: Option<u128> = Some(0);
 const DEFAULT_SOME_U256: Option<[u8; 32]> = Some([0; 32]);
 
-const TEST_SAME_VALUES: bool = true;
-const TEST_DIFFERENT_VALUES: bool = false;
-const TEST_NONE_VALUES: bool = true;
-const TEST_NOT_NONE_VALUES: bool = false;
+pub enum IfTestSameValues {
+    DifferentValues,
+    SameValues,
+}
+pub enum IfTestNoneValue {
+    NotNoneValue,
+    NoneValue,
+}
 
 fn get_asserts_test_script(context: &simplex::TestContext) -> (AssertsMockProgram, Script) {
     let arguments = AssertsMockArguments {};
@@ -157,8 +164,8 @@ fn generate_test_data(
 fn spend_script(
     context: &simplex::TestContext,
     function_index: FunctionToTest,
-    if_same_values: bool,
-    if_none_value: bool,
+    if_same_values: IfTestSameValues,
+    if_none_value: IfTestNoneValue,
 ) -> anyhow::Result<()> {
     let signer = context.get_default_signer();
     let provider = context.get_default_provider();
@@ -169,8 +176,11 @@ fn spend_script(
 
     let mut ft = FinalTransaction::new();
 
-    let witness: AssertsMockWitness =
-        generate_test_data(function_index, if_same_values, if_none_value);
+    let witness: AssertsMockWitness = generate_test_data(
+        function_index,
+        cast_to_bool(if_same_values as u8),
+        cast_to_bool(if_none_value as u8),
+    );
 
     ft.add_program_input(
         PartialInput::new(asserts_utxos[0].clone()),
@@ -193,8 +203,8 @@ fn assert_eq_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     spend_script(
         &context,
         FunctionToTest::AssertEq8,
-        TEST_SAME_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::SameValues,
+        IfTestNoneValue::NotNoneValue,
     )?;
 
     Ok(())
@@ -207,8 +217,8 @@ fn assert_eq_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()>
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertEq8,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
@@ -228,8 +238,8 @@ fn assert_eq_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()> 
     spend_script(
         &context,
         FunctionToTest::AssertEq16,
-        TEST_SAME_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::SameValues,
+        IfTestNoneValue::NotNoneValue,
     )?;
 
     Ok(())
@@ -242,8 +252,8 @@ fn assert_eq_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertEq16,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
@@ -263,8 +273,8 @@ fn assert_eq_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()> 
     spend_script(
         &context,
         FunctionToTest::AssertEq32,
-        TEST_SAME_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::SameValues,
+        IfTestNoneValue::NotNoneValue,
     )?;
 
     Ok(())
@@ -277,8 +287,8 @@ fn assert_eq_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertEq32,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
@@ -298,8 +308,8 @@ fn assert_eq_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()> 
     spend_script(
         &context,
         FunctionToTest::AssertEq64,
-        TEST_SAME_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::SameValues,
+        IfTestNoneValue::NotNoneValue,
     )?;
 
     Ok(())
@@ -312,8 +322,8 @@ fn assert_eq_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertEq64,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
@@ -333,8 +343,8 @@ fn assert_eq_256_happy_path(context: simplex::TestContext) -> anyhow::Result<()>
     spend_script(
         &context,
         FunctionToTest::AssertEq256,
-        TEST_SAME_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::SameValues,
+        IfTestNoneValue::NotNoneValue,
     )?;
 
     Ok(())
@@ -347,8 +357,8 @@ fn assert_eq_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertEq256,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
@@ -368,8 +378,8 @@ fn assert_none_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()>
     spend_script(
         &context,
         FunctionToTest::AssertNone8,
-        TEST_DIFFERENT_VALUES,
-        TEST_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NoneValue,
     )?;
 
     Ok(())
@@ -382,8 +392,8 @@ fn assert_none_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<(
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone8,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
@@ -404,8 +414,8 @@ fn assert_none_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()
     spend_script(
         &context,
         FunctionToTest::AssertNone16,
-        TEST_DIFFERENT_VALUES,
-        TEST_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NoneValue,
     )?;
 
     Ok(())
@@ -418,8 +428,8 @@ fn assert_none_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone16,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
@@ -440,8 +450,8 @@ fn assert_none_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()
     spend_script(
         &context,
         FunctionToTest::AssertNone32,
-        TEST_DIFFERENT_VALUES,
-        TEST_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NoneValue,
     )?;
 
     Ok(())
@@ -454,8 +464,8 @@ fn assert_none_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone32,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
@@ -476,8 +486,8 @@ fn assert_none_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()
     spend_script(
         &context,
         FunctionToTest::AssertNone64,
-        TEST_DIFFERENT_VALUES,
-        TEST_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NoneValue,
     )?;
 
     Ok(())
@@ -490,8 +500,8 @@ fn assert_none_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone64,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
@@ -512,8 +522,8 @@ fn assert_none_128_happy_path(context: simplex::TestContext) -> anyhow::Result<(
     spend_script(
         &context,
         FunctionToTest::AssertNone128,
-        TEST_DIFFERENT_VALUES,
-        TEST_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NoneValue,
     )?;
 
     Ok(())
@@ -526,8 +536,8 @@ fn assert_none_128_unhappy_path(context: simplex::TestContext) -> anyhow::Result
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone128,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
@@ -548,8 +558,8 @@ fn assert_none_256_happy_path(context: simplex::TestContext) -> anyhow::Result<(
     spend_script(
         &context,
         FunctionToTest::AssertNone256,
-        TEST_DIFFERENT_VALUES,
-        TEST_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NoneValue,
     )?;
 
     Ok(())
@@ -562,8 +572,8 @@ fn assert_none_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result
     let txid_result = spend_script(
         &context,
         FunctionToTest::AssertNone256,
-        TEST_DIFFERENT_VALUES,
-        TEST_NOT_NONE_VALUES,
+        IfTestSameValues::DifferentValues,
+        IfTestNoneValue::NotNoneValue,
     );
 
     assert!(
