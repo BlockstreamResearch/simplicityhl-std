@@ -7,10 +7,8 @@ use simplicityhl_std::artifacts::mock::asserts_mock::derived_asserts_mock::{
     AssertsMockArguments, AssertsMockWitness,
 };
 
-use rand::Rng;
-
 mod helper;
-use crate::helper::cast_to_bool;
+use crate::helper::{cast_to_bool, generate_uints_for_test};
 
 enum FunctionToTest {
     AssertEq8,
@@ -63,7 +61,7 @@ fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn generate_test_data(
+fn generate_test_witness(
     function_index: FunctionToTest,
     if_same_values: bool,
     if_none_value: bool,
@@ -86,44 +84,39 @@ fn generate_test_data(
 
     match function_index {
         FunctionToTest::AssertEq8 => {
-            let some_u8 = rand::thread_rng().gen_range(1..=u8::MAX);
-            witness.first_arg_u8 = Some(some_u8);
+            let (first_arg, second_arg) =
+                generate_uints_for_test(if_same_values, 0, u8::MAX as u128);
 
-            if if_same_values {
-                witness.second_arg_u8 = Some(some_u8);
-            };
+            (witness.first_arg_u8, witness.second_arg_u8) =
+                (Some(first_arg as u8), Some(second_arg as u8));
         }
         FunctionToTest::AssertEq16 => {
-            let some_u16 = rand::thread_rng().gen_range(1..=u16::MAX);
-            witness.first_arg_u16 = Some(some_u16);
+            let (first_arg, second_arg) =
+                generate_uints_for_test(if_same_values, 0, u16::MAX as u128);
 
-            if if_same_values {
-                witness.second_arg_u16 = Some(some_u16);
-            }
+            (witness.first_arg_u16, witness.second_arg_u16) =
+                (Some(first_arg as u16), Some(second_arg as u16));
         }
         FunctionToTest::AssertEq32 => {
-            let some_u32 = rand::thread_rng().gen_range(1..=u32::MAX);
-            witness.first_arg_u32 = Some(some_u32);
+            let (first_arg, second_arg) =
+                generate_uints_for_test(if_same_values, 0, u32::MAX as u128);
 
-            if if_same_values {
-                witness.second_arg_u32 = Some(some_u32);
-            }
+            (witness.first_arg_u32, witness.second_arg_u32) =
+                (Some(first_arg as u32), Some(second_arg as u32));
         }
         FunctionToTest::AssertEq64 => {
-            let some_u64 = rand::thread_rng().gen_range(1..=u64::MAX);
-            witness.first_arg_u64 = Some(some_u64);
+            let (first_arg, second_arg) =
+                generate_uints_for_test(if_same_values, 0, u64::MAX as u128);
 
-            if if_same_values {
-                witness.second_arg_u64 = Some(some_u64);
-            }
+            (witness.first_arg_u64, witness.second_arg_u64) =
+                (Some(first_arg as u64), Some(second_arg as u64));
         }
         FunctionToTest::AssertEq256 => {
-            let some_u8 = rand::thread_rng().gen_range(1..=u8::MAX);
-            witness.first_arg_u256 = Some([some_u8; 32]);
+            let (first_arg, second_arg) =
+                generate_uints_for_test(if_same_values, 0, u8::MAX as u128);
 
-            if if_same_values {
-                witness.second_arg_u256 = Some([some_u8; 32]);
-            }
+            (witness.first_arg_u256, witness.second_arg_u256) =
+                (Some([first_arg as u8; 32]), Some([second_arg as u8; 32]));
         }
         FunctionToTest::AssertNone8 => {
             if if_none_value {
@@ -176,7 +169,7 @@ fn spend_script(
 
     let mut ft = FinalTransaction::new();
 
-    let witness: AssertsMockWitness = generate_test_data(
+    let witness: AssertsMockWitness = generate_test_witness(
         function_index,
         cast_to_bool(if_same_values as u8),
         cast_to_bool(if_none_value as u8),
