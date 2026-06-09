@@ -22,7 +22,7 @@ simplex build
 To run the tests, execute the following command:
 
 ```bash
-simplex test --nocapture
+simplex test -v
 ```
 
 ### Linting
