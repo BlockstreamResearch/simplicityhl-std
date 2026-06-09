@@ -8,7 +8,7 @@ use simplicityhl_std::artifacts::mock::asserts_mock::derived_asserts_mock::{
 };
 
 mod helper;
-use crate::helper::{cast_to_bool, generate_uints_for_test};
+use crate::helper::{cast_to_bool, generate_uints_in_one_range};
 
 enum FunctionToTest {
     AssertEq8,
@@ -85,35 +85,35 @@ fn generate_test_witness(
     match function_index {
         FunctionToTest::AssertEq8 => {
             let (first_arg, second_arg) =
-                generate_uints_for_test(if_same_values, 0, u8::MAX as u128);
+                generate_uints_in_one_range(if_same_values, 0, u8::MAX as u128);
 
             (witness.first_arg_u8, witness.second_arg_u8) =
                 (Some(first_arg as u8), Some(second_arg as u8));
         }
         FunctionToTest::AssertEq16 => {
             let (first_arg, second_arg) =
-                generate_uints_for_test(if_same_values, 0, u16::MAX as u128);
+                generate_uints_in_one_range(if_same_values, 0, u16::MAX as u128);
 
             (witness.first_arg_u16, witness.second_arg_u16) =
                 (Some(first_arg as u16), Some(second_arg as u16));
         }
         FunctionToTest::AssertEq32 => {
             let (first_arg, second_arg) =
-                generate_uints_for_test(if_same_values, 0, u32::MAX as u128);
+                generate_uints_in_one_range(if_same_values, 0, u32::MAX as u128);
 
             (witness.first_arg_u32, witness.second_arg_u32) =
                 (Some(first_arg as u32), Some(second_arg as u32));
         }
         FunctionToTest::AssertEq64 => {
             let (first_arg, second_arg) =
-                generate_uints_for_test(if_same_values, 0, u64::MAX as u128);
+                generate_uints_in_one_range(if_same_values, 0, u64::MAX as u128);
 
             (witness.first_arg_u64, witness.second_arg_u64) =
                 (Some(first_arg as u64), Some(second_arg as u64));
         }
         FunctionToTest::AssertEq256 => {
             let (first_arg, second_arg) =
-                generate_uints_for_test(if_same_values, 0, u8::MAX as u128);
+                generate_uints_in_one_range(if_same_values, 0, u8::MAX as u128);
 
             (witness.first_arg_u256, witness.second_arg_u256) =
                 (Some([first_arg as u8; 32]), Some([second_arg as u8; 32]));
