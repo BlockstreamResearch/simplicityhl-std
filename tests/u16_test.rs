@@ -263,8 +263,8 @@ fn u16_test_safe_sub_16_overflow(context: simplex::TestContext) -> anyhow::Resul
 
 #[simplex::test]
 fn u16_test_checked_mul_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let first_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
-    let second_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
+    let first_arg = rand::thread_rng().gen_range(0..2_u16.pow(16/2));
+    let second_arg = rand::thread_rng().gen_range(0..2_u16.pow(16/2));
     let result = first_arg * second_arg;
 
     fund_script(&context)?;
@@ -301,8 +301,8 @@ fn u16_test_checked_mul_16_overflow(context: simplex::TestContext) -> anyhow::Re
 
 #[simplex::test]
 fn u16_test_safe_mul_16_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let first_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
-    let second_arg = rand::thread_rng().gen_range(0..=2_u16.pow(4));
+    let first_arg = rand::thread_rng().gen_range(0..2_u16.pow(16/2));
+    let second_arg = rand::thread_rng().gen_range(0..2_u16.pow(16/2));
     let result = first_arg * second_arg;
 
     fund_script(&context)?;

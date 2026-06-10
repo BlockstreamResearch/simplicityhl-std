@@ -263,8 +263,8 @@ fn u32_test_safe_sub_32_overflow(context: simplex::TestContext) -> anyhow::Resul
 
 #[simplex::test]
 fn u32_test_checked_mul_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let first_arg = rand::thread_rng().gen_range(0..=2_u32.pow(4));
-    let second_arg = rand::thread_rng().gen_range(0..=2_u32.pow(4));
+    let first_arg = rand::thread_rng().gen_range(0..2_u32.pow(32/2));
+    let second_arg = rand::thread_rng().gen_range(0..2_u32.pow(32/2));
     let result = first_arg * second_arg;
 
     fund_script(&context)?;
@@ -301,8 +301,8 @@ fn u32_test_checked_mul_32_overflow(context: simplex::TestContext) -> anyhow::Re
 
 #[simplex::test]
 fn u32_test_safe_mul_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let first_arg = rand::thread_rng().gen_range(0..=2_u32.pow(4));
-    let second_arg = rand::thread_rng().gen_range(0..=2_u32.pow(4));
+    let first_arg = rand::thread_rng().gen_range(0..2_u32.pow(32/2));
+    let second_arg = rand::thread_rng().gen_range(0..2_u32.pow(32/2));
     let result = first_arg * second_arg;
 
     fund_script(&context)?;

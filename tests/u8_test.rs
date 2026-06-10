@@ -261,8 +261,8 @@ fn u8_test_safe_sub_8_overflow(context: simplex::TestContext) -> anyhow::Result<
 
 #[simplex::test]
 fn u8_test_checked_mul_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let first_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
-    let second_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
+    let first_arg = rand::thread_rng().gen_range(0..2_u8.pow(8/2));
+    let second_arg = rand::thread_rng().gen_range(0..2_u8.pow(8/2));
     let result = first_arg * second_arg;
 
     fund_script(&context)?;
@@ -299,8 +299,8 @@ fn u8_test_checked_mul_8_overflow(context: simplex::TestContext) -> anyhow::Resu
 
 #[simplex::test]
 fn u8_test_safe_mul_8_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-    let first_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
-    let second_arg = rand::thread_rng().gen_range(0..=2_u8.pow(4));
+    let first_arg = rand::thread_rng().gen_range(0..2_u8.pow(8/2));
+    let second_arg = rand::thread_rng().gen_range(0..2_u8.pow(8/2));
     let result = first_arg * second_arg;
 
     fund_script(&context)?;
