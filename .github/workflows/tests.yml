@@ -58,4 +58,4 @@ jobs:
 
       - name: Test
         run: |
-          simplex test --nocapture
+          simplex test -v
