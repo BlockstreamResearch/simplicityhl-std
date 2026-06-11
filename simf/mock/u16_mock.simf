@@ -1,0 +1,193 @@
+// todo: switch to function import when available
+fn checked_add_16(a: u16, b: u16) -> Option<u16> {
+    let (carry, sum): (bool, u16) = jet::add_16(a, b);
+
+    match carry {
+        true => None,
+        false => Some(sum),
+    }
+}
+
+fn safe_add_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_add_16(a, b))
+}
+
+fn checked_sub_16(a: u16, b: u16) -> Option<u16> {
+    let (borrow, diff): (bool, u16) = jet::subtract_16(a, b);
+    match borrow {
+        true => None,
+        false => Some(diff),
+    }
+}
+
+fn safe_sub_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_sub_16(a, b))
+}
+
+fn checked_mul_16(a: u16, b: u16) -> Option<u16> {
+    let result: u32 = jet::multiply_16(a, b);
+
+    let (high, low): (u16, u16) = <u32>::into(result);
+
+    match jet::is_zero_16(high) {
+        true => Some(low),
+        false => None,
+    }
+}
+
+fn safe_mul_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_mul_16(a, b))
+}
+
+fn checked_div_16(a: u16, b: u16) -> Option<u16> {
+    match jet::is_zero_16(b) {
+        true => None,
+        false => Some(jet::divide_16(a, b)),
+    }
+}
+
+fn safe_div_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_div_16(a, b))
+}
+
+// helper
+fn if_test_this_function(index: u8, flag: u8) -> bool {
+   jet::eq_8(index, flag)
+}
+
+fn main() {
+    let function_index: u8 = witness::FUNCTION_INDEX;
+    let if_test_overflow: bool = witness::IF_TEST_OVERFLOW;
+
+    let first_arg: u16 = witness::FIRST_ARG;
+    let second_arg: u16 = witness::SECOND_ARG;
+    let result: u16 = witness::RESULT;
+
+    // add
+    match if_test_this_function(0, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u16: Option<u16> = checked_add_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowing_u16));
+                },
+                false => {
+                    let fitting_u16: Option<u16> = checked_add_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fitting_u16), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(1, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u16: u16 = safe_add_16(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u16: u16 = safe_add_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fitting_u16, result));
+                }
+            }
+        },
+        false => (),
+    };
+   
+    // subtract
+    match if_test_this_function(2, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u16: Option<u16> = checked_sub_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowing_u16));
+                },
+                false => {
+                    let fitting_u16: Option<u16> = checked_sub_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fitting_u16), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(3, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u16: u16 = safe_sub_16(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u16: u16 = safe_sub_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fitting_u16, result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    // multiply
+    match if_test_this_function(4, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u16: Option<u16> = checked_mul_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowing_u16));
+                },
+                false => {
+                    let fitting_u16: Option<u16> = checked_mul_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fitting_u16), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(5, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u16: u16 = safe_mul_16(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u16: u16 = safe_mul_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fitting_u16, result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    // divide 
+    match if_test_this_function(6, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u16: Option<u16> = checked_div_16(first_arg, second_arg);
+                    assert!(is_none::<u16>(overflowing_u16));
+                },
+                false => {
+                    let fitting_u16: Option<u16> = checked_div_16(first_arg, second_arg);
+                    assert!(jet::eq_16(unwrap(fitting_u16), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(7, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u16: u16 = safe_div_16(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u16: u16 = safe_div_16(first_arg, second_arg);
+                    assert!(jet::eq_16(fitting_u16, result));
+                }
+            }
+        },
+        false => (),
+    };
+}

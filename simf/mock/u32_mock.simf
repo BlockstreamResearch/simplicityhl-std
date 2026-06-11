@@ -1,0 +1,194 @@
+// todo: switch to function import when available
+fn checked_add_32(a: u32, b: u32) -> Option<u32> {
+    let (carry, sum): (bool, u32) = jet::add_32(a, b);
+
+    match carry {
+        true => None,
+        false => Some(sum),
+    }
+}
+
+fn safe_add_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_add_32(a, b))
+}
+
+fn checked_sub_32(a: u32, b: u32) -> Option<u32> {
+    let (borrow, diff): (bool, u32) = jet::subtract_32(a, b);
+
+    match borrow {
+        true => None,
+        false => Some(diff),
+    }
+}
+
+fn safe_sub_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_sub_32(a, b))
+}
+
+fn checked_mul_32(a: u32, b: u32) -> Option<u32> {
+    let result: u64 = jet::multiply_32(a, b);
+    
+    let (high, low): (u32, u32) = <u64>::into(result);
+
+    match jet::is_zero_32(high) {
+        true => Some(low),
+        false => None,
+    }
+}
+
+fn safe_mul_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_mul_32(a, b))
+}
+
+fn checked_div_32(a: u32, b: u32) -> Option<u32> {
+    match jet::is_zero_32(b) {
+        true => None,
+        false => Some(jet::divide_32(a, b)),
+    }
+}
+
+fn safe_div_32(a: u32, b: u32) -> u32 {
+    unwrap(checked_div_32(a, b))
+}
+
+// helper
+fn if_test_this_function(index: u8, flag: u8) -> bool {
+   jet::eq_8(index, flag)
+}
+
+fn main() {
+    let function_index: u8 = witness::FUNCTION_INDEX;
+    let if_test_overflow: bool = witness::IF_TEST_OVERFLOW;
+
+    let first_arg: u32 = witness::FIRST_ARG;
+    let second_arg: u32 = witness::SECOND_ARG;
+    let result: u32 = witness::RESULT;
+
+    // add
+    match if_test_this_function(0, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u32: Option<u32> = checked_add_32(first_arg, second_arg);
+                    assert!(is_none::<u32>(overflowing_u32));
+                },
+                false => {
+                    let fitting_u32: Option<u32> = checked_add_32(first_arg, second_arg);
+                    assert!(jet::eq_32(unwrap(fitting_u32), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(1, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u32: u32 = safe_add_32(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u32: u32 = safe_add_32(first_arg, second_arg);
+                    assert!(jet::eq_32(fitting_u32, result));
+                }
+            }
+        },
+        false => (),
+    };
+   
+    // subtract
+    match if_test_this_function(2, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u32: Option<u32> = checked_sub_32(first_arg, second_arg);
+                    assert!(is_none::<u32>(overflowing_u32));
+                },
+                false => {
+                    let fitting_u32: Option<u32> = checked_sub_32(first_arg, second_arg);
+                    assert!(jet::eq_32(unwrap(fitting_u32), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(3, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u32: u32 = safe_sub_32(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u32: u32 = safe_sub_32(first_arg, second_arg);
+                    assert!(jet::eq_32(fitting_u32, result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    // multiply
+    match if_test_this_function(4, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u32: Option<u32> = checked_mul_32(first_arg, second_arg);
+                    assert!(is_none::<u32>(overflowing_u32));
+                },
+                false => {
+                    let fitting_u32: Option<u32> = checked_mul_32(first_arg, second_arg);
+                    assert!(jet::eq_32(unwrap(fitting_u32), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(5, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u32: u32 = safe_mul_32(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u32: u32 = safe_mul_32(first_arg, second_arg);
+                    assert!(jet::eq_32(fitting_u32, result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    // divide 
+    match if_test_this_function(6, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u32: Option<u32> = checked_div_32(first_arg, second_arg);
+                    assert!(is_none::<u32>(overflowing_u32));
+                },
+                false => {
+                    let fitting_u32: Option<u32> = checked_div_32(first_arg, second_arg);
+                    assert!(jet::eq_32(unwrap(fitting_u32), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(7, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u32: u32 = safe_div_32(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u32: u32 = safe_div_32(first_arg, second_arg);
+                    assert!(jet::eq_32(fitting_u32, result));
+                }
+            }
+        },
+        false => (),
+    };
+}
