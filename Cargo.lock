@@ -1233,6 +1233,7 @@ name = "simplicityhl_std"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "rand",
  "smplx-std",
 ]
 
