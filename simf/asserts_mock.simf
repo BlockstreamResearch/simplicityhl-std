@@ -1,54 +1,6 @@
-// todo: switch to function import when available
-fn assert_eq_8(a: u8, b: u8) { // 0
-    assert!(jet::eq_8(a, b));
-}
+use crate::lib::asserts::{assert_eq_8, assert_eq_16, assert_eq_32, assert_eq_64, assert_eq_256, assert_none_8, assert_none_16, assert_none_32, assert_none_64,assert_none_128, assert_none_256};
 
-fn assert_eq_16(a: u16, b: u16) { // 1
-    assert!(jet::eq_16(a, b));
-}
-
-fn assert_eq_32(a: u32, b: u32) { // 2
-    assert!(jet::eq_32(a, b));
-}
-
-fn assert_eq_64(a: u64, b: u64) { // 3
-    assert!(jet::eq_64(a, b));
-}
-
-// todo: assert_eq_128
-
-fn assert_eq_256(a: u256, b: u256) { // 4
-    assert!(jet::eq_256(a, b));
-}
-
-fn assert_none_8(val: Option<u8>) { // 5
-    assert!(is_none::<u8>(val));
-}
-
-fn assert_none_16(val: Option<u16>) { // 6
-    assert!(is_none::<u16>(val));
-}
-
-fn assert_none_32(val: Option<u32>) { // 7
-    assert!(is_none::<u32>(val));
-}
-
-fn assert_none_64(val: Option<u64>) { // 8
-    assert!(is_none::<u64>(val));
-}
-
-fn assert_none_128(val: Option<u128>) { // 9
-    assert!(is_none::<u128>(val));
-}
-
-fn assert_none_256(val: Option<u256>) { // 10
-    assert!(is_none::<u256>(val));
-}
-
-// helper
-fn if_test_this_function(index: u8, flag: u8) -> bool {
-   jet::eq_8(index, flag)
-}
+use crate::helper::if_test_this_function;
 
 fn main() {
     let function_index: u8 = witness::FUNCTION_INDEX;

@@ -1,15 +1,4 @@
-// todo: switch to function import when available
-fn not(bit: bool) -> bool {
-   <u1>::into(jet::complement_1(<bool>::into(bit)))
-}
-
-fn or(a: bool, b: bool) -> bool {
-   <u1>::into(jet::or_1(<bool>::into(a), <bool>::into(b)))
-}
-
-fn and(a: bool, b: bool) -> bool {
-   <u1>::into(jet::and_1(<bool>::into(a), <bool>::into(b)))
-}
+use crate::lib::logical_operations::{not, or, and};
 
 fn main() {
    assert!(not(false));

@@ -1,0 +1,3 @@
+pub fn if_test_this_function(index: u8, flag: u8) -> bool {
+   jet::eq_8(index, flag)
+}
