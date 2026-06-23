@@ -1,0 +1,426 @@
+use rand::Rng;
+
+use simplex::simplicityhl::elements::Script;
+
+use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
+
+use simplicityhl_std::artifacts::mock::u32_mock::U32MockProgram;
+use simplicityhl_std::artifacts::mock::u32_mock::derived_u32_mock::{
+    U32MockArguments, U32MockWitness,
+};
+
+mod helper;
+
+use crate::helper::{IfTestOverflow, cast_to_bool};
+
+enum FunctionToTest {
+    CheckedAdd32,
+    SafeAdd32,
+    CheckedSub32,
+    SafeSub32,
+    CheckedMul32,
+    SafeMul32,
+    CheckedDiv32,
+    SafeDiv32,
+}
+
+fn get_script(context: &simplex::TestContext) -> (U32MockProgram, Script) {
+    let arguments = U32MockArguments {};
+
+    let u32_program = U32MockProgram::new(arguments);
+
+    let u32_script = u32_program.get_script_pubkey(context.get_network());
+
+    (u32_program, u32_script)
+}
+
+fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
+    let signer = context.get_default_signer();
+
+    let (_, u32_script) = get_script(context);
+
+    let tx_receipt = signer.send(u32_script.clone(), 50)?;
+    println!("Broadcast: {}", tx_receipt);
+
+    Ok(())
+}
+
+fn spend_script(
+    context: &simplex::TestContext,
+    function_index: FunctionToTest,
+    if_test_overflow: IfTestOverflow,
+    first_arg: u32,
+    second_arg: u32,
+    result: u32,
+) -> anyhow::Result<()> {
+    let signer = context.get_default_signer();
+    let provider = context.get_default_provider();
+
+    let (u32_program, u32_script) = get_script(context);
+
+    let asserts_utxos = provider.fetch_scripthash_utxos(&u32_script)?;
+
+    let mut ft = FinalTransaction::new();
+
+    let witness = U32MockWitness {
+        function_index: function_index as u8,
+        if_test_overflow: cast_to_bool(if_test_overflow as u8),
+        first_arg,
+        second_arg,
+        result,
+    };
+
+    ft.add_program_input(
+        PartialInput::new(asserts_utxos[0].clone()),
+        ProgramInput::new(
+            Box::new(u32_program.as_ref().clone()),
+            Box::new(witness.clone()),
+        ),
+        RequiredSignature::None,
+    );
+
+    let tx_receipt = signer.broadcast(&ft)?;
+    println!("Broadcast: {}", tx_receipt);
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_checked_add_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..=u32::MAX / 2);
+    let second_arg = rand::thread_rng().gen_range(0..=u32::MAX / 2);
+    let result = first_arg + second_arg;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedAdd32,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_checked_add_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = u32::MAX;
+    let second_arg = rand::thread_rng().gen_range(1..=u32::MAX);
+    let result = 0;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedAdd32,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_safe_add_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..=u32::MAX / 2);
+    let second_arg = rand::thread_rng().gen_range(0..=u32::MAX / 2);
+    let result = first_arg + second_arg;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeAdd32,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_safe_add_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = u32::MAX;
+    let second_arg = rand::thread_rng().gen_range(1..=u32::MAX);
+    let result = 0;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeAdd32,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert!(err.contains("Failed to prune program: Execution reached a pruned branch"));
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_checked_sub_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
+    let second_arg = rand::thread_rng().gen_range(0..=first_arg);
+    let result = first_arg - second_arg;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedSub32,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_checked_sub_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..=u32::MAX - 1);
+    let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u32::MAX);
+    let result = 0;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedSub32,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_safe_sub_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
+    let second_arg = rand::thread_rng().gen_range(0..=first_arg);
+    let result = first_arg - second_arg;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeSub32,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_safe_sub_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..=u32::MAX - 1);
+    let second_arg = rand::thread_rng().gen_range(first_arg + 1..=u32::MAX);
+    let result = 0;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeSub32,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert!(err.contains("Failed to prune program: Execution reached a pruned branch"));
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_checked_mul_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..2_u32.pow(32 / 2));
+    let second_arg = rand::thread_rng().gen_range(0..2_u32.pow(32 / 2));
+    let result = first_arg * second_arg;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedMul32,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_checked_mul_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = u32::MAX;
+    let second_arg = rand::thread_rng().gen_range(2..=u32::MAX);
+    let result = 0;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedMul32,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_safe_mul_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..2_u32.pow(32 / 2));
+    let second_arg = rand::thread_rng().gen_range(0..2_u32.pow(32 / 2));
+    let result = first_arg * second_arg;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeMul32,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_safe_mul_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = u32::MAX;
+    let second_arg = rand::thread_rng().gen_range(2..=u32::MAX);
+    let result = 0;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeMul32,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert!(err.contains("Failed to prune program: Execution reached a pruned branch"));
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_checked_div_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
+    let second_arg = rand::thread_rng().gen_range(1..=u32::MAX);
+    let result = first_arg / second_arg;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedDiv32,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_checked_div_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
+    let second_arg = 0;
+    let result = 0;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::CheckedDiv32,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_safe_div_32_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
+    let second_arg = rand::thread_rng().gen_range(1..=u32::MAX);
+    let result = first_arg / second_arg;
+
+    fund_script(&context)?;
+    spend_script(
+        &context,
+        FunctionToTest::SafeDiv32,
+        IfTestOverflow::NotOverflow,
+        first_arg,
+        second_arg,
+        result,
+    )?;
+
+    Ok(())
+}
+
+#[simplex::test]
+fn u32_test_safe_div_32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    let first_arg = rand::thread_rng().gen_range(0..=u32::MAX);
+    let second_arg = 0;
+    let result = 0;
+
+    fund_script(&context)?;
+
+    let txid_result = spend_script(
+        &context,
+        FunctionToTest::SafeDiv32,
+        IfTestOverflow::Overflow,
+        first_arg,
+        second_arg,
+        result,
+    );
+
+    assert!(
+        txid_result.is_err(),
+        "Expected this test to fail but it succeeded"
+    );
+
+    let err: String = txid_result.unwrap_err().to_string();
+    assert!(err.contains("Failed to prune program: Execution reached a pruned branch"));
+
+    Ok(())
+}

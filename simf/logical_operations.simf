@@ -1,0 +1,17 @@
+/// Returns the result of the NOT operation on the provided value
+fn not(bit: bool) -> bool {
+   <u1>::into(jet::complement_1(<bool>::into(bit)))
+}
+
+/// Returns the result of the OR operation on the provided values
+fn or(a: bool, b: bool) -> bool {
+   <u1>::into(jet::or_1(<bool>::into(a), <bool>::into(b)))
+}
+
+/// Returns the result of the AND operation on the provided values
+fn and(a: bool, b: bool) -> bool {
+   <u1>::into(jet::and_1(<bool>::into(a), <bool>::into(b)))
+}
+
+// todo: remove after module functionality is implemented
+fn main() {}
