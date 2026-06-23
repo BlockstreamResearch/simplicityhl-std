@@ -8,6 +8,7 @@ use simplicityhl_std::artifacts::mock::asserts_mock::derived_asserts_mock::{
 };
 
 mod helper;
+
 use crate::helper::{cast_to_bool, generate_uints_in_one_range};
 
 enum FunctionToTest {
