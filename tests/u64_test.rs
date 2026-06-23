@@ -4,10 +4,8 @@ use simplex::simplicityhl::elements::Script;
 
 use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
 
-use simplicityhl_std::artifacts::mock::u64_mock::U64MockProgram;
-use simplicityhl_std::artifacts::mock::u64_mock::derived_u64_mock::{
-    U64MockArguments, U64MockWitness,
-};
+use simplicityhl_std::artifacts::u64_mock::U64MockProgram;
+use simplicityhl_std::artifacts::u64_mock::derived_u64_mock::{U64MockArguments, U64MockWitness};
 
 mod helper;
 
