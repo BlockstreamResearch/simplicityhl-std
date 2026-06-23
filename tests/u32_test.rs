@@ -26,20 +26,19 @@ enum FunctionToTest {
 fn get_script(context: &simplex::TestContext) -> (U32MockProgram, Script) {
     let arguments = U32MockArguments {};
 
-    let logical_operations_program = U32MockProgram::new(arguments);
+    let u32_program = U32MockProgram::new(arguments);
 
-    let logical_operations_script =
-        logical_operations_program.get_script_pubkey(context.get_network());
+    let u32_script = u32_program.get_script_pubkey(context.get_network());
 
-    (logical_operations_program, logical_operations_script)
+    (u32_program, u32_script)
 }
 
 fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
     let signer = context.get_default_signer();
 
-    let (_, logical_operations_script) = get_script(context);
+    let (_, u32_script) = get_script(context);
 
-    let tx_receipt = signer.send(logical_operations_script.clone(), 50)?;
+    let tx_receipt = signer.send(u32_script.clone(), 50)?;
     println!("Broadcast: {}", tx_receipt);
 
     Ok(())
@@ -56,9 +55,9 @@ fn spend_script(
     let signer = context.get_default_signer();
     let provider = context.get_default_provider();
 
-    let (logical_operations_program, logical_operations_script) = get_script(context);
+    let (u32_program, u32_script) = get_script(context);
 
-    let asserts_utxos = provider.fetch_scripthash_utxos(&logical_operations_script)?;
+    let asserts_utxos = provider.fetch_scripthash_utxos(&u32_script)?;
 
     let mut ft = FinalTransaction::new();
 
@@ -73,7 +72,7 @@ fn spend_script(
     ft.add_program_input(
         PartialInput::new(asserts_utxos[0].clone()),
         ProgramInput::new(
-            Box::new(logical_operations_program.as_ref().clone()),
+            Box::new(u32_program.as_ref().clone()),
             Box::new(witness.clone()),
         ),
         RequiredSignature::None,
