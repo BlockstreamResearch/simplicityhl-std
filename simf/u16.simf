@@ -16,6 +16,7 @@ fn safe_add_16(a: u16, b: u16) -> u16 {
 /// Returns the difference of two u16 values wrapped in Some, or None if the result overflows u16
 fn checked_sub_16(a: u16, b: u16) -> Option<u16> {
     let (borrow, diff): (bool, u16) = jet::subtract_16(a, b);
+    
     match borrow {
         true => None,
         false => Some(diff),
