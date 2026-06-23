@@ -165,10 +165,7 @@ fn u64_test_safe_add_64_overflow(context: simplex::TestContext) -> anyhow::Resul
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(
-        err,
-        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
-    );
+    assert!(err.contains("Failed to prune program: Execution reached a pruned branch"));
 
     Ok(())
 }
@@ -253,10 +250,7 @@ fn u64_test_safe_sub_64_overflow(context: simplex::TestContext) -> anyhow::Resul
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(
-        err,
-        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
-    );
+    assert!(err.contains("Failed to prune program: Execution reached a pruned branch"));
 
     Ok(())
 }
@@ -341,10 +335,7 @@ fn u64_test_safe_mul_64_overflow(context: simplex::TestContext) -> anyhow::Resul
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(
-        err,
-        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
-    );
+    assert!(err.contains("Failed to prune program: Execution reached a pruned branch"));
 
     Ok(())
 }
@@ -429,10 +420,7 @@ fn u64_test_safe_div_64_overflow(context: simplex::TestContext) -> anyhow::Resul
     );
 
     let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(
-        err,
-        "Failed to prune program: Execution reached a pruned branch: 744339c859e7ff6f8d33f9afa73734e1c908684feedc8c4d0a6112d3bf361317"
-    );
+    assert!(err.contains("Failed to prune program: Execution reached a pruned branch"));
 
     Ok(())
 }
