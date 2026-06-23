@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use simplex::simplicityhl::elements::Script;
 
 use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
@@ -7,9 +9,8 @@ use simplicityhl_std::artifacts::mock::u16_mock::derived_u16_mock::{
     U16MockArguments, U16MockWitness,
 };
 
-use rand::Rng;
-
 mod helper;
+
 use crate::helper::{IfTestOverflow, cast_to_bool};
 
 enum FunctionToTest {
