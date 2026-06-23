@@ -1,0 +1,194 @@
+// todo: switch to function import when available
+fn checked_add_64(a: u64, b: u64) -> Option<u64> {
+    let (carry, sum): (bool, u64) = jet::add_64(a, b);
+
+    match carry {
+        true => None,
+        false => Some(sum),
+    }
+}
+
+fn safe_add_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_add_64(a, b))
+}
+
+fn checked_sub_64(a: u64, b: u64) -> Option<u64> {
+    let (borrow, diff): (bool, u64) = jet::subtract_64(a, b);
+
+    match borrow {
+        true => None,
+        false => Some(diff),
+    }
+}
+
+fn safe_sub_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_sub_64(a, b))
+}
+
+fn checked_mul_64(a: u64, b: u64) -> Option<u64> {
+    let result: u128 = jet::multiply_64(a, b);
+    
+    let (high, low): (u64, u64) = <u128>::into(result);
+
+    match jet::is_zero_64(high) {
+        true => Some(low),
+        false => None,
+    }
+}
+
+fn safe_mul_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_mul_64(a, b))
+}
+
+fn checked_div_64(a: u64, b: u64) -> Option<u64> {
+    match jet::is_zero_64(b) {
+        true => None,
+        false => Some(jet::divide_64(a, b)),
+    }
+}
+
+fn safe_div_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_div_64(a, b))
+}
+
+// helper
+fn if_test_this_function(index: u8, flag: u8) -> bool {
+   jet::eq_8(index, flag)
+}
+
+fn main() {
+    let function_index: u8 = witness::FUNCTION_INDEX;
+    let if_test_overflow: bool = witness::IF_TEST_OVERFLOW;
+
+    let first_arg: u64 = witness::FIRST_ARG;
+    let second_arg: u64 = witness::SECOND_ARG;
+    let result: u64 = witness::RESULT;
+
+    // add
+    match if_test_this_function(0, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u64: Option<u64> = checked_add_64(first_arg, second_arg);
+                    assert!(is_none::<u64>(overflowing_u64));
+                },
+                false => {
+                    let fitting_u64: Option<u64> = checked_add_64(first_arg, second_arg);
+                    assert!(jet::eq_64(unwrap(fitting_u64), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(1, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u64: u64 = safe_add_64(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u64: u64 = safe_add_64(first_arg, second_arg);
+                    assert!(jet::eq_64(fitting_u64, result));
+                }
+            }
+        },
+        false => (),
+    };
+   
+    // subtract
+    match if_test_this_function(2, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u64: Option<u64> = checked_sub_64(first_arg, second_arg);
+                    assert!(is_none::<u64>(overflowing_u64));
+                },
+                false => {
+                    let fitting_u64: Option<u64> = checked_sub_64(first_arg, second_arg);
+                    assert!(jet::eq_64(unwrap(fitting_u64), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(3, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u64: u64 = safe_sub_64(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u64: u64 = safe_sub_64(first_arg, second_arg);
+                    assert!(jet::eq_64(fitting_u64, result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    // multiply
+    match if_test_this_function(4, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u64: Option<u64> = checked_mul_64(first_arg, second_arg);
+                    assert!(is_none::<u64>(overflowing_u64));
+                },
+                false => {
+                    let fitting_u64: Option<u64> = checked_mul_64(first_arg, second_arg);
+                    assert!(jet::eq_64(unwrap(fitting_u64), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(5, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u64: u64 = safe_mul_64(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u64: u64 = safe_mul_64(first_arg, second_arg);
+                    assert!(jet::eq_64(fitting_u64, result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    // divide 
+    match if_test_this_function(6, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u64: Option<u64> = checked_div_64(first_arg, second_arg);
+                    assert!(is_none::<u64>(overflowing_u64));
+                },
+                false => {
+                    let fitting_u64: Option<u64> = checked_div_64(first_arg, second_arg);
+                    assert!(jet::eq_64(unwrap(fitting_u64), result));
+                }
+            }
+        },
+        false => (),
+    };
+
+    match if_test_this_function(7, function_index) {
+        true => {
+            match if_test_overflow {
+                true => {
+                    let overflowing_u64: u64 = safe_div_64(first_arg, second_arg);
+                },
+                false => {
+                    let fitting_u64: u64 = safe_div_64(first_arg, second_arg);
+                    assert!(jet::eq_64(fitting_u64, result));
+                }
+            }
+        },
+        false => (),
+    };
+}
