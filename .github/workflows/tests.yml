@@ -46,6 +46,8 @@ jobs:
 
       - name: Install simplex-cli
         uses: ./.github/actions/setup-smplx
+        with:
+          commit-sha: '3afcc04'
 
       - name: Generate contract artifacts
         shell: bash
