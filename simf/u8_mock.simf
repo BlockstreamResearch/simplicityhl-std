@@ -1,60 +1,6 @@
-// todo: switch to function import when available
-fn checked_add_8(a: u8, b: u8) -> Option<u8> {
-    let (carry, sum): (bool, u8) = jet::add_8(a, b);
+use crate::lib::u8::{checked_add_8, safe_add_8, checked_sub_8, safe_sub_8, checked_mul_8, safe_mul_8, checked_div_8, safe_div_8};
 
-    match carry {
-        true => None,
-        false => Some(sum),
-    }
-}
-
-fn safe_add_8(a: u8, b: u8) -> u8 {
-    unwrap(checked_add_8(a, b))
-}
-
-fn checked_sub_8(a: u8, b: u8) -> Option<u8> {
-    let (borrow, diff): (bool, u8) = jet::subtract_8(a, b);
-
-    match borrow {
-        true => None,
-        false => Some(diff),
-    }
-}
-
-fn safe_sub_8(a: u8, b: u8) -> u8 {
-    unwrap(checked_sub_8(a, b))
-}
-
-fn checked_mul_8(a: u8, b: u8) -> Option<u8> {
-    let result: u16 = jet::multiply_8(a, b);
-
-    let (high, low): (u8, u8) = <u16>::into(result);
-
-    match jet::is_zero_8(high) {
-        true => Some(low),
-        false => None,
-    }
-}
-
-fn safe_mul_8(a: u8, b: u8) -> u8 {
-    unwrap(checked_mul_8(a, b))
-}
-
-fn checked_div_8(a: u8, b: u8) -> Option<u8> {
-    match jet::is_zero_8(b) {
-        true => None,
-        false => Some(jet::divide_8(a, b)),
-    }
-}
-
-fn safe_div_8(a: u8, b: u8) -> u8 {
-    unwrap(checked_div_8(a, b))
-}
-
-// helper
-fn if_test_this_function(index: u8, flag: u8) -> bool {
-   jet::eq_8(index, flag)
-}
+use crate::helper::if_test_this_function;
 
 fn main() {
     let function_index: u8 = witness::FUNCTION_INDEX;

@@ -2,8 +2,8 @@ use simplex::simplicityhl::elements::Script;
 
 use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
 
-use simplicityhl_std::artifacts::mock::asserts_mock::AssertsMockProgram;
-use simplicityhl_std::artifacts::mock::asserts_mock::derived_asserts_mock::{
+use simplicityhl_std::artifacts::asserts_mock::AssertsMockProgram;
+use simplicityhl_std::artifacts::asserts_mock::derived_asserts_mock::{
     AssertsMockArguments, AssertsMockWitness,
 };
 

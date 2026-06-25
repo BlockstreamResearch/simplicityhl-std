@@ -4,8 +4,8 @@ use simplex::simplicityhl::elements::Script;
 
 use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
 
-use simplicityhl_std::artifacts::mock::u8_mock::U8MockProgram;
-use simplicityhl_std::artifacts::mock::u8_mock::derived_u8_mock::{U8MockArguments, U8MockWitness};
+use simplicityhl_std::artifacts::u8_mock::U8MockProgram;
+use simplicityhl_std::artifacts::u8_mock::derived_u8_mock::{U8MockArguments, U8MockWitness};
 
 mod helper;
 

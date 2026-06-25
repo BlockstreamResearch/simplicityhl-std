@@ -2,8 +2,8 @@ use simplex::simplicityhl::elements::Script;
 
 use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
 
-use simplicityhl_std::artifacts::mock::logical_operations_mock::LogicalOperationsMockProgram;
-use simplicityhl_std::artifacts::mock::logical_operations_mock::derived_logical_operations_mock::{
+use simplicityhl_std::artifacts::logical_operations_mock::LogicalOperationsMockProgram;
+use simplicityhl_std::artifacts::logical_operations_mock::derived_logical_operations_mock::{
     LogicalOperationsMockArguments, LogicalOperationsMockWitness,
 };
 

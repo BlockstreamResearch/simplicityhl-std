@@ -2,10 +2,13 @@
 
 This repository contains the standard library for [SimplicityHL](https://github.com/BlockstreamResearch/SimplicityHL).
 
+> [!NOTE]
+> If you are using the VS Code syntax highlighting extension, you may see errors because the extension does not support modules and imports yet.
+
 ## Dev Info
 ### Installation
 
-> Project currently uses Simplex version 0.0.6.
+> Project currently uses Simplex version 0.0.6 from the dev branch.
 
 To compile the project, execute the following command:
 
@@ -19,10 +22,10 @@ To download simplexup, run:
 curl -L https://smplx.simplicity-lang.org | bash
 ```
 
-To install a specific Simplex version (in this case the v0.0.6 version):
+To install a specific Simplex version (in this case from the specific commit):
 
 ```bash
-simplexup --install v0.0.6
+simplexup --commit 3afcc04aae8a0a92722b28bc1d16ef27983d4aa1
 ```
 
 ### Compilation
