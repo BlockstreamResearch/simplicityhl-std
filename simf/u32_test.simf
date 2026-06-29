@@ -1,0 +1,34 @@
+use crate::lib::u32::{checked_add_32, safe_add_32, checked_sub_32, safe_sub_32, checked_mul_32, safe_mul_32, checked_div_32, safe_div_32};
+
+use crate::helper::if_test_this_function;
+
+fn assert_eq_opt(result: Option<u32>, expected: Option<u32>) {
+    match expected {
+        None => assert!(is_none::<u32>(result)),
+        Some(e: u32) => assert!(jet::eq_32(unwrap(result), e)),
+    }
+}
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u32 = witness::FIRST_ARG;
+    let b: u32 = witness::SECOND_ARG;
+    let expected: Option<u32> = witness::EXPECTED;
+
+    // add
+    match if_test_this_function(0, fn_idx) { true => { assert_eq_opt(checked_add_32(a, b), expected); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert!(jet::eq_32(safe_add_32(a, b), unwrap(expected))); }, false => (), };
+
+    // sub
+    match if_test_this_function(2, fn_idx) { true => { assert_eq_opt(checked_sub_32(a, b), expected); }, false => (), };
+    match if_test_this_function(3, fn_idx) { true => { assert!(jet::eq_32(safe_sub_32(a, b), unwrap(expected))); }, false => (), };
+
+    // mul
+    match if_test_this_function(4, fn_idx) { true => { assert_eq_opt(checked_mul_32(a, b), expected); }, false => (), };
+    match if_test_this_function(5, fn_idx) { true => { assert!(jet::eq_32(safe_mul_32(a, b), unwrap(expected))); }, false => (), };
+
+    // div
+    match if_test_this_function(6, fn_idx) { true => { assert_eq_opt(checked_div_32(a, b), expected); }, false => (), };
+    match if_test_this_function(7, fn_idx) { true => { assert!(jet::eq_32(safe_div_32(a, b), unwrap(expected))); }, false => (), };
+}
