@@ -6,15 +6,12 @@ This repository contains the standard library for [SimplicityHL](https://github.
 > If you are using the VS Code syntax highlighting extension, you may see errors because the extension does not support modules and imports yet.
 
 ## Dev Info
+
 ### Installation
 
 > Project currently uses Simplex version 0.0.6 from the dev branch.
 
 To compile the project, execute the following command:
-
-```bash
-cargo build
-```
 
 To download simplexup, run:
 
@@ -60,6 +57,12 @@ To run a specific test:
 
 ```bash
 simplex test test_name
+```
+
+To run a specific test module:
+
+```bash
+simplex test u8_test
 ```
 
 ### Linting

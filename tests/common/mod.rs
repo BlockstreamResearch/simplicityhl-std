@@ -1,3 +1,7 @@
+// Each `tests/*.rs` is a separate crate that mounts this module but uses only
+// part of it, so per-crate dead-code analysis would warn about the rest.
+#![allow(dead_code)]
+
 use simplex::program::{Program, WitnessTrait};
 use simplex::simplicityhl::elements::Script;
 use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
@@ -8,9 +12,27 @@ pub mod uint;
 // Spend plumbing (shared by every test, of every category)
 // ---------------------------------------------------------------------------
 
+#[derive(Clone, Copy)]
 pub enum Expect {
+    /// The spend succeeds.
     Ok,
-    PrunedFail, // safe_* overflow, div-by-zero, etc.
+    /// A failed `assert!` in the contract — the assertion jet fails.
+    AssertFailed,
+    /// Execution reached a pruned branch (e.g. `unwrap(None)`, a `safe_*` overflow).
+    PrunedBranch,
+}
+
+impl Expect {
+    /// The exact broadcast error message for a failing expectation (`None` for `Ok`).
+    fn error_message(self) -> Option<&'static str> {
+        match self {
+            Expect::Ok => None,
+            Expect::AssertFailed => Some("Failed to prune program: Jet failed during execution"),
+            Expect::PrunedBranch => {
+                Some("Failed to prune program: Execution reached a pruned branch")
+            }
+        }
+    }
 }
 
 /// Send sats to the program's script so it has a UTXO to spend.
@@ -60,17 +82,15 @@ where
     let script = fund(context, &program)?;
     let result = spend(context, &program, &script, witness);
 
-    match expect {
-        Expect::Ok => {
+    match expect.error_message() {
+        None => {
             result?;
         }
-        Expect::PrunedFail => {
-            assert!(
-                result.is_err(),
-                "expected a pruned-branch failure, but it succeeded"
-            );
-            let err = result.unwrap_err().to_string();
-            assert!(err.contains("Failed to prune program: Execution reached a pruned branch"));
+        Some(expected) => {
+            let err = result
+                .expect_err("expected the spend to fail, but it succeeded")
+                .to_string();
+            assert!(err.contains(expected));
         }
     }
     Ok(())

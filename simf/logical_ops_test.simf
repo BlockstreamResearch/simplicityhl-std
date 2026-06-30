@@ -2,7 +2,7 @@ use crate::lib::logical_operations::{not, or, and};
 
 fn main() {
    assert!(not(false));
-   assert!(not((not(true))));
+   assert!(not(not(true)));
 
    assert!(or(true, false));
    assert!(or(false, true));

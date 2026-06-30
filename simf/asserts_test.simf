@@ -1,0 +1,40 @@
+use crate::lib::asserts::{assert_eq_8, assert_eq_16, assert_eq_32, assert_eq_64, assert_eq_256, assert_none_8, assert_none_16, assert_none_32, assert_none_64,assert_none_128, assert_none_256};
+
+use crate::helper::if_test_this_function;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a_u8: Option<u8> = witness::FIRST_ARG_U8;
+    let b_u8: Option<u8> = witness::SECOND_ARG_U8;
+
+    let a_u16: Option<u16> = witness::FIRST_ARG_U16;
+    let b_u16: Option<u16> = witness::SECOND_ARG_U16;
+    
+    let a_u32: Option<u32> = witness::FIRST_ARG_U32;
+    let b_u32: Option<u32> = witness::SECOND_ARG_U32;
+
+    let a_u64: Option<u64> = witness::FIRST_ARG_U64;
+    let b_u64: Option<u64> = witness::SECOND_ARG_U64;
+
+    let a_u128: Option<u128> = witness::FIRST_ARG_U128;
+    let b_u128: Option<u128> = witness::SECOND_ARG_U128;
+
+    let a_u256: Option<u256> = witness::FIRST_ARG_U256;
+    let b_u256: Option<u256> = witness::SECOND_ARG_U256;
+
+    // Assert Eq
+    match if_test_this_function(0, fn_idx) { true => { assert_eq_8(unwrap(a_u8), unwrap(b_u8)); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert_eq_16(unwrap(a_u16), unwrap(b_u16)); }, false => (), };
+    match if_test_this_function(2, fn_idx) { true => { assert_eq_32(unwrap(a_u32), unwrap(b_u32)); }, false => (), };
+    match if_test_this_function(3, fn_idx) { true => { assert_eq_64(unwrap(a_u64), unwrap(b_u64)); }, false => (), };
+    match if_test_this_function(4, fn_idx) { true => { assert_eq_256(unwrap(a_u256), unwrap(b_u256)); }, false => (), };
+
+    // Assert None
+    match if_test_this_function(5, fn_idx) { true => { assert_none_8(a_u8); }, false => (), };
+    match if_test_this_function(6, fn_idx) { true => { assert_none_16(a_u16); }, false => (), };
+    match if_test_this_function(7, fn_idx) { true => { assert_none_32(a_u32); }, false => (), };
+    match if_test_this_function(8, fn_idx) { true => { assert_none_64(a_u64); }, false => (), };
+    match if_test_this_function(9, fn_idx) { true => { assert_none_128(a_u128); }, false => (), };
+    match if_test_this_function(10, fn_idx) { true => { assert_none_256(a_u256); }, false => (), };
+}

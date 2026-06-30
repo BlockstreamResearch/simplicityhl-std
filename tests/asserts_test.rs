@@ -1,16 +1,16 @@
-use simplex::simplicityhl::elements::Script;
+mod common;
 
-use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
+use rand::Rng;
 
-use simplicityhl_std::artifacts::asserts_mock::AssertsMockProgram;
-use simplicityhl_std::artifacts::asserts_mock::derived_asserts_mock::{
-    AssertsMockArguments, AssertsMockWitness,
+use common::{Expect, run};
+
+use simplicityhl_std::artifacts::asserts_test::AssertsTestProgram;
+use simplicityhl_std::artifacts::asserts_test::derived_asserts_test::{
+    AssertsTestArguments, AssertsTestWitness,
 };
 
-mod helper;
-
-use crate::helper::{cast_to_bool, generate_uints_in_one_range};
-
+// Dispatch indices — must match the `if_test_this_function(N, ..)` arms in
+// simf/asserts_test.simf.
 enum FunctionToTest {
     AssertEq8,
     AssertEq16,
@@ -32,42 +32,36 @@ const DEFAULT_SOME_U64: Option<u64> = Some(0);
 const DEFAULT_SOME_U128: Option<u128> = Some(0);
 const DEFAULT_SOME_U256: Option<[u8; 32]> = Some([0; 32]);
 
-pub enum IfTestSameValues {
-    DifferentValues,
-    SameValues,
-}
-pub enum IfTestNoneValue {
-    NotNoneValue,
-    NoneValue,
+fn program() -> AssertsTestProgram {
+    AssertsTestProgram::new(AssertsTestArguments {})
 }
 
-fn get_asserts_test_script(context: &simplex::TestContext) -> (AssertsMockProgram, Script) {
-    let arguments = AssertsMockArguments {};
+/// Returns two values in `[min, max]` that are equal when `same`, distinct otherwise.
+pub fn generate_uints_in_one_range(same: bool, min_val: u128, max_val: u128) -> (u128, u128) {
+    let some_u = rand::thread_rng().gen_range(min_val..=max_val);
 
-    let asserts_program = AssertsMockProgram::new(arguments);
+    if same {
+        return (some_u, some_u);
+    }
 
-    let asserts_script = asserts_program.get_script_pubkey(context.get_network());
+    assert!(
+        min_val != max_val,
+        "cannot generate distinct values in a single-value range"
+    );
 
-    (asserts_program, asserts_script)
+    let mut other_u = rand::thread_rng().gen_range(min_val..=max_val);
+
+    while other_u == some_u {
+        other_u = rand::thread_rng().gen_range(min_val..=max_val);
+    }
+
+    (some_u, other_u)
 }
 
-fn fund_script(context: &simplex::TestContext) -> anyhow::Result<()> {
-    let signer = context.get_default_signer();
-
-    let (_, asserts_script) = get_asserts_test_script(context);
-
-    let tx_receipt = signer.send(asserts_script.clone(), 50)?;
-    println!("Broadcast: {}", tx_receipt);
-
-    Ok(())
-}
-
-fn generate_test_witness(
-    function_index: FunctionToTest,
-    if_same_values: bool,
-    if_none_value: bool,
-) -> AssertsMockWitness {
-    let mut witness: AssertsMockWitness = AssertsMockWitness {
+/// Builds the witness for one assert call. `same` controls the two `assert_eq`
+/// args; `none` makes the single `assert_none` arg `None`.
+fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTestWitness {
+    let mut witness = AssertsTestWitness {
         function_index: 0,
         first_arg_u8: DEFAULT_SOME_U8,
         second_arg_u8: DEFAULT_SOME_U8,
@@ -83,500 +77,317 @@ fn generate_test_witness(
         second_arg_u256: DEFAULT_SOME_U256,
     };
 
-    match function_index {
+    match function {
         FunctionToTest::AssertEq8 => {
-            let (first_arg, second_arg) =
-                generate_uints_in_one_range(if_same_values, 0, u8::MAX as u128);
-
-            (witness.first_arg_u8, witness.second_arg_u8) =
-                (Some(first_arg as u8), Some(second_arg as u8));
+            let (a, b) = generate_uints_in_one_range(same, 0, u8::MAX as u128);
+            (witness.first_arg_u8, witness.second_arg_u8) = (Some(a as u8), Some(b as u8));
         }
         FunctionToTest::AssertEq16 => {
-            let (first_arg, second_arg) =
-                generate_uints_in_one_range(if_same_values, 0, u16::MAX as u128);
-
-            (witness.first_arg_u16, witness.second_arg_u16) =
-                (Some(first_arg as u16), Some(second_arg as u16));
+            let (a, b) = generate_uints_in_one_range(same, 0, u16::MAX as u128);
+            (witness.first_arg_u16, witness.second_arg_u16) = (Some(a as u16), Some(b as u16));
         }
         FunctionToTest::AssertEq32 => {
-            let (first_arg, second_arg) =
-                generate_uints_in_one_range(if_same_values, 0, u32::MAX as u128);
-
-            (witness.first_arg_u32, witness.second_arg_u32) =
-                (Some(first_arg as u32), Some(second_arg as u32));
+            let (a, b) = generate_uints_in_one_range(same, 0, u32::MAX as u128);
+            (witness.first_arg_u32, witness.second_arg_u32) = (Some(a as u32), Some(b as u32));
         }
         FunctionToTest::AssertEq64 => {
-            let (first_arg, second_arg) =
-                generate_uints_in_one_range(if_same_values, 0, u64::MAX as u128);
-
-            (witness.first_arg_u64, witness.second_arg_u64) =
-                (Some(first_arg as u64), Some(second_arg as u64));
+            let (a, b) = generate_uints_in_one_range(same, 0, u64::MAX as u128);
+            (witness.first_arg_u64, witness.second_arg_u64) = (Some(a as u64), Some(b as u64));
         }
         FunctionToTest::AssertEq256 => {
-            let (first_arg, second_arg) =
-                generate_uints_in_one_range(if_same_values, 0, u8::MAX as u128);
-
+            let (a, b) = generate_uints_in_one_range(same, 0, u8::MAX as u128);
             (witness.first_arg_u256, witness.second_arg_u256) =
-                (Some([first_arg as u8; 32]), Some([second_arg as u8; 32]));
+                (Some([a as u8; 32]), Some([b as u8; 32]));
         }
         FunctionToTest::AssertNone8 => {
-            if if_none_value {
+            if none {
                 witness.first_arg_u8 = None;
-            };
+            }
         }
         FunctionToTest::AssertNone16 => {
-            if if_none_value {
+            if none {
                 witness.first_arg_u16 = None;
-            };
+            }
         }
         FunctionToTest::AssertNone32 => {
-            if if_none_value {
+            if none {
                 witness.first_arg_u32 = None;
-            };
+            }
         }
         FunctionToTest::AssertNone64 => {
-            if if_none_value {
+            if none {
                 witness.first_arg_u64 = None;
-            };
+            }
         }
         FunctionToTest::AssertNone128 => {
-            if if_none_value {
+            if none {
                 witness.first_arg_u128 = None;
-            };
+            }
         }
         FunctionToTest::AssertNone256 => {
-            if if_none_value {
+            if none {
                 witness.first_arg_u256 = None;
-            };
+            }
         }
     }
 
-    witness.function_index = function_index as u8;
+    witness.function_index = function as u8;
     witness
 }
 
-fn spend_script(
+fn run_assert(
     context: &simplex::TestContext,
-    function_index: FunctionToTest,
-    if_same_values: IfTestSameValues,
-    if_none_value: IfTestNoneValue,
+    function: FunctionToTest,
+    same: bool,
+    none: bool,
+    expect: Expect,
 ) -> anyhow::Result<()> {
-    let signer = context.get_default_signer();
-    let provider = context.get_default_provider();
-
-    let (asserts_program, asserts_script) = get_asserts_test_script(context);
-
-    let asserts_utxos = provider.fetch_scripthash_utxos(&asserts_script)?;
-
-    let mut ft = FinalTransaction::new();
-
-    let witness: AssertsMockWitness = generate_test_witness(
-        function_index,
-        cast_to_bool(if_same_values as u8),
-        cast_to_bool(if_none_value as u8),
-    );
-
-    ft.add_program_input(
-        PartialInput::new(asserts_utxos[0].clone()),
-        ProgramInput::new(
-            Box::new(asserts_program.as_ref().clone()),
-            Box::new(witness.clone()),
-        ),
-        RequiredSignature::None,
-    );
-
-    let tx_receipt = signer.broadcast(&ft)?;
-    println!("Broadcast: {}", tx_receipt);
-
-    Ok(())
+    run(
+        context,
+        program(),
+        build_witness(function, same, none),
+        expect,
+    )
 }
 
-#[simplex::test]
-fn assert_eq_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-    spend_script(
-        &context,
-        FunctionToTest::AssertEq8,
-        IfTestSameValues::SameValues,
-        IfTestNoneValue::NotNoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_eq_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertEq8,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_eq_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-    spend_script(
-        &context,
-        FunctionToTest::AssertEq16,
-        IfTestSameValues::SameValues,
-        IfTestNoneValue::NotNoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_eq_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertEq16,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_eq_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-    spend_script(
-        &context,
-        FunctionToTest::AssertEq32,
-        IfTestSameValues::SameValues,
-        IfTestNoneValue::NotNoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_eq_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertEq32,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_eq_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-    spend_script(
-        &context,
-        FunctionToTest::AssertEq64,
-        IfTestSameValues::SameValues,
-        IfTestNoneValue::NotNoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_eq_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertEq64,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_eq_256_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-    spend_script(
-        &context,
-        FunctionToTest::AssertEq256,
-        IfTestSameValues::SameValues,
-        IfTestNoneValue::NotNoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_eq_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertEq256,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-    spend_script(
-        &context,
-        FunctionToTest::AssertNone8,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertNone8,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    spend_script(
-        &context,
-        FunctionToTest::AssertNone16,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertNone16,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    spend_script(
-        &context,
-        FunctionToTest::AssertNone32,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertNone32,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    spend_script(
-        &context,
-        FunctionToTest::AssertNone64,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertNone64,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_128_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    spend_script(
-        &context,
-        FunctionToTest::AssertNone128,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertNone128,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_256_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    spend_script(
-        &context,
-        FunctionToTest::AssertNone256,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NoneValue,
-    )?;
-
-    Ok(())
-}
-
-#[simplex::test]
-fn assert_none_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    fund_script(&context)?;
-
-    let txid_result = spend_script(
-        &context,
-        FunctionToTest::AssertNone256,
-        IfTestSameValues::DifferentValues,
-        IfTestNoneValue::NotNoneValue,
-    );
-
-    assert!(
-        txid_result.is_err(),
-        "Expected this test to fail but it succeeded"
-    );
-
-    let err: String = txid_result.unwrap_err().to_string();
-    assert_eq!(err, "Failed to prune program: Jet failed during execution");
-
-    Ok(())
+mod asserts_test {
+    use super::*;
+
+    // ---------- assert_eq: happy = equal args, unhappy = distinct args ----------
+    #[simplex::test]
+    fn assert_eq_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(&context, FunctionToTest::AssertEq8, true, false, Expect::Ok)
+    }
+
+    #[simplex::test]
+    fn assert_eq_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq8,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq16,
+            true,
+            false,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq16,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq32,
+            true,
+            false,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq32,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq64,
+            true,
+            false,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq64,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_256_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq256,
+            true,
+            false,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq256,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    // ---------- assert_none: happy = None arg, unhappy = Some arg ----------
+    #[simplex::test]
+    fn assert_none_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone8,
+            false,
+            true,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone8,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone16,
+            false,
+            true,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone16,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone32,
+            false,
+            true,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone32,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone64,
+            false,
+            true,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone64,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_128_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone128,
+            false,
+            true,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone128,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_256_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone256,
+            false,
+            true,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone256,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
 }

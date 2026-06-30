@@ -1,3 +1,7 @@
+// Each `tests/*.rs` is a separate crate that mounts this module but uses only
+// part of it, so per-crate dead-code analysis would warn about the rest.
+#![allow(dead_code)]
+
 use std::ops::{Add, Div, Mul, Sub};
 
 use rand::Rng;
@@ -96,7 +100,7 @@ pub fn safe_add_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::
         &context,
         T::program(),
         T::witness(op(CommonOp::SafeAdd), T::MAX, b, None),
-        Expect::PrunedFail,
+        Expect::PrunedBranch,
     )
 }
 
@@ -141,7 +145,7 @@ pub fn safe_sub_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::
         &context,
         T::program(),
         T::witness(op(CommonOp::SafeSub), a, b, None),
-        Expect::PrunedFail,
+        Expect::PrunedBranch,
     )
 }
 
@@ -186,7 +190,7 @@ pub fn safe_mul_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::
         &context,
         T::program(),
         T::witness(op(CommonOp::SafeMul), T::MAX, b, None),
-        Expect::PrunedFail,
+        Expect::PrunedBranch,
     )
 }
 
@@ -229,7 +233,7 @@ pub fn safe_div_by_zero<T: TestUint>(context: simplex::TestContext) -> anyhow::R
         &context,
         T::program(),
         T::witness(op(CommonOp::SafeDiv), a, T::ZERO, None),
-        Expect::PrunedFail,
+        Expect::PrunedBranch,
     )
 }
 
