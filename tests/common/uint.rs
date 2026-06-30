@@ -11,9 +11,9 @@ use simplex::program::{Program, WitnessTrait};
 
 use super::{Expect, run};
 
-/// Dispatch indices for the operations that exist for *every* unsigned width.
+/// Dispatch indices for the operations that exist for every unsigned width.
 /// These map 1:1 onto the `if_test_this_function(N, ..)` arms in each width's
-/// `*_test.simf` (discriminants 0..7).
+/// `*_test.simf`.
 pub enum CommonOp {
     CheckedAdd,
     SafeAdd,
@@ -31,7 +31,7 @@ pub const CUSTOM_BASE: u8 = 192;
 
 /// Everything the generic scenarios need to know about a width: its program /
 /// witness types, a few numeric bounds, and how to fill the witness.
-/// Implementing this is the *only* per-width code for the common operations.
+/// Implementing this is the only per-width code for the common operations.
 pub trait TestUint:
     Copy
     + Ord
@@ -47,9 +47,9 @@ pub trait TestUint:
     const ZERO: Self;
     const ONE: Self;
     const MAX: Self;
-    /// `MAX / 2` — two values up to this can be added without overflowing.
+    /// `MAX / 2`; two values up to this can be added without overflowing.
     const HALF_MAX: Self;
-    /// `2^(bits/2)` — two values below this can be multiplied without overflowing.
+    /// `2^(bits/2)`; two values below this can be multiplied without overflowing.
     const MUL_BOUND: Self;
 
     fn program() -> Self::Program;
@@ -61,7 +61,7 @@ fn op(o: CommonOp) -> u8 {
     o as u8
 }
 
-// ---- add ----
+// add
 pub fn checked_add_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::HALF_MAX);
     let b = rand::thread_rng().gen_range(T::ZERO..=T::HALF_MAX);
@@ -104,7 +104,7 @@ pub fn safe_add_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::
     )
 }
 
-// ---- sub ----
+// sub
 pub fn checked_sub_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
     let b = rand::thread_rng().gen_range(T::ZERO..=a);
@@ -149,7 +149,7 @@ pub fn safe_sub_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::
     )
 }
 
-// ---- mul ----
+// mul
 pub fn checked_mul_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..T::MUL_BOUND);
     let b = rand::thread_rng().gen_range(T::ZERO..T::MUL_BOUND);
@@ -194,7 +194,7 @@ pub fn safe_mul_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::
     )
 }
 
-// ---- div ----
+// div
 pub fn checked_div_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
     let b = rand::thread_rng().gen_range(T::ONE..=T::MAX);
