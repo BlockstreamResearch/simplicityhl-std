@@ -1,6 +1,6 @@
 mod common;
 
-use common::{Expect, run};
+use common::core::{Expect, run};
 
 use simplicityhl_std::artifacts::logical_ops_test::LogicalOpsTestProgram;
 use simplicityhl_std::artifacts::logical_ops_test::derived_logical_ops_test::{

@@ -2,7 +2,7 @@ mod common;
 
 use rand::Rng;
 
-use common::{Expect, run};
+use common::core::{Expect, run};
 
 use simplicityhl_std::artifacts::asserts_test::AssertsTestProgram;
 use simplicityhl_std::artifacts::asserts_test::derived_asserts_test::{

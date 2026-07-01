@@ -30,7 +30,6 @@ impl TestUint for u8 {
     }
 }
 
-// Use `simplex test u8_tests` to run only the tests in this file.
 mod u8_tests {
     use super::*;
 

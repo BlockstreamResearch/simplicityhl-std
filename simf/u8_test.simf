@@ -1,14 +1,14 @@
 use crate::lib::u8::{checked_add_8, safe_add_8, checked_sub_8, safe_sub_8, checked_mul_8, safe_mul_8, checked_div_8, safe_div_8};
-
+use crate::lib::asserts::{assert_none_8, assert_eq_8};
 use crate::helper::if_test_this_function;
 
-// Asserts a `checked_*` result equals the expected Option.
-// `None` encodes the overflow case, `Some(e)` the fitting case, so a single
-// witness value carries both, removing the need for a separate overflow flag.
+/// Asserts a `checked_*` result equals the expected Option.
+/// `None` encodes the overflow case, `Some(e)` the fitting case, so a single
+/// witness value carries both, removing the need for a separate overflow flag.
 fn assert_eq_opt(result: Option<u8>, expected: Option<u8>) {
     match expected {
-        None => assert!(is_none::<u8>(result)),
-        Some(e: u8) => assert!(jet::eq_8(unwrap(result), e)),
+        None => assert_none_8(result),
+        Some(e: u8) => assert_eq_8(unwrap(result), e),
     }
 }
 

@@ -1,11 +1,14 @@
 use crate::lib::u32::{checked_add_32, safe_add_32, checked_sub_32, safe_sub_32, checked_mul_32, safe_mul_32, checked_div_32, safe_div_32};
-
+use crate::lib::asserts::{assert_none_32, assert_eq_32};
 use crate::helper::if_test_this_function;
 
+/// Asserts a `checked_*` result equals the expected Option.
+/// `None` encodes the overflow case, `Some(e)` the fitting case, so a single
+/// witness value carries both, removing the need for a separate overflow flag.
 fn assert_eq_opt(result: Option<u32>, expected: Option<u32>) {
     match expected {
-        None => assert!(is_none::<u32>(result)),
-        Some(e: u32) => assert!(jet::eq_32(unwrap(result), e)),
+        None => assert_none_32(result),
+        Some(e: u32) => assert_eq_32(unwrap(result), e),
     }
 }
 

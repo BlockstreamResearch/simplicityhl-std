@@ -30,8 +30,9 @@ impl TestUint for u32 {
     }
 }
 
-// Stamps the 32 `#[simplex::test]` entry points for u32. Logic lives in common::uint.
 mod u32_tests {
     use super::*;
+
+    // Stamps the 16 `#[simplex::test]` entry points for u32. Logic lives in common::uint.
     uint_tests!(u32);
 }

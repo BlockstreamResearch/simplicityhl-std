@@ -1,14 +1,14 @@
 use crate::lib::u16::{checked_add_16, safe_add_16, checked_sub_16, safe_sub_16, checked_mul_16, safe_mul_16, checked_div_16, safe_div_16};
-
+use crate::lib::asserts::{assert_none_16, assert_eq_16};
 use crate::helper::if_test_this_function;
 
-// Asserts a `checked_*` result equals the expected Option.
-// `None` encodes the overflow case, `Some(e)` the fitting case, so a single
-// witness value carries both, removing the need for a separate overflow flag.
+/// Asserts a `checked_*` result equals the expected Option.
+/// `None` encodes the overflow case, `Some(e)` the fitting case, so a single
+/// witness value carries both, removing the need for a separate overflow flag.
 fn assert_eq_opt(result: Option<u16>, expected: Option<u16>) {
     match expected {
-        None => assert!(is_none::<u16>(result)),
-        Some(e: u16) => assert!(jet::eq_16(unwrap(result), e)),
+        None => assert_none_16(result),
+        Some(e: u16) => assert_eq_16(unwrap(result), e),
     }
 }
 

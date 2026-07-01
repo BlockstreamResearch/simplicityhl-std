@@ -13,7 +13,7 @@ Install `siplexup`, then use it to install the pinned Simplex toolchain:
 
 ```bash
 curl -L https://smplx.simplicity-lang.org | bash
-simplexup -i 0.0.7
+simplexup
 ```
 
 ## Usage

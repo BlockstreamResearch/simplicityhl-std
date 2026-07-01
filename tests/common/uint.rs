@@ -9,7 +9,7 @@ use rand::distributions::uniform::SampleUniform;
 
 use simplex::program::{Program, WitnessTrait};
 
-use super::{Expect, run};
+use super::core::{Expect, run};
 
 /// Dispatch indices for the operations that exist for every unsigned width.
 /// These map 1:1 onto the `if_test_this_function(N, ..)` arms in each width's
@@ -239,13 +239,33 @@ pub fn safe_div_by_zero<T: TestUint>(context: simplex::TestContext) -> anyhow::R
 
 /// Stamps the `#[simplex::test]` entry points for one width.
 ///
-/// This contains NO test logic, it only maps each scenario name to a concrete
-/// `fn` that calls the generic scenario in this module. All the real logic lives
-/// in the functions above. Usage in a width's test file:
+/// It contains NO test logic. It only maps each scenario name to a concrete
+/// `fn` that calls the generic scenario of the same name in this module.
+///
+/// # Usage
+///
+/// In a width's test file, after `impl TestUint for <width>`:
 ///
 /// ```ignore
 /// uint_tests!(u8);
 /// ```
+///
+/// # How to expand it
+///
+/// **Add a new scenario** (e.g. `checked_add_max_plus_one`):
+/// 1. Write the logic as a generic function above:
+///    `pub fn checked_add_max_plus_one<T: TestUint>(context: simplex::TestContext)
+///    -> anyhow::Result<()> { ... }`.
+/// 2. Add its name to the `@stub` name list below (any position). That alone
+///    generates a `#[simplex::test]` for it in every width that calls `uint_tests!`.
+///
+/// **Remove a scenario:** delete its generic function and its name from the list.
+///
+/// The name in the `@stub` list must match the generic function name exactly;
+/// the stub calls `$crate::common::uint::<name>::<$t>`.
+///
+/// The first rule fans a `uint_tests!($t)` call out to the internal `@stub` rule,
+/// which emits one `#[simplex::test]` stub per name in the list.
 #[macro_export]
 macro_rules! uint_tests {
     ($t:ty) => {
