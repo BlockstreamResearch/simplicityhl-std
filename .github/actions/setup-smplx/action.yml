@@ -17,6 +17,6 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        REVISION="${{ inputs.commit-sha}}"
+        REVISION="${{ inputs.commit-sha }}"
         OWNER_REPO="${{ inputs.owner-repo }}"
         bash "$GITHUB_WORKSPACE/.github/scripts/setup-smplx" "${REVISION}" "${OWNER_REPO}"

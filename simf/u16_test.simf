@@ -1,0 +1,37 @@
+use crate::lib::u16::{checked_add_16, safe_add_16, checked_sub_16, safe_sub_16, checked_mul_16, safe_mul_16, checked_div_16, safe_div_16};
+use crate::lib::asserts::{assert_none_16, assert_eq_16};
+use crate::helper::if_test_this_function;
+
+/// Asserts a `checked_*` result equals the expected Option.
+/// `None` encodes the overflow case, `Some(e)` the fitting case, so a single
+/// witness value carries both, removing the need for a separate overflow flag.
+fn assert_eq_opt(result: Option<u16>, expected: Option<u16>) {
+    match expected {
+        None => assert_none_16(result),
+        Some(e: u16) => assert_eq_16(unwrap(result), e),
+    }
+}
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u16 = witness::FIRST_ARG;
+    let b: u16 = witness::SECOND_ARG;
+    let expected: Option<u16> = witness::EXPECTED;
+
+    // add
+    match if_test_this_function(0, fn_idx) { true => { assert_eq_opt(checked_add_16(a, b), expected); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert!(jet::eq_16(safe_add_16(a, b), unwrap(expected))); }, false => (), };
+
+    // sub
+    match if_test_this_function(2, fn_idx) { true => { assert_eq_opt(checked_sub_16(a, b), expected); }, false => (), };
+    match if_test_this_function(3, fn_idx) { true => { assert!(jet::eq_16(safe_sub_16(a, b), unwrap(expected))); }, false => (), };
+
+    // mul
+    match if_test_this_function(4, fn_idx) { true => { assert_eq_opt(checked_mul_16(a, b), expected); }, false => (), };
+    match if_test_this_function(5, fn_idx) { true => { assert!(jet::eq_16(safe_mul_16(a, b), unwrap(expected))); }, false => (), };
+
+    // div
+    match if_test_this_function(6, fn_idx) { true => { assert_eq_opt(checked_div_16(a, b), expected); }, false => (), };
+    match if_test_this_function(7, fn_idx) { true => { assert!(jet::eq_16(safe_div_16(a, b), unwrap(expected))); }, false => (), };
+}
