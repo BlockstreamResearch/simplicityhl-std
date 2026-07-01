@@ -5,8 +5,7 @@ rust-version = "1.91.0"
 version = "0.1.0"
 
 [dependencies]
-# todo: Replace git dependency with crates.io version that supports modules once available
-smplx-std = { git = "https://github.com/BlockstreamResearch/smplx.git", rev = "3afcc04" }
+smplx-std = "0.0.7"
 
 anyhow = { version = "1.0.101" }
 rand = { version = "0.8.6" }

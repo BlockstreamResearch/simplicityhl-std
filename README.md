@@ -3,29 +3,22 @@
 This repository contains the standard library for [SimplicityHL](https://github.com/BlockstreamResearch/SimplicityHL).
 
 > [!NOTE]
-> If you are using the VS Code syntax highlighting extension, you may see errors because the extension does not support modules and imports yet.
+> The VS Code syntax-highlighting extension does not yet support modules and imports, so you may see spurious errors when editing files in this repo.
 
-## Dev Info
+## Installation
 
-### Installation
+> Project currently uses Simplex version `0.0.7`.
 
-> Project currently uses Simplex version 0.0.6 from the dev branch.
-
-To compile the project, execute the following command:
-
-To download simplexup, run:
+Install `siplexup`, then use it to install the pinned Simplex toolchain:
 
 ```bash
 curl -L https://smplx.simplicity-lang.org | bash
+simplexup -i 0.0.7
 ```
 
-To install a specific Simplex version (in this case from the specific commit):
+## Usage
 
-```bash
-simplexup --commit 3afcc04aae8a0a92722b28bc1d16ef27983d4aa1
-```
-
-### Compilation
+### Build
 
 To compile the contracts, execute the following command:
 
@@ -53,28 +46,21 @@ To run the tests using multiple threads:
 simplex test --test-threads 8
 ```
 
-To run a specific test:
-
-```bash
-simplex test test_name
-```
-
 To run a specific test module:
 
 ```bash
 simplex test u8_test
 ```
 
-### Linting
+To run a specific test:
 
-To format the rust files, execute the following command:
+```bash
+simplex test test_name
+```
+
+### Lint & format
 
 ```bash
 cargo fmt
-```
-
-To check the project for common mistakes:
-
-```bash
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 ```

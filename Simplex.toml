@@ -1,9 +1,12 @@
-# Default Simplex Config
+# DEFAULT CONFIG 
 
 # [build]
 # src_dir = "./simf"
 # simf_files = ["*.simf"]
 # out_dir = "./src/artifacts"
+
+# [dependencies]
+# some_dep = { git = "<git url>", path = "<or a relative path>" } 
 
 # [regtest]
 # mnemonic = "exist carry drive collect lend cereal occur much tiger just involve mean"
@@ -16,6 +19,7 @@
 # [test]
 # mnemonic = "exist carry drive collect lend cereal occur much tiger just involve mean"
 # bitcoins = 10_000_000
+# verbosity = 0
 
 # [test.esplora]
 # url = "<esplora url>"
