@@ -9,3 +9,4 @@ smplx-std = "0.0.7"
 
 anyhow = { version = "1.0.101" }
 rand = { version = "0.8.6" }
+primitive-types = { version = "0.14" }

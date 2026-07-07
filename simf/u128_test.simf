@@ -1,0 +1,172 @@
+use crate::lib::u128::{ checked_add_128, safe_add_128, checked_sub_128, safe_sub_128, checked_mul_128, safe_mul_128, checked_div_128, safe_div_128, and_128, or_128, eq_128, left_shift_128, right_shift_128, is_zero_128, lt_128, le_128, add_128, add_128_64, sub_128, mul_128, split_256_into_64, normalize_to_threshold, algorithm_d, div_mod_128_64, div_mod_128, div_128 };
+use crate::lib::asserts::{assert_none_128, assert_eq_128};
+use crate::lib::logical_operations::{not};
+use crate::helper::if_test_this_function;
+
+/// Asserts a `checked_*` result equals the expected Option.
+/// `None` encodes the overflow case, `Some(e)` the fitting case, so a single
+/// witness value carries both, removing the need for a separate overflow flag.
+fn assert_eq_opt(result: Option<u128>, expected: Option<u128>) {
+    match expected {
+        None => assert_none_128(result),
+        Some(e: u128) => assert_eq_128(unwrap(result), e),
+    }
+}
+
+/// Asserts a result equals the expected bool value.
+fn assert_bool(result: bool, expected_bool: bool) {
+    match expected_bool {
+        true => assert!(result),
+        false => assert!(not(result)),
+    }
+}
+
+/// Asserts a result equals expected u128 and bool values. 
+/// Used for functions that return carry or borrow bool value.
+fn assert_eq_uint_bool(result: (bool, u128), expected: u128, expected_bool: bool) {
+    let (bool_res, uint_res): (bool, u128) = result;
+
+    assert_bool(bool_res, expected_bool);
+    
+    assert!(eq_128(uint_res, expected));
+}
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u128 = witness::FIRST_ARG;
+    let b: u128 = witness::SECOND_ARG;
+    let expected: Option<u128> = witness::EXPECTED;
+
+    let expected_bool: bool = witness::EXPECTED_BOOL;
+    let second_expected: u128 = witness::SECOND_EXPECTED; // for cases where the result is a 256 bit value
+    let third_expected: u128 = witness::THIRD_EXPECTED; // for cases where the result is 256 bit + 128 bit values
+
+    /// Safe functions
+
+    // add
+    match if_test_this_function(0, fn_idx) { true => { assert_eq_opt(checked_add_128(a, b), expected); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert!(eq_128(safe_add_128(a, b), unwrap(expected))); }, false => (), };
+
+    // sub
+    match if_test_this_function(2, fn_idx) { true => { assert_eq_opt(checked_sub_128(a, b), expected); }, false => (), };
+    match if_test_this_function(3, fn_idx) { true => { assert!(eq_128(safe_sub_128(a, b), unwrap(expected))); }, false => (), };
+
+    // mul
+    match if_test_this_function(4, fn_idx) { true => { assert_eq_opt(checked_mul_128(a, b), expected); }, false => (), };
+    match if_test_this_function(5, fn_idx) { true => { assert!(eq_128(safe_mul_128(a, b), unwrap(expected))); }, false => (), };
+
+    // div
+    match if_test_this_function(6, fn_idx) { true => { assert_eq_opt(checked_div_128(a, b), expected); }, false => (), };
+    match if_test_this_function(7, fn_idx) { true => { assert!(eq_128(safe_div_128(a, b), unwrap(expected))); }, false => (), };
+
+    /// Bit logic
+
+    match if_test_this_function(192, fn_idx) { true => { assert!(eq_128(and_128(a, b), unwrap(expected))); }, false => (), };
+    match if_test_this_function(193, fn_idx) { true => { assert!(eq_128(or_128(a, b), unwrap(expected))); }, false => (), };
+    match if_test_this_function(194, fn_idx) { true => { assert_bool(eq_128(a, b), expected_bool); }, false => (), };
+
+    match if_test_this_function(195, fn_idx) { 
+        true => {
+            let (_, a): (u64, u64) = <u128>::into(a);
+            let shift: u8 = jet::rightmost_64_8(a);
+
+            assert!(eq_128(left_shift_128(shift, b), unwrap(expected))); 
+        }, false => (), };
+
+    match if_test_this_function(196, fn_idx) { 
+        true => {
+            let (_, a): (u64, u64) = <u128>::into(a);
+            let shift: u8 = jet::rightmost_64_8(a);
+
+            assert!(eq_128(right_shift_128(shift, b), unwrap(expected))); 
+        }, false => (), };
+
+    /// Arithmetic
+
+    match if_test_this_function(197, fn_idx) { true => { assert_bool(is_zero_128(a), expected_bool); }, false => (), };
+    match if_test_this_function(198, fn_idx) { true => { assert_bool(lt_128(a, b), expected_bool); }, false => (), };
+    match if_test_this_function(199, fn_idx) { true => { assert_bool(le_128(a, b), expected_bool); }, false => (), };
+
+    match if_test_this_function(200, fn_idx) { true => { assert_eq_uint_bool(add_128(a, b), unwrap(expected), expected_bool); }, false => (), };
+    match if_test_this_function(201, fn_idx) { true => {  let (_, b): (u64, u64) = <u128>::into(b); assert_eq_uint_bool(add_128_64(a, b), unwrap(expected), expected_bool); }, false => (), };
+    match if_test_this_function(202, fn_idx) { true => { assert_eq_uint_bool(sub_128(a, b), unwrap(expected), expected_bool); }, false => (), };
+
+    match if_test_this_function(203, fn_idx) {
+        true => {
+            let result: u256 = mul_128(a, b);
+
+            let (result_high, result_low): (u128, u128) = <u256>::into(result);
+                
+            assert!(eq_128(result_high, unwrap(expected)));
+            assert!(eq_128(result_low, second_expected));
+        },
+        false => (),
+    };
+
+    match if_test_this_function(204, fn_idx) {
+        true => {
+            let input: u256 = <(u128, u128)>::into((a, b));
+            let ((res1, res2), (res3, res4)): ((u64, u64), (u64, u64)) = split_256_into_64(input);
+
+            let (expected1, expected2): (u64, u64) = <u128>::into(unwrap(expected));
+            let (expected3, expected4): (u64, u64) = <u128>::into(second_expected);
+                
+            assert!(jet::eq_64(res1, expected1));
+            assert!(jet::eq_64(res2, expected2));
+            assert!(jet::eq_64(res3, expected3));
+            assert!(jet::eq_64(res4, expected4));
+        },
+        false => (),
+    };
+
+    match if_test_this_function(205, fn_idx) {
+        true => {
+            let (result_a, result_b): (u256, u128) = normalize_to_threshold(a, b, expected_bool);
+
+            let (result_a_high, result_a_low): (u128, u128) = <u256>::into(result_a);
+
+            assert!(eq_128(result_a_high, unwrap(expected))); 
+            assert!(eq_128(result_a_low, second_expected)); 
+            assert!(eq_128(result_b, third_expected));
+        },
+        false => (),
+    };
+
+   match if_test_this_function(206, fn_idx) {
+        true => {
+            let (_, expected_q): (u64, u64) = <u128>::into(unwrap(expected));
+
+            let (q, r): (u64, u128) = algorithm_d(a, b);
+
+            assert!(jet::eq_64(q, expected_q)); 
+            assert!(eq_128(r, second_expected)); 
+        },
+        false => (),
+    };
+
+    match if_test_this_function(207, fn_idx) {
+        true => {
+            let (_, b): (u64, u64) = <u128>::into(b);
+            let (_, expected_r): (u64, u64) = <u128>::into(second_expected);
+
+            let (q, r): (u128, u64) = div_mod_128_64(a, b);
+
+            assert!(eq_128(q, unwrap(expected))); 
+            assert!(jet::eq_64(r, expected_r)); 
+        },
+        false => (),
+    };
+
+    match if_test_this_function(208, fn_idx) {
+        true => {
+            let (q, r): (u128, u128) = div_mod_128(a, b);
+
+            assert!(eq_128(q, unwrap(expected))); 
+            assert!(eq_128(r, second_expected)); 
+        },
+        false => (),
+    };
+
+    match if_test_this_function(209, fn_idx) { true => { assert!(eq_128(div_128(a, b), unwrap(expected))); }, false => (), };
+}

@@ -1,0 +1,439 @@
+use crate::lib::logical_operations::{not, or, and};
+use crate::lib::u64::{safe_add_64, safe_sub_64};
+use crate::lib::u8::safe_sub_8;
+
+/// Bit logic
+
+/// Bitwise AND of two 128-bit values
+pub fn and_128(a: u128, b: u128) -> u128 {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    <(u64, u64)>::into((jet::and_64(a_high, b_high), jet::and_64(a_low, b_low)))
+}
+
+/// Bitwise OR of two 128-bit values
+pub fn or_128(a: u128, b: u128) -> u128 {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    <(u64, u64)>::into((jet::or_64(a_high, b_high), jet::or_64(a_low, b_low)))
+}
+
+/// Checks if two 128-bit values are equal
+pub fn eq_128(a: u128, b: u128) -> bool {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    and(jet::eq_64(a_high, b_high), jet::eq_64(a_low, b_low))
+}
+
+/// Left-shift a 128-bit value by the given amount. Bits are filled with zeroes
+pub fn left_shift_128(shift: u8, a: u128) -> u128 {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+
+    match jet::lt_8(shift, 64) {
+        true => {
+            let shifted_bits: u64 = jet::right_shift_64(safe_sub_8(64, shift), a_low);
+
+            let res_high: u64 = jet::or_64(jet::left_shift_64(shift, a_high), shifted_bits);
+
+            <(u64, u64)>::into((res_high, jet::left_shift_64(shift, a_low)))
+        },
+        false => {
+            let shift: u8 = safe_sub_8(shift, 64);
+
+            <(u64, u64)>::into((jet::left_shift_64(shift, a_low), 0))
+        }
+    }
+}
+
+/// Right-shift a 128-bit value by the given amount. Bits are filled with zeroes
+pub fn right_shift_128(shift: u8, a: u128) -> u128 {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+
+    match jet::lt_8(shift, 64) {
+        true => {
+            let shifted_bits: u64 = jet::left_shift_64(safe_sub_8(64, shift), a_high);
+
+            let res_low: u64 = jet::or_64(jet::right_shift_64(shift, a_low), shifted_bits);
+
+            <(u64, u64)>::into((jet::right_shift_64(shift, a_high), res_low))
+        },
+        false => {
+            let shift: u8 = safe_sub_8(shift, 64);
+
+            <(u64, u64)>::into((0, jet::right_shift_64(shift, a_high)))
+        }
+    }
+}
+
+/// Arithmetic
+
+/// Checks if an integer is zero
+pub fn is_zero_128(a: u128) -> bool {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+
+    and(jet::is_zero_64(a_high), jet::is_zero_64(a_low))
+}
+
+/// Checks if an integer is less than another integer
+pub fn lt_128(a: u128, b: u128) -> bool {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    match jet::lt_64(a_high, b_high) {
+        true => true,
+        false => {
+            match jet::eq_64(a_high, b_high) {
+                true => jet::lt_64(a_low, b_low),
+                false => false,
+            }
+        }
+    }
+}
+
+/// Checks if an integer is less than or equal to another integer
+pub fn le_128(a: u128, b: u128) -> bool {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    match jet::lt_64(a_high, b_high) {
+        true => true,
+        false => {
+            match jet::eq_64(a_high, b_high) {
+                true => jet::le_64(a_low, b_low),
+                false => false,
+            }
+        }
+    } 
+}
+
+/// Adds two integers and return the carry
+pub fn add_128(a: u128, b: u128) -> (bool, u128) {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    let (carry_high, sum_high): (bool, u64) = jet::add_64(a_high, b_high);
+    let (carry_low, sum_low): (bool, u64) = jet::add_64(a_low, b_low);
+
+    match carry_low {
+        true => {
+            let (carry, sum_high): (bool, u64) = jet::add_64(sum_high, 1);
+            let res: u128 = <(u64, u64)>::into((sum_high, sum_low));
+
+            let final_carry: bool = or(carry, carry_high);
+
+            (final_carry, res)
+        },
+        false => {
+            let res: u128 = <(u64, u64)>::into((sum_high, sum_low));
+
+            (carry_high, res)
+        },
+    }    
+}
+
+/// Adds the 128-bit integer with the 64-bit integer. Returns a tuple of the sum and the carry
+pub fn add_128_64(a: u128, b: u64) -> (bool, u128) {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+
+    let (carry, res_low): (bool, u64) = jet::add_64(a_low, b);
+
+    match carry {
+        true => {
+            let (carry, res_high): (bool, u64) = jet::add_64(a_high, 1);
+            let res: u128 = <(u64, u64)>::into((res_high, res_low));
+
+            (carry, res)
+        }, false => {
+            (carry,  <(u64, u64)>::into((a_high, res_low)))
+        }
+    }
+}
+
+/// Returns the sum of two u128 values wrapped in Some, or None if the result overflows u128
+pub fn checked_add_128(a: u128, b: u128) -> Option<u128> {
+    let (carry, sum): (bool, u128) = add_128(a, b);
+
+    match carry {
+        true => None,
+        false => Some(sum),
+    }
+}
+
+/// Returns the sum of two u128 values, panics if the result overflows u128
+pub fn safe_add_128(a: u128, b: u128) -> u128 {
+    unwrap(checked_add_128(a, b))
+}
+
+/// Subtracts the second integer from the first integer, and returns the borrow bit
+pub fn sub_128(a: u128, b: u128) -> (bool, u128) {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    let (borrow_high, diff_high): (bool, u64) = jet::subtract_64(a_high, b_high);
+    let (borrow_low, diff_low): (bool, u64) = jet::subtract_64(a_low, b_low);
+
+    match borrow_low {
+        true => {
+            let (borrow, diff_high): (bool, u64) = jet::subtract_64(diff_high, 1);
+            let res: u128 = <(u64, u64)>::into((diff_high, diff_low));
+
+            let final_borrow: bool = or(borrow, borrow_high);
+
+            (final_borrow, res)
+        },
+        false => {
+            let res: u128 = <(u64, u64)>::into((diff_high, diff_low));
+
+            (borrow_high, res)
+        },
+    }
+}
+
+/// Returns the difference of two u128 values wrapped in Some, or None if the result overflows u128
+pub fn checked_sub_128(a: u128, b: u128) -> Option<u128> {
+    let (borrow, diff): (bool, u128) = sub_128(a, b);
+    match borrow {
+        true => None,
+        false => Some(diff),
+    }
+}
+
+/// Returns the difference of two u128 values, panics if the result overflows u128
+pub fn safe_sub_128(a: u128, b: u128) -> u128 {
+    unwrap(checked_sub_128(a, b))
+}
+
+// temporary helper
+fn helper_add_256(a: u256, b: u256) -> (bool, u256) {
+    let (a_high, a_low): (u128, u128) = <u256>::into(a);
+    let (b_high, b_low): (u128, u128) = <u256>::into(b);
+
+    let (carry_high, sum_high): (bool, u128) = add_128(a_high, b_high);
+    let (carry_low, sum_low): (bool, u128) = add_128(a_low, b_low);
+
+    match carry_low {
+        true => {
+            let (carry, sum_high): (bool, u128) = add_128(sum_high, 1);
+            let res: u256 = <(u128, u128)>::into((sum_high, sum_low));
+
+            let final_carry: bool = or(carry, carry_high);
+
+            (final_carry, res)
+        },
+        false => {
+            let res: u256 = <(u128, u128)>::into((sum_high, sum_low));
+
+            (carry_high, res)
+        },
+    }    
+}
+
+/// Multiply two integers. The output is a 256-bit integer
+/// The idea is that u128-bit `a` divides into 64-bit `a_high` and `a_low`,
+/// so a = a_high * 2^64 + a_low.
+/// In the same way, b = b_high * 2^64 + b_low.
+/// Therefore, a * b = 2^128 * a_high * b_high + 2^64(a_high * b_low + a_low * b_high) + a_low * b_low.
+pub fn mul_128(a: u128, b: u128) -> u256 {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    let highest: u256 = <(u128, u128)>::into((jet::multiply_64(a_high, b_high), 0));
+    let lowest: u256 = <(u128, u128)>::into((0, jet::multiply_64(a_low, b_low)));
+
+    let middle_0: u128 = jet::multiply_64(a_high, b_low);
+    let middle_1: u128 = jet::multiply_64(b_high, a_low);
+    let (carry, middle): (bool, u128) = add_128(middle_0, middle_1);
+
+    let middle_first_digit: u64 = match carry {
+        true => 1, 
+        false => 0,
+    };
+    let (middle_second_digit, middle_third_digit): (u64, u64) = <u128>::into(middle);
+
+    let middle: u256 = <(u128, u128)>::into((<(u64, u64)>::into((middle_first_digit, middle_second_digit)), <(u64, u64)>::into((middle_third_digit, 0))));
+    
+    // todo do without add_256
+    let (_, result): (bool, u256) = helper_add_256(highest, middle); // carry is always false here, because u128 * u128 fits into u256
+    let (_, result): (bool, u256) = helper_add_256(result, lowest); // carry is always false here, because u128 * u128 fits into u256
+
+    result
+}
+
+/// Returns the product of two u128 values wrapped in Some, or None if the result overflows u128
+pub fn checked_mul_128(a: u128, b: u128) -> Option<u128> {
+    let result: u256 = mul_128(a, b);
+    
+    let (high, low): (u128, u128) = <u256>::into(result);
+
+    match is_zero_128(high) {
+        true => Some(low),
+        false => None,
+    }
+}
+
+/// Returns the product of two u128 values, panics if the result overflows u128
+pub fn safe_mul_128(a: u128, b: u128) -> u128 {
+    unwrap(checked_mul_128(a, b))
+}
+
+/// Splits the u256 integer into four u64 integers
+pub fn split_256_into_64(a: u256) -> ((u64, u64), (u64, u64)) {
+    //split_256_helper(...)
+    let (high, low): (u128, u128) = <u256>::into(a); 
+
+    (<u128>::into(high), <u128>::into(low))
+}
+
+/// Helper function, can be used with jet::div_mod_128_64.
+/// Normalizes two u128 values by multiplying both by the same factor,
+/// ensuring that the most significant non-zero word of `b` is at least 2^63.
+///
+/// If `is_b_u128` is true, expects the upper half of `b` to be non-zero.
+/// If `is_b_u128` is false, expects `b` to fit into u64.
+///
+/// Division algorithms operate in base 2^64, so the normalization threshold is 2^63.
+pub fn normalize_to_threshold(a: u128, b: u128, is_b_u128: bool) -> (u256, u128) {
+    let threshold: u64 = jet::left_shift_64(63, 1);
+
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    let b_highest_word: u64 = match is_b_u128 {
+        true => b_high,
+        false => {
+            assert!(jet::is_zero_64(b_high));
+            b_low
+        }
+    };
+    assert!(not(jet::is_zero_64(b_highest_word)));
+
+    let (norm, remainder): (u64, u64) = jet::div_mod_64(threshold, b_highest_word);
+
+    let norm: u64 = match jet::is_zero_64(remainder) {
+        true => norm,
+        false => safe_add_64(norm, 1),
+    };
+    let norm: u128 = <(u64, u64)>::into((0, norm));
+
+    match jet::lt_64(b_highest_word, threshold) {
+        true => (mul_128(a, norm), safe_mul_128(b, norm)), 
+        false => (<(u128, u128)>::into((0, a)), b),
+    }
+}
+
+/// Divides the first u128 integer by the second u128 integer,
+/// returns the u64 quotient and the u128 remainder.
+/// Implements Algorithm D by Donald Knuth.
+/// Requires the upper half of the divisor to be non-zero.
+pub fn algorithm_d(dividend: u128, divisor: u128) -> (u64, u128) {
+    let (norm_dividend, norm_divisor): (u256, u128) = normalize_to_threshold(dividend, divisor, true);
+
+    // normalized dividend fits into 192 bits
+    let ((_, u2), (u1, u0)): ((u64, u64), (u64, u64)) = split_256_into_64(norm_dividend);
+    let (v1, v0): (u64, u64) = <u128>::into(norm_divisor);
+
+    let (q_hat, r_hat): (u64, u64) = jet::div_mod_128_64(<(u64, u64)>::into((u2, u1)), v1); 
+    let u0: u128 = <(u64, u64)>::into((0, u0));
+
+    // correcting estimation, q_hat is off by at most 2
+    let q: u64 = match lt_128(safe_add_128(<(u64, u64)>::into((r_hat, 0)), u0), jet::multiply_64(q_hat, v0)) {
+        true => {
+            let q_hat: u64 = safe_sub_64(q_hat, 1);
+            let (carry, r_hat): (bool, u64) = jet::add_64(r_hat, v1);
+
+            match and(not(carry), lt_128(safe_add_128(<(u64, u64)>::into((r_hat, 0)), u0), jet::multiply_64(q_hat, v0))) {
+                true => safe_sub_64(q_hat, 1), 
+                false => q_hat,
+            }
+        },
+        false => q_hat,
+    };
+
+    let remainder: u128 = safe_sub_128(dividend, safe_mul_128(divisor, <(u64, u64)>::into((0, q))));
+    (q, remainder)
+}
+
+/// Divides the 128-bit integer by the 64-bit integer,
+/// returns a tuple of the u128 quotient and the u64 remainder
+pub fn div_mod_128_64(a: u128, b: u64) -> (u128, u64) {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+
+    // calculate the upper half of the quotient
+    let (q_high, remainder): (u64, u64) = jet::div_mod_64(a_high, b);
+
+    // a' = remainder * 2^64 + a_low
+    let a_prime: u128 = <(u64, u64)>::into((remainder, a_low));
+
+    // we need to normalize here, because jet::div_mod_128_64 only acceps b >= 2^63
+    let (a_normalized, b_normalized): (u256, u128) = normalize_to_threshold(a_prime, <(u64, u64)>::into((0, b)), false);
+
+    // a_normalized fits into u128, because remainder < b and b_normalized fits into u64
+    let (_, a_normalized): (u128, u128) = <u256>::into(a_normalized);
+    let (_, b_normalized): (u64, u64) = <u128>::into(b_normalized);
+
+    // remainder < b, so (remainder * 2^64 + a_low) / b fits into u64
+    let (q_low, _): (u64, u64) = jet::div_mod_128_64(a_normalized, b_normalized); // remainder is not valid here due to normalizing
+    
+    let (_, remainder): (u64, u64) =  <u128>::into(safe_sub_128(a_prime, jet::multiply_64(q_low, b)));
+
+    (<(u64, u64)>::into((q_high, q_low)), remainder)
+}
+
+/// Divides the first integer by the second integer,
+/// returns the quotient and the remainder
+pub fn div_mod_128(a: u128, b: u128) -> (u128, u128) {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    match lt_128(a, b) {
+        true => (0, a),
+        false => {
+            match and(jet::is_zero_64(a_high), jet::is_zero_64(b_high)) { 
+                true => { 
+                    // if both a_high and b_high is equal to zero, this narrows down to 64-bit division
+                    let (q, r): (u64, u64) = jet::div_mod_64(a_low, b_low);
+                    (<(u64, u64)>::into((0, q)), <(u64, u64)>::into((0, r)))
+                },
+                false => {
+                    match jet::eq_64(a_high, b_high) {
+                        true => (1, <(u64, u64)>::into((0, safe_sub_64(a_low, b_low)))),
+                        false => {
+                            match jet::is_zero_64(b_high) { 
+                                true => {
+                                    let (q, r): (u128, u64) = div_mod_128_64(a, b_low);
+                                    (q, <(u64, u64)>::into((0, r)))
+                                },
+                                false => {
+                                    let (q, r): (u64, u128) = algorithm_d(a, b);
+                                    (<(u64, u64)>::into((0, q)), r)
+                                }
+                            } 
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Divide the first integer by the second integer, returns the quotient
+pub fn div_128(a: u128, b: u128) -> u128 {
+    let (q, _): (u128, u128) = div_mod_128(a, b);
+
+    q
+}
+
+/// Returns the quotient of two u128 values wrapped in Some, or None if the result overflows u128
+pub fn checked_div_128(a: u128, b: u128) -> Option<u128> {
+    match is_zero_128(b) {
+        true => None,
+        false => Some(div_128(a, b)),
+    }
+}
+
+/// Returns the quotient of two u128 values, panics if the result overflows u128
+pub fn safe_div_128(a: u128, b: u128) -> u128 {
+    unwrap(checked_div_128(a, b))
+}
