@@ -13,7 +13,7 @@ pub fn safe_add_32(a: u32, b: u32) -> u32 {
     unwrap(checked_add_32(a, b))
 }
 
-/// Returns the sum of two u32 values, panics if the result overflows u32
+/// Returns the difference of two u32 values wrapped in Some, or None if the result overflows u32
 pub fn checked_sub_32(a: u32, b: u32) -> Option<u32> {
     let (borrow, diff): (bool, u32) = jet::subtract_32(a, b);
 
