@@ -7,7 +7,7 @@ This repository contains the standard library for [SimplicityHL](https://github.
 
 ## Installation
 
-> Project currently uses Simplex version `0.0.7`.
+> Project currently uses Simplex version `0.0.8`.
 
 Install `siplexup`, then use it to install the pinned Simplex toolchain:
 
