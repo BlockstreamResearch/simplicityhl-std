@@ -7,9 +7,7 @@ This repository contains the standard library for [SimplicityHL](https://github.
 
 ## Installation
 
-> Project currently uses Simplex version `0.0.8`.
-
-Install `siplexup`, then use it to install the pinned Simplex toolchain:
+Install `simplexup`, then use it to install the pinned Simplex toolchain:
 
 ```bash
 curl -L https://smplx.simplicity-lang.org | bash
