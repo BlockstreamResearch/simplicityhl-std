@@ -206,31 +206,6 @@ pub fn safe_sub_128(a: u128, b: u128) -> u128 {
     unwrap(checked_sub_128(a, b))
 }
 
-// temporary helper
-fn helper_add_256(a: u256, b: u256) -> (bool, u256) {
-    let (a_high, a_low): (u128, u128) = <u256>::into(a);
-    let (b_high, b_low): (u128, u128) = <u256>::into(b);
-
-    let (carry_high, sum_high): (bool, u128) = add_128(a_high, b_high);
-    let (carry_low, sum_low): (bool, u128) = add_128(a_low, b_low);
-
-    match carry_low {
-        true => {
-            let (carry, sum_high): (bool, u128) = add_128(sum_high, 1);
-            let res: u256 = <(u128, u128)>::into((sum_high, sum_low));
-
-            let final_carry: bool = or(carry, carry_high);
-
-            (final_carry, res)
-        },
-        false => {
-            let res: u256 = <(u128, u128)>::into((sum_high, sum_low));
-
-            (carry_high, res)
-        },
-    }    
-}
-
 /// Multiply two integers. The output is a 256-bit integer
 /// The idea is that u128-bit `a` divides into 64-bit `a_high` and `a_low`,
 /// so a = a_high * 2^64 + a_low.
@@ -240,26 +215,42 @@ pub fn mul_128(a: u128, b: u128) -> u256 {
     let (a_high, a_low): (u64, u64) = <u128>::into(a);
     let (b_high, b_low): (u64, u64) = <u128>::into(b);
 
-    let highest: u256 = <(u128, u128)>::into((jet::multiply_64(a_high, b_high), 0));
-    let lowest: u256 = <(u128, u128)>::into((0, jet::multiply_64(a_low, b_low)));
+    let highest: u128 = jet::multiply_64(a_high, b_high);
+    let lowest: u128 = jet::multiply_64(a_low, b_low);
+    let (word_1, word_0): (u64, u64) = <u128>::into(lowest);
+    let (word_3, word_2): (u64, u64) = <u128>::into(highest);
 
-    let middle_0: u128 = jet::multiply_64(a_high, b_low);
-    let middle_1: u128 = jet::multiply_64(b_high, a_low);
-    let (carry, middle): (bool, u128) = add_128(middle_0, middle_1);
+    let product_1: u128 = jet::multiply_64(a_high, b_low);
+    let product_2: u128 = jet::multiply_64(b_high, a_low);
+    let (carry_3, middle): (bool, u128) = add_128(product_1, product_2);
 
-    let middle_first_digit: u64 = match carry {
-        true => 1, 
-        false => 0,
+    let word_3: u64 = match carry_3 { 
+        true => safe_add_64(word_3, 1), 
+        false => word_3,
     };
-    let (middle_second_digit, middle_third_digit): (u64, u64) = <u128>::into(middle);
 
-    let middle: u256 = <(u128, u128)>::into((<(u64, u64)>::into((middle_first_digit, middle_second_digit)), <(u64, u64)>::into((middle_third_digit, 0))));
-    
-    // todo do without add_256
-    let (_, result): (bool, u256) = helper_add_256(highest, middle); // carry is always false here, because u128 * u128 fits into u256
-    let (_, result): (bool, u256) = helper_add_256(result, lowest); // carry is always false here, because u128 * u128 fits into u256
+    let (middle_2, middle_1): (u64, u64) = <u128>::into(middle);
 
-    result
+    let (carry_2, res_1): (bool, u64) = jet::add_64(word_1, middle_1);
+    let (carry_3, res_2): (bool, u64) = jet::add_64(word_2, middle_2);
+    let (carry_3, res_2): (bool, u64) = match carry_2 {
+        true => {
+            let (carry, res): (bool, u64) = jet::add_64(res_2, 1);
+
+            (or(carry_3, carry), res)
+        },
+        false => (carry_3, res_2),
+    };
+
+    let res_3: u64 = match carry_3 { 
+        true => safe_add_64(word_3, 1),
+        false => word_3,
+    };
+
+    let res_1_0: u128 = <(u64, u64)>::into((res_1, word_0));
+    let res_3_2: u128 = <(u64, u64)>::into((res_3, res_2));
+
+    <(u128, u128)>::into((res_3_2, res_1_0))
 }
 
 /// Returns the product of two u128 values wrapped in Some, or None if the result overflows u128
@@ -281,7 +272,6 @@ pub fn safe_mul_128(a: u128, b: u128) -> u128 {
 
 /// Splits the u256 integer into four u64 integers
 pub fn split_256_into_64(a: u256) -> ((u64, u64), (u64, u64)) {
-    //split_256_helper(...)
     let (high, low): (u128, u128) = <u256>::into(a); 
 
     (<u128>::into(high), <u128>::into(low))
