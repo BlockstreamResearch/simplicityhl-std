@@ -19,7 +19,7 @@ enum FunctionToTest {
 
 #[inline]
 fn op(o: FunctionToTest) -> u8 {
-    o as u8 + 192
+    o as u8
 }
 
 const DEFAULT_BOOL: bool = false;
@@ -45,7 +45,7 @@ fn build_witness(
     }
 }
 
-mod u128_tests {
+mod u128_tests_bits {
     use super::*;
 
     #[simplex::test]

@@ -28,7 +28,7 @@ enum FunctionToTest {
 
 #[inline]
 fn op(o: FunctionToTest) -> u8 {
-    o as u8 + 192
+    o as u8
 }
 
 const DEFAULT_BOOL: bool = false;
@@ -65,7 +65,7 @@ fn split_helper(a: U256) -> (u128, u128) {
     (a_high, a_low)
 }
 
-mod u128_tests {
+mod u128_tests_arithmetic {
     use super::*;
 
     #[simplex::test]
