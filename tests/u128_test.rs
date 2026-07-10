@@ -28,7 +28,6 @@ impl TestUint for u128 {
             first_arg: a,
             second_arg: b,
             expected,
-            ..Default::default()
         }
     }
 }
