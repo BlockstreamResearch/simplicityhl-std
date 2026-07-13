@@ -65,10 +65,6 @@ fn split_helper(a: U256) -> (u128, u128) {
     (a_high, a_low)
 }
 
-fn check_inputs_integrity(b: u128, r: u128) {
-    assert!(r < b);
-}
-
 mod u128_tests_arithmetic {
     use super::*;
 
@@ -376,12 +372,8 @@ mod u128_tests_arithmetic {
         let low: u64 = a as u64;
         let b = ((b_high as u128) << 64) | (low as u128);
 
-        let (carry, result) = match a >= b {
-            true => (false, a - b),
-            false => (true, u128::MAX - b + 1 + a),
-        };
-
-        assert!((result as u64) == 0);
+        let carry = a < b;
+        let result = a.wrapping_sub(b);
 
         run(
             &context,
@@ -409,12 +401,8 @@ mod u128_tests_arithmetic {
         let a = ((a_high as u128) << 64) | (a_low as u128);
         let b = (b_high as u128) << 64; // b_low is 0
 
-        let (carry, result) = match a >= b {
-            true => (false, a - b),
-            false => (true, u128::MAX - b + 1 + a),
-        };
-
-        assert!((result as u64) == u64::MAX);
+        let carry = a < b;
+        let result = a.wrapping_sub(b);
 
         run(
             &context,
@@ -555,7 +543,7 @@ mod u128_tests_arithmetic {
     fn u128_test_normalize_to_threshold_b_is_big_enough_not_normalize(
         context: simplex::TestContext,
     ) -> anyhow::Result<()> {
-        let threshold = 1 << 63;
+        let threshold = 1u128 << 63;
 
         let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = rand::thread_rng().gen_range(threshold..=u64::MAX as u128);
@@ -614,7 +602,7 @@ mod u128_tests_arithmetic {
         context: simplex::TestContext,
     ) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u128::MAX);
-        let b = rand::thread_rng().gen_range(u64::MAX as u128..=u128::MAX);
+        let b = rand::thread_rng().gen_range((u64::MAX as u128) + 1..=u128::MAX);
 
         run(
             &context,
@@ -680,13 +668,12 @@ mod u128_tests_arithmetic {
 
     #[simplex::test]
     fn u128_test_algorithm_d(context: simplex::TestContext) -> anyhow::Result<()> {
-        let b = rand::thread_rng().gen_range(u64::MAX as u128..u128::MAX);
+        // divisor is expected to be greater than or equal to 2^64
+        let b = rand::thread_rng().gen_range((u64::MAX as u128) + 1..u128::MAX);
         let a = rand::thread_rng().gen_range(b..=u128::MAX);
 
         let q = a / b;
-        let r = a - q * b;
-
-        check_inputs_integrity(b, r);
+        let r = a % b;
 
         run(
             &context,
@@ -706,13 +693,12 @@ mod u128_tests_arithmetic {
 
     #[simplex::test]
     fn u128_test_algorithm_d_fail(context: simplex::TestContext) -> anyhow::Result<()> {
+        // expected to fail because divisor is less than 2^64
         let b = rand::thread_rng().gen_range(1..=u64::MAX as u128);
         let a = rand::thread_rng().gen_range(b..=u128::MAX);
 
         let q = a / b;
-        let r = a - q * b;
-
-        check_inputs_integrity(b, r);
+        let r = a % b;
 
         run(
             &context,
@@ -736,9 +722,7 @@ mod u128_tests_arithmetic {
         let b = rand::thread_rng().gen_range(1..=u64::MAX as u128);
 
         let q = a / b;
-        let r = a - q * b;
-
-        check_inputs_integrity(b, r);
+        let r = a % b;
 
         run(
             &context,
@@ -780,12 +764,10 @@ mod u128_tests_arithmetic {
     #[simplex::test]
     fn u128_test_div_mod_128_a_less_than_b(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..u128::MAX);
-        let b = rand::thread_rng().gen_range(a..=u128::MAX);
+        let b = rand::thread_rng().gen_range(a + 1..=u128::MAX);
 
         let q = a / b;
-        let r = a - q * b;
-
-        check_inputs_integrity(b, r);
+        let r = a % b;
 
         run(
             &context,
@@ -804,14 +786,12 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
-    fn u128_test_div_mod_128_fits_into_u64(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..u64::MAX) as u128;
-        let b = rand::thread_rng().gen_range(1..=u64::MAX) as u128;
+    fn u128_test_div_mod_128_div_64(context: simplex::TestContext) -> anyhow::Result<()> {
+        let b = rand::thread_rng().gen_range(1..=u64::MAX);
+        let a = rand::thread_rng().gen_range(b..=u64::MAX) as u128;
 
-        let q = a / b;
-        let r = a - q * b;
-
-        check_inputs_integrity(b, r);
+        let q = a / b as u128;
+        let r = a % b as u128;
 
         run(
             &context,
@@ -819,7 +799,7 @@ mod u128_tests_arithmetic {
             build_witness(
                 op(FunctionToTest::DivMod128),
                 a,
-                b,
+                b as u128,
                 Some(q),
                 DEFAULT_BOOL,
                 r,
@@ -831,13 +811,16 @@ mod u128_tests_arithmetic {
 
     #[simplex::test]
     fn u128_test_div_mod_128_q_is_1(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..u128::MAX);
-        let b = ((a >> 64u128) << 64u128) + rand::thread_rng().gen_range(0..u64::MAX) as u128;
+        // case where a >= b and a_high = b_high != 0
+        let b_low = rand::thread_rng().gen_range(0..=u64::MAX);
+        let a_low = rand::thread_rng().gen_range(b_low..=u64::MAX);
+        let high = rand::thread_rng().gen_range(1..u64::MAX);
+
+        let a = ((high as u128) << 64) | (a_low as u128);
+        let b = ((high as u128) << 64) | (b_low as u128);
 
         let q = a / b;
-        let r = a - q * b;
-
-        check_inputs_integrity(b, r);
+        let r = a % b;
 
         run(
             &context,
@@ -857,13 +840,11 @@ mod u128_tests_arithmetic {
 
     #[simplex::test]
     fn u128_test_div_mod_128_b_is_u64(context: simplex::TestContext) -> anyhow::Result<()> {
-        let b = rand::thread_rng().gen_range(1..u64::MAX as u128);
-        let a = rand::thread_rng().gen_range(b..=u128::MAX);
+        let b = rand::thread_rng().gen_range(1..=u64::MAX as u128);
+        let a = rand::thread_rng().gen_range(u64::MAX as u128 + 1..=u128::MAX);
 
         let q = a / b;
-        let r = a - q * b;
-
-        check_inputs_integrity(b, r);
+        let r = a % b;
 
         run(
             &context,
@@ -883,13 +864,14 @@ mod u128_tests_arithmetic {
 
     #[simplex::test]
     fn u128_test_div_mod_128_b_is_u128(context: simplex::TestContext) -> anyhow::Result<()> {
-        let b = rand::thread_rng().gen_range(u64::MAX as u128..u128::MAX);
-        let a = rand::thread_rng().gen_range(b + 1..=u128::MAX);
+        let b_high = rand::thread_rng().gen_range(1..u64::MAX);
+        let a_high = rand::thread_rng().gen_range(b_high + 1..=u64::MAX);
+
+        let a = ((a_high as u128) << 64) | (rand::thread_rng().gen_range(0..u64::MAX) as u128);
+        let b = ((b_high as u128) << 64) | (rand::thread_rng().gen_range(0..u64::MAX) as u128);
 
         let q = a / b;
-        let r = a - q * b;
-
-        check_inputs_integrity(b, r);
+        let r = a % b;
 
         run(
             &context,
