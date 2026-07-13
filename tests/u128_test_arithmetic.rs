@@ -65,6 +65,10 @@ fn split_helper(a: U256) -> (u128, u128) {
     (a_high, a_low)
 }
 
+fn check_inputs_integrity(b: u128, r: u128) {
+    assert!(r < b);
+}
+
 mod u128_tests_arithmetic {
     use super::*;
 
@@ -577,6 +581,8 @@ mod u128_tests_arithmetic {
         let q = a / b;
         let r = a - q * b;
 
+        check_inputs_integrity(b, r);
+
         run(
             &context,
             program(),
@@ -601,6 +607,8 @@ mod u128_tests_arithmetic {
         let q = a / b;
         let r = a - q * b;
 
+        check_inputs_integrity(b, r);
+
         run(
             &context,
             program(),
@@ -619,12 +627,13 @@ mod u128_tests_arithmetic {
 
     #[simplex::test]
     fn test_div_mod_128_64(context: simplex::TestContext) -> anyhow::Result<()> {
-        //todo
         let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = rand::thread_rng().gen_range(1..=u64::MAX as u128);
 
         let q = a / b;
         let r = a - q * b;
+
+        check_inputs_integrity(b, r);
 
         run(
             &context,
@@ -671,6 +680,8 @@ mod u128_tests_arithmetic {
         let q = a / b;
         let r = a - q * b;
 
+        check_inputs_integrity(b, r);
+
         run(
             &context,
             program(),
@@ -694,6 +705,8 @@ mod u128_tests_arithmetic {
 
         let q = a / b;
         let r = a - q * b;
+
+        check_inputs_integrity(b, r);
 
         run(
             &context,
@@ -719,6 +732,8 @@ mod u128_tests_arithmetic {
         let q = a / b;
         let r = a - q * b;
 
+        check_inputs_integrity(b, r);
+
         run(
             &context,
             program(),
@@ -743,6 +758,8 @@ mod u128_tests_arithmetic {
         let q = a / b;
         let r = a - q * b;
 
+        check_inputs_integrity(b, r);
+
         run(
             &context,
             program(),
@@ -766,6 +783,8 @@ mod u128_tests_arithmetic {
 
         let q = a / b;
         let r = a - q * b;
+
+        check_inputs_integrity(b, r);
 
         run(
             &context,
