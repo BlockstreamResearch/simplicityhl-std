@@ -890,6 +890,76 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
+    fn u128_test_div_mod_128_a_equal_b(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(1..=u128::MAX);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::DivMod128),
+                a,
+                a,
+                Some(1u128),
+                DEFAULT_BOOL,
+                0u128,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_div_mod_128_equal_high_words_max_low_diff(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let high = rand::thread_rng().gen_range(1..=u64::MAX);
+
+        let a = ((high as u128) << 64) | (u64::MAX as u128);
+        let b = (high as u128) << 64;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::DivMod128),
+                a,
+                b,
+                Some(1u128),
+                DEFAULT_BOOL,
+                u64::MAX as u128,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_div_mod_128_eq_high_words_a_less_than_b(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let high = rand::thread_rng().gen_range(1..=u64::MAX);
+
+        let a = (high as u128) << 64;
+        let b = ((high as u128) << 64) | (u64::MAX as u128);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::DivMod128),
+                a,
+                b,
+                Some(0u128),
+                DEFAULT_BOOL,
+                a,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
     fn u128_test_div_128(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = rand::thread_rng().gen_range(1..=u128::MAX);
