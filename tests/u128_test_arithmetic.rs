@@ -349,6 +349,111 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
+    fn u128_test_sub_128_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u128::MAX);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::Sub128),
+                a,
+                a,
+                Some(0),
+                false,
+                DEFAULT_EXPECTED,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_sub_128_a_low_eq_b_low(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u128::MAX);
+        let b_high = rand::thread_rng().gen_range(0..=u64::MAX);
+
+        let low: u64 = a as u64;
+        let b = ((b_high as u128) << 64) | (low as u128);
+
+        let (carry, result) = match a >= b {
+            true => (false, a - b),
+            false => (true, u128::MAX - b + 1 + a),
+        };
+
+        assert!((result as u64) == 0);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::Sub128),
+                a,
+                b,
+                Some(result),
+                carry,
+                DEFAULT_EXPECTED,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_sub_128_diff_is_u64_max(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a_low: u64 = u64::MAX;
+
+        let a_high = rand::thread_rng().gen_range(0..=u64::MAX);
+        let b_high = rand::thread_rng().gen_range(0..=u64::MAX);
+
+        let a = ((a_high as u128) << 64) | (a_low as u128);
+        let b = (b_high as u128) << 64; // b_low is 0
+
+        let (carry, result) = match a >= b {
+            true => (false, a - b),
+            false => (true, u128::MAX - b + 1 + a),
+        };
+
+        assert!((result as u64) == u64::MAX);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::Sub128),
+                a,
+                b,
+                Some(result),
+                carry,
+                DEFAULT_EXPECTED,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_sub_128_diff_is_u128_max(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = u128::MAX;
+        let b = 0;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::Sub128),
+                a,
+                b,
+                Some(a),
+                false,
+                DEFAULT_EXPECTED,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
     fn u128_test_sub_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..u128::MAX);
         let b = u128::MAX;
