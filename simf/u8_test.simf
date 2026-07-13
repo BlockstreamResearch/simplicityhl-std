@@ -15,7 +15,7 @@ fn assert_eq_opt(result: Option<u8>, expected: Option<u8>) {
 
 /// Asserts a result equals the expected bool value.
 /// `None` encodes `false`, and `Some(_)` encodes `true`.
-pub fn assert_bool(result: bool, expected: Option<u8>) {
+fn assert_bool(result: bool, expected: Option<u8>) {
     match expected {
         Some(_: u8) => assert!(result),
         None => assert!(not(result)),
