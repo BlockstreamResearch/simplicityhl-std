@@ -1,0 +1,36 @@
+use crate::lib::u128::{ and_128, or_128, eq_128, left_shift_128, right_shift_128 };
+use crate::helper::{if_test_this_function, assert_bool};
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u128 = witness::FIRST_ARG;
+    let b: u128 = witness::SECOND_ARG;
+    let expected: Option<u128> = witness::EXPECTED;
+
+    let expected_bool: bool = witness::EXPECTED_BOOL;
+   
+    /// Bit logic
+
+    match if_test_this_function(0, fn_idx) { true => { assert!(eq_128(and_128(a, b), unwrap(expected))); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert!(eq_128(or_128(a, b), unwrap(expected))); }, false => (), };
+    match if_test_this_function(2, fn_idx) { true => { assert_bool(eq_128(a, b), expected_bool); }, false => (), };
+
+    match if_test_this_function(3, fn_idx) { 
+        true => {
+            let (_, a): (u64, u64) = <u128>::into(a);
+            let shift: u8 = jet::rightmost_64_8(a);
+
+            assert!(eq_128(left_shift_128(shift, b), unwrap(expected))); 
+        }, false => (), 
+    };
+
+    match if_test_this_function(4, fn_idx) { 
+        true => {
+            let (_, a): (u64, u64) = <u128>::into(a);
+            let shift: u8 = jet::rightmost_64_8(a);
+
+            assert!(eq_128(right_shift_128(shift, b), unwrap(expected))); 
+        }, false => (), 
+    };
+}

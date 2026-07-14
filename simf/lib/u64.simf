@@ -13,7 +13,7 @@ pub fn safe_add_64(a: u64, b: u64) -> u64 {
     unwrap(checked_add_64(a, b))
 }
 
-/// Returns the sum of two u64 values, panics if the result overflows u64
+/// Returns the difference of two u64 values wrapped in Some, or None if the result overflows u64
 pub fn checked_sub_64(a: u64, b: u64) -> Option<u64> {
     let (borrow, diff): (bool, u64) = jet::subtract_64(a, b);
 

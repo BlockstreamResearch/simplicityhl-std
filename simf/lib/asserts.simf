@@ -1,3 +1,5 @@
+use crate::lib::u128::{eq_128};
+
 /// Asserts that two u8 are equal
 pub fn assert_eq_8(a: u8, b: u8) {
     assert!(jet::eq_8(a, b));
@@ -18,7 +20,10 @@ pub fn assert_eq_64(a: u64, b: u64) {
     assert!(jet::eq_64(a, b));
 }
 
-// todo: assert_eq_128
+/// Asserts that two u128 are equal
+pub fn assert_eq_128(a: u128, b: u128) {
+    assert!(eq_128(a, b));
+}
 
 /// Asserts that two u256 are equal
 pub fn assert_eq_256(a: u256, b: u256) {
