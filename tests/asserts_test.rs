@@ -16,6 +16,7 @@ enum FunctionToTest {
     AssertEq16,
     AssertEq32,
     AssertEq64,
+    AssertEq128,
     AssertEq256,
     AssertNone8,
     AssertNone16,
@@ -93,6 +94,10 @@ fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTes
         FunctionToTest::AssertEq64 => {
             let (a, b) = generate_uints_in_one_range(same, 0, u64::MAX as u128);
             (witness.first_arg_u64, witness.second_arg_u64) = (Some(a as u64), Some(b as u64));
+        }
+        FunctionToTest::AssertEq128 => {
+            let (a, b) = generate_uints_in_one_range(same, 0, u128::MAX);
+            (witness.first_arg_u128, witness.second_arg_u128) = (Some(a), Some(b));
         }
         FunctionToTest::AssertEq256 => {
             let (a, b) = generate_uints_in_one_range(same, 0, u8::MAX as u128);
@@ -230,6 +235,28 @@ mod asserts_test {
         run_assert(
             &context,
             FunctionToTest::AssertEq64,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_128_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq128,
+            true,
+            false,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq128,
             false,
             false,
             Expect::AssertFailed,

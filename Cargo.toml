@@ -5,7 +5,8 @@ rust-version = "1.91.0"
 version = "0.1.0"
 
 [dependencies]
-smplx-std = "0.0.7"
+smplx-std = "0.0.8"
 
 anyhow = { version = "1.0.101" }
 rand = { version = "0.8.6" }
+primitive-types = { version = "0.14" }

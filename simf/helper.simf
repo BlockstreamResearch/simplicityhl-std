@@ -1,3 +1,13 @@
+use crate::lib::logical_operations::not;
+
 pub fn if_test_this_function(index: u8, flag: u8) -> bool {
    jet::eq_8(index, flag)
+}
+
+/// Asserts a result equals the expected bool value.
+pub fn assert_bool(result: bool, expected_bool: bool) {
+   match expected_bool {
+      true => assert!(result),
+      false => assert!(not(result)),
+   }
 }
