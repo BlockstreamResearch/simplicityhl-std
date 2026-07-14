@@ -1,5 +1,6 @@
-use crate::lib::u128::{ checked_add_128, safe_add_128, checked_sub_128, safe_sub_128, checked_mul_128, safe_mul_128, checked_div_128, safe_div_128, eq_128 };
+use crate::lib::u128::{ checked_add_128, safe_add_128, checked_sub_128, safe_sub_128, checked_mul_128, safe_mul_128, checked_div_128, safe_div_128, eq_128, gt_128, ge_128 };
 use crate::lib::asserts::{assert_none_128, assert_eq_128};
+use crate::lib::logical_operations::not;
 use crate::helper::if_test_this_function;
 
 /// Asserts a `checked_*` result equals the expected Option.
@@ -9,6 +10,15 @@ fn assert_eq_opt(result: Option<u128>, expected: Option<u128>) {
     match expected {
         None => assert_none_128(result),
         Some(e: u128) => assert_eq_128(unwrap(result), e),
+    }
+}
+
+/// Asserts a result equals the expected bool value.
+/// `None` encodes `false`, and `Some(_)` encodes `true`.
+fn assert_bool_by_opt(result: bool, expected: Option<u128>) {
+    match expected {
+        Some(_: u128) => assert!(result),
+        None => assert!(not(result)),
     }
 }
 
@@ -36,4 +46,8 @@ fn main() {
     // div
     match if_test_this_function(6, fn_idx) { true => { assert_eq_opt(checked_div_128(a, b), expected); }, false => (), };
     match if_test_this_function(7, fn_idx) { true => { assert!(eq_128(safe_div_128(a, b), unwrap(expected))); }, false => (), };
+
+    // gt, ge
+    match if_test_this_function(8, fn_idx) { true => { assert_bool_by_opt(gt_128(a, b), expected); }, false => (), };
+    match if_test_this_function(9, fn_idx) { true => { assert_bool_by_opt(ge_128(a, b), expected); }, false => (), };
 }
