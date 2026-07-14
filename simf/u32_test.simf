@@ -15,7 +15,7 @@ fn assert_eq_opt(result: Option<u32>, expected: Option<u32>) {
 
 /// Asserts a result equals the expected bool value.
 /// `None` encodes `false`, and `Some(_)` encodes `true`.
-fn assert_bool(result: bool, expected: Option<u32>) {
+fn assert_bool_by_opt(result: bool, expected: Option<u32>) {
     match expected {
         Some(_: u32) => assert!(result),
         None => assert!(not(result)),
@@ -46,6 +46,6 @@ fn main() {
     match if_test_this_function(7, fn_idx) { true => { assert!(jet::eq_32(safe_div_32(a, b), unwrap(expected))); }, false => (), };
 
     // gt, ge
-    match if_test_this_function(8, fn_idx) { true => { assert_bool(gt_32(a, b), expected); }, false => (), };
-    match if_test_this_function(9, fn_idx) { true => { assert_bool(ge_32(a, b), expected); }, false => (), };
+    match if_test_this_function(8, fn_idx) { true => { assert_bool_by_opt(gt_32(a, b), expected); }, false => (), };
+    match if_test_this_function(9, fn_idx) { true => { assert_bool_by_opt(ge_32(a, b), expected); }, false => (), };
 }
