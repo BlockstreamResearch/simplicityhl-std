@@ -57,3 +57,13 @@ pub fn checked_div_64(a: u64, b: u64) -> Option<u64> {
 pub fn safe_div_64(a: u64, b: u64) -> u64 {
     unwrap(checked_div_64(a, b))
 }
+
+/// Check if an integer is greater than another integer
+pub fn gt_64(a: u64, b: u64) -> bool {
+    jet::lt_64(b, a)
+}
+
+/// Check if an integer is greater than or equal to another integer
+pub fn ge_64(a: u64, b: u64) -> bool {
+    jet::le_64(b, a)
+}

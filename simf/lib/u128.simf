@@ -119,6 +119,16 @@ pub fn le_128(a: u128, b: u128) -> bool {
     } 
 }
 
+/// Check if an integer is greater than another integer
+pub fn gt_128(a: u128, b: u128) -> bool {
+    lt_128(b, a)
+}
+
+/// Check if an integer is greater than or equal to another integer
+pub fn ge_128(a: u128, b: u128) -> bool {
+    le_128(b, a)
+}
+
 /// Adds two integers and returns the carry
 pub fn add_128(a: u128, b: u128) -> (bool, u128) {
     let (a_high, a_low): (u64, u64) = <u128>::into(a);

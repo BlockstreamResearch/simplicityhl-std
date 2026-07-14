@@ -57,3 +57,13 @@ pub fn checked_div_16(a: u16, b: u16) -> Option<u16> {
 pub fn safe_div_16(a: u16, b: u16) -> u16 {
     unwrap(checked_div_16(a, b))
 }
+
+/// Check if an integer is greater than another integer
+pub fn gt_16(a: u16, b: u16) -> bool {
+    jet::lt_16(b, a)
+}
+
+/// Check if an integer is greater than or equal to another integer
+pub fn ge_16(a: u16, b: u16) -> bool {
+    jet::le_16(b, a)
+}

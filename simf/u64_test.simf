@@ -1,5 +1,6 @@
-use crate::lib::u64::{checked_add_64, safe_add_64, checked_sub_64, safe_sub_64, checked_mul_64, safe_mul_64, checked_div_64, safe_div_64};
+use crate::lib::u64::{checked_add_64, safe_add_64, checked_sub_64, safe_sub_64, checked_mul_64, safe_mul_64, checked_div_64, safe_div_64, gt_64, ge_64};
 use crate::lib::asserts::{assert_none_64, assert_eq_64};
+use crate::lib::logical_operations::not;
 use crate::helper::if_test_this_function;
 
 /// Asserts a `checked_*` result equals the expected Option.
@@ -9,6 +10,15 @@ fn assert_eq_opt(result: Option<u64>, expected: Option<u64>) {
     match expected {
         None => assert_none_64(result),
         Some(e: u64) => assert_eq_64(unwrap(result), e),
+    }
+}
+
+/// Asserts a result equals the expected bool value.
+/// `None` encodes `false`, and `Some(_)` encodes `true`.
+fn assert_bool_by_opt(result: bool, expected: Option<u64>) {
+    match expected {
+        Some(_: u64) => assert!(result),
+        None => assert!(not(result)),
     }
 }
 
@@ -35,4 +45,7 @@ fn main() {
     match if_test_this_function(6, fn_idx) { true => { assert_eq_opt(checked_div_64(a, b), expected); }, false => (), };
     match if_test_this_function(7, fn_idx) { true => { assert!(jet::eq_64(safe_div_64(a, b), unwrap(expected))); }, false => (), };
 
+    // gt, ge
+    match if_test_this_function(8, fn_idx) { true => { assert_bool_by_opt(gt_64(a, b), expected); }, false => (), };
+    match if_test_this_function(9, fn_idx) { true => { assert_bool_by_opt(ge_64(a, b), expected); }, false => (), };
 }

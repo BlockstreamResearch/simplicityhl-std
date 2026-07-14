@@ -57,3 +57,13 @@ pub fn checked_div_8(a: u8, b: u8) -> Option<u8> {
 pub fn safe_div_8(a: u8, b: u8) -> u8 {
     unwrap(checked_div_8(a, b))
 }
+
+/// Check if an integer is greater than another integer
+pub fn gt_8(a: u8, b: u8) -> bool {
+    jet::lt_8(b, a)
+}
+
+/// Check if an integer is greater than or equal to another integer
+pub fn ge_8(a: u8, b: u8) -> bool {
+    jet::le_8(b, a)
+}
