@@ -4,7 +4,9 @@
 
 use simplex::program::{Program, WitnessTrait};
 use simplex::simplicityhl::elements::Script;
-use simplex::transaction::{FinalTransaction, PartialInput, ProgramInput, RequiredSignature};
+use simplex::transaction::{
+    FinalTransaction, PartialInput, PartialOutput, ProgramInput, RequiredSignature,
+};
 
 #[derive(Clone, Copy)]
 pub enum Expect {
@@ -41,13 +43,14 @@ pub fn fund(
     Ok(script)
 }
 
-/// Spend the funded UTXO with `witness`. Returns the broadcast result.
-pub fn spend<W>(
+/// Construct the funded UTXO with `witness`.
+pub fn construct_final_tx<W>(
     context: &simplex::TestContext,
     program: &impl AsRef<Program>,
     script: &Script,
     witness: W,
-) -> anyhow::Result<String>
+    data: Option<&[u8]>,
+) -> anyhow::Result<FinalTransaction>
 where
     W: WitnessTrait + 'static,
 {
@@ -62,7 +65,47 @@ where
         RequiredSignature::None,
     );
 
+    if let Some(data) = data {
+        ft.add_output(PartialOutput::new_metadata(data))
+    };
+
+    Ok(ft)
+}
+
+/// Spend the funded UTXO with `witness`. Return the broadcast result.
+pub fn spend<W>(
+    context: &simplex::TestContext,
+    program: &impl AsRef<Program>,
+    script: &Script,
+    witness: W,
+    data: Option<&[u8]>,
+) -> anyhow::Result<String>
+where
+    W: WitnessTrait + 'static,
+{
+    let ft = construct_final_tx(context, program, script, witness, data)?;
+
     Ok(context.get_default_signer().broadcast(&ft)?.to_string())
+}
+
+/// Assert that the test result is as expected.
+pub fn assert_error_msg(
+    result: Result<String, anyhow::Error>,
+    expect: Expect,
+) -> anyhow::Result<()> {
+    match expect.error_message() {
+        None => {
+            result?;
+        }
+        Some(expected) => {
+            let err = result
+                .expect_err("expected the spend to fail, but it succeeded")
+                .to_string();
+            assert!(err.contains(expected));
+        }
+    };
+
+    Ok(())
 }
 
 /// Fund + spend + assert the outcome.
@@ -76,19 +119,25 @@ where
     W: WitnessTrait + 'static,
 {
     let script = fund(context, &program)?;
-    let result = spend(context, &program, &script, witness);
+    let result = spend(context, &program, &script, witness, None);
 
-    match expect.error_message() {
-        None => {
-            result?;
-        }
-        Some(expected) => {
-            let err = result
-                .expect_err("expected the spend to fail, but it succeeded")
-                .to_string();
-            assert!(err.contains(expected));
-        }
-    }
+    assert_error_msg(result, expect)
+}
 
-    Ok(())
+/// Fund + spend + assert the outcome.
+/// Tx has OP_RETURN data metadata output
+pub fn run_with_op_return<W>(
+    context: &simplex::TestContext,
+    program: impl AsRef<Program>,
+    witness: W,
+    expect: Expect,
+    data: &[u8],
+) -> anyhow::Result<()>
+where
+    W: WitnessTrait + 'static,
+{
+    let script = fund(context, &program)?;
+    let result = spend(context, &program, &script, witness, Some(data));
+
+    assert_error_msg(result, expect)
 }
