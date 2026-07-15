@@ -1,15 +1,6 @@
 use crate::lib::op_return::{is_output_op_return, assert_output_is_op_return};
-use crate::helper::{if_test_this_function};
+use crate::helper::{if_test_this_function, assert_bool};
 use crate::lib::logical_operations::not;
-
-// to do: import from helper when pr #21 is merged
-/// Asserts a result equals the expected bool value.
-pub fn assert_bool(result: bool, expected_bool: bool) {
-    match expected_bool {
-        true => assert!(result),
-        false => assert!(not(result)),
-    }
-}
 
 fn main() {
     let fn_idx: u8 = witness::FUNCTION_INDEX;
