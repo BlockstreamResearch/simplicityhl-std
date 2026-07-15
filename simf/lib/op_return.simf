@@ -1,3 +1,4 @@
+/// Returns true if the specified output is an OP_RETURN (null data) output
 pub fn is_output_op_return(output_index: u32) -> bool {
     match jet::output_null_datum(output_index, 0) {
         Some(entry: Option<Either<(u2, u256), Either<u1, u4>>>) => true,
@@ -5,6 +6,7 @@ pub fn is_output_op_return(output_index: u32) -> bool {
     }
 }
 
-pub fn assert_output_is_op_return(index: u32) {
-   assert!(is_output_op_return(index));
+/// Asserts that the specified output is an OP_RETURN (null data) output
+pub fn assert_output_is_op_return(output_index: u32) {
+   assert!(is_output_op_return(output_index));
 }
