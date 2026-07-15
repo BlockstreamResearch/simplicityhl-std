@@ -5,6 +5,68 @@ This repository contains the standard library for [SimplicityHL](https://github.
 > [!NOTE]
 > The VS Code syntax-highlighting extension does not yet support modules and imports, so you may see spurious errors when editing files in this repo.
 
+## Modules:
+
+- asserts
+- logical_operations
+- op_return
+- u8
+- u16
+- u32
+- u64
+- u128
+
+---
+`Asserts`
+
+Generic assertion helpers with equality checks between uint values and validation of Option uint variants.
+
+---
+`Logical operations`
+
+Basic boolean logic operations: and, or, not.
+
+---
+`OP_RETURN`
+
+Utilities for detecting and enforcing OP_RETURN (null data) outputs.
+
+---
+`u8`
+
+Operations for the u8 type:
+- overflow-checked arithmetic operations;
+- comparison helpers.
+
+---
+`u16`
+
+Operations for the u16 type:
+- overflow-checked arithmetic operations;
+- comparison helpers.
+
+---
+`u32`
+
+Operations for the u32 type:
+- overflow-checked arithmetic operations;
+- comparison helpers.
+
+---
+`u64`
+
+Operations for the u64 type:
+- overflow-checked arithmetic operations;
+- comparison helpers.
+
+---
+`u128`
+
+Operations for the u128 type:
+- overflow-checked arithmetic operations;
+- comparison helpers;
+- basic operations that are available as jets for `u8`-`u64` but are missing for `u128`.
+
 ## Installation
 
 Install `simplexup`, then use it to install the pinned Simplex toolchain:
@@ -14,7 +76,14 @@ curl -L https://smplx.simplicity-lang.org | bash
 simplexup
 ```
 
-## Usage
+```bash
+simplex install simplicityhl-std
+```
+
+> [!NOTE]
+> Library works with Simplex version 0.0.7 or higher.
+
+## Contributing
 
 ### Build
 
