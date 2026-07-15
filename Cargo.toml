@@ -1,12 +1,19 @@
 [package]
-name = "simplicityhl_std"
+name = "simplicityhl-std"
 edition = "2024"
 rust-version = "1.91.0"
 version = "0.1.0"
+description = "SimplicityHL Standard Library"
+license = "MIT"
+repository = "https://github.com/BlockstreamResearch/simplicityhl-std"
+readme = "README.md"
+keywords = ["simplicity", "liquid", "elements", "smart-contracts"]
+categories = ["cryptography::cryptocurrencies"]
 
 [dependencies]
 smplx-std = "0.0.8"
 
+[dev-dependencies]
 anyhow = { version = "1.0.101" }
 rand = { version = "0.8.6" }
 primitive-types = { version = "0.14" }
