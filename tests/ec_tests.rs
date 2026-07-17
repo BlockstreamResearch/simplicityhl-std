@@ -1,6 +1,5 @@
 mod common;
 
-//use hex_literal::hex;
 use num_bigint::BigUint;
 use num_traits::Zero;
 use rand::{RngCore, rngs::OsRng};
@@ -8,9 +7,9 @@ use secp256k1_zkp::{PublicKey, Secp256k1, SecretKey, rand::rngs::OsRng as SecpOs
 
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::ec_ops_test::EcOpsTestProgram;
-use simplicityhl_std::artifacts::ec_ops_test::derived_ec_ops_test::{
-    EcOpsTestArguments, EcOpsTestWitness,
+use simplicityhl_std::artifacts::secp256k1_operations_test::Secp256k1OperationsTestProgram;
+use simplicityhl_std::artifacts::secp256k1_operations_test::derived_secp256k1_operations_test::{
+    Secp256k1OperationsTestArguments, Secp256k1OperationsTestWitness,
 };
 
 enum FunctionToTest {
@@ -48,8 +47,8 @@ const SECP_N: [u8; 32] = [
     0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B, 0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x41,
 ];
 
-fn program() -> EcOpsTestProgram {
-    EcOpsTestProgram::new(EcOpsTestArguments {})
+fn program() -> Secp256k1OperationsTestProgram {
+    Secp256k1OperationsTestProgram::new(Secp256k1OperationsTestArguments {})
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -66,8 +65,8 @@ fn build_witness(
     expected_ge: ([u8; 32], [u8; 32]),
     expected_gej: (([u8; 32], [u8; 32]), [u8; 32]),
     expected_point: (u8, [u8; 32]),
-) -> EcOpsTestWitness {
-    EcOpsTestWitness {
+) -> Secp256k1OperationsTestWitness {
+    Secp256k1OperationsTestWitness {
         function_index: function,
         first_uint,
         second_uint,
@@ -195,7 +194,7 @@ fn pk_to_gej(pk: &PublicKey) -> (([u8; 32], [u8; 32]), [u8; 32]) {
     ge_to_gej((x, y))
 }
 
-mod ec_ops_tests {
+mod secp256k1_operations_tests {
     use super::*;
 
     // 0. ge_to_point

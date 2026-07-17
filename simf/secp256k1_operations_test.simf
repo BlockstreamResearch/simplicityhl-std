@@ -1,4 +1,4 @@
-use crate::lib::ec::ops::{
+use crate::lib::secp256k1::operations::{
     ge_to_point, point_to_gej, fe_sub, scalar_sub, gej_sub,
     fe_eq, scalar_eq, ge_eq, gej_point_eq, safe_gej_normalize,
     assert_fe_eq, assert_scalar_eq, assert_ge_eq, assert_point_eq, assert_gej_point_eq, assert_gej_eq
