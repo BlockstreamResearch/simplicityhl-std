@@ -67,7 +67,7 @@ pub fn generate_uints_in_one_range(same: bool, min_val: u128, max_val: u128) -> 
 fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTestWitness {
     let mut witness = AssertsTestWitness {
         function_index: 0,
-        first_arg_u1: DEFAULT_SOME_U8,
+        first_arg_u1: DEFAULT_SOME_U8, // u1 in Simplicity is represented as u8
         second_arg_u1: DEFAULT_SOME_U8,
         first_arg_u8: DEFAULT_SOME_U8,
         second_arg_u8: DEFAULT_SOME_U8,

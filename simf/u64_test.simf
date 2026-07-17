@@ -51,6 +51,10 @@ fn main() {
     match if_test_this_function(6, fn_idx) { true => { assert_eq_opt(checked_div_64(a, b), expected); }, false => (), };
     match if_test_this_function(7, fn_idx) { true => { assert!(jet::eq_64(safe_div_64(a, b), unwrap(expected))); }, false => (), };
 
+    // gt, ge
+    match if_test_this_function(8, fn_idx) { true => { assert_bool_by_opt(gt_64(a, b), expected); }, false => (), };
+    match if_test_this_function(9, fn_idx) { true => { assert_bool_by_opt(ge_64(a, b), expected); }, false => (), };
+
     // Custom
     match if_test_this_function(192, fn_idx) { true => { assert_eq_opt(checked_div_64(a, b), expected); }, false => (), };
 }
