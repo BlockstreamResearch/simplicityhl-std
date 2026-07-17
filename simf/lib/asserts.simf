@@ -1,4 +1,9 @@
-use crate::lib::u128::{eq_128};
+use crate::lib::u128::eq_128;
+
+/// Asserts that two `u1` are equal
+pub fn assert_eq_1(a: u1, b: u1) {
+    assert!(jet::eq_1(a, b))
+}
 
 /// Asserts that two u8 are equal
 pub fn assert_eq_8(a: u8, b: u8) {
@@ -28,6 +33,11 @@ pub fn assert_eq_128(a: u128, b: u128) {
 /// Asserts that two u256 are equal
 pub fn assert_eq_256(a: u256, b: u256) {
     assert!(jet::eq_256(a, b));
+}
+
+/// Asserts that provided `Option<u1>` value is a `None`
+pub fn assert_none_1(val: Option<u1>) {
+    assert!(is_none::<u1>(val));
 }
 
 /// Asserts that provided u8 Option value is a None

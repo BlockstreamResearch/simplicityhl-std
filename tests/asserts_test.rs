@@ -12,12 +12,15 @@ use simplicityhl_std::artifacts::asserts_test::derived_asserts_test::{
 // Dispatch indices — must match the `if_test_this_function(N, ..)` arms in
 // simf/asserts_test.simf.
 enum FunctionToTest {
+    AssertEq1,
     AssertEq8,
     AssertEq16,
     AssertEq32,
     AssertEq64,
     AssertEq128,
     AssertEq256,
+
+    AssertNone1,
     AssertNone8,
     AssertNone16,
     AssertNone32,
@@ -64,6 +67,8 @@ pub fn generate_uints_in_one_range(same: bool, min_val: u128, max_val: u128) -> 
 fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTestWitness {
     let mut witness = AssertsTestWitness {
         function_index: 0,
+        first_arg_u1: DEFAULT_SOME_U8,
+        second_arg_u1: DEFAULT_SOME_U8,
         first_arg_u8: DEFAULT_SOME_U8,
         second_arg_u8: DEFAULT_SOME_U8,
         first_arg_u16: DEFAULT_SOME_U16,
@@ -79,6 +84,10 @@ fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTes
     };
 
     match function {
+        FunctionToTest::AssertEq1 => {
+            let (a, b) = generate_uints_in_one_range(same, 0, 1u128);
+            (witness.first_arg_u1, witness.second_arg_u1) = (Some(a as u8), Some(b as u8));
+        }
         FunctionToTest::AssertEq8 => {
             let (a, b) = generate_uints_in_one_range(same, 0, u8::MAX as u128);
             (witness.first_arg_u8, witness.second_arg_u8) = (Some(a as u8), Some(b as u8));
@@ -103,6 +112,11 @@ fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTes
             let (a, b) = generate_uints_in_one_range(same, 0, u8::MAX as u128);
             (witness.first_arg_u256, witness.second_arg_u256) =
                 (Some([a as u8; 32]), Some([b as u8; 32]));
+        }
+        FunctionToTest::AssertNone1 => {
+            if none {
+                witness.first_arg_u1 = None;
+            }
         }
         FunctionToTest::AssertNone8 => {
             if none {
@@ -159,6 +173,22 @@ mod asserts_test {
     use super::*;
 
     // ---------- assert_eq: happy = equal args, unhappy = distinct args ----------
+    #[simplex::test]
+    fn assert_eq_1_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(&context, FunctionToTest::AssertEq1, true, false, Expect::Ok)
+    }
+
+    #[simplex::test]
+    fn assert_eq_1_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEq1,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
     #[simplex::test]
     fn assert_eq_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
         run_assert(&context, FunctionToTest::AssertEq8, true, false, Expect::Ok)
@@ -286,6 +316,28 @@ mod asserts_test {
     }
 
     // ---------- assert_none: happy = None arg, unhappy = Some arg ----------
+    #[simplex::test]
+    fn assert_none_1_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone1,
+            false,
+            true,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_none_1_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertNone1,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
     #[simplex::test]
     fn assert_none_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
         run_assert(

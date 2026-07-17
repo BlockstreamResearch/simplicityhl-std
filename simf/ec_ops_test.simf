@@ -1,0 +1,35 @@
+use crate::lib::ec::ops::{
+    ge_to_point, point_to_gej, fe_sub, scalar_sub, gej_sub,
+    fe_eq, scalar_eq, ge_eq, gej_point_eq, safe_gej_normalize,
+    assert_fe_eq, assert_scalar_eq, assert_ge_eq, assert_point_eq, assert_gej_point_eq, assert_gej_eq
+};
+use crate::helper::if_test_this_function;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    // Interpreted as Fe or Scalar depending on the function index
+    let uint_a: u256 = witness::FIRST_UINT;
+    let uint_b: u256 = witness::SECOND_UINT;
+    let ge_a: Ge = witness::FIRST_GE;
+    let ge_b: Ge = witness::SECOND_GE;
+    let gej_a: Gej = witness::FIRST_GEJ;
+    let gej_b: Gej = witness::SECOND_GEJ;
+    let point_a: Point = witness::FIRST_POINT;
+
+    let exp_uint: u256 = witness::EXPECTED_UINT;
+    let exp_ge: Ge = witness::EXPECTED_GE;
+    let exp_gej: Gej = witness::EXPECTED_GEJ;
+    let exp_point: Point = witness::EXPECTED_POINT;
+
+    match if_test_this_function(0, fn_idx) { true => { assert_point_eq(ge_to_point(ge_a), exp_point); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert_gej_point_eq(point_to_gej(point_a), exp_point); }, false => (), };
+    match if_test_this_function(2, fn_idx) { true => { assert_fe_eq(fe_sub(uint_a, uint_b), exp_uint); }, false => (), };
+    match if_test_this_function(3, fn_idx) { true => { assert_scalar_eq(scalar_sub(uint_a, uint_b), exp_uint); }, false => (), };
+    match if_test_this_function(4, fn_idx) { true => { assert_gej_eq(gej_sub(gej_a, gej_b), exp_gej); }, false => (), };
+    match if_test_this_function(5, fn_idx) { true => { assert!(fe_eq(uint_a, uint_b)); }, false => (), };
+    match if_test_this_function(6, fn_idx) { true => { assert!(scalar_eq(uint_a, uint_b)); }, false => (), };
+    match if_test_this_function(7, fn_idx) { true => { assert!(ge_eq(ge_a, ge_b)); }, false => (), };
+    match if_test_this_function(8, fn_idx) { true => { assert!(gej_point_eq(gej_a, point_a)); }, false => (), };
+    match if_test_this_function(9, fn_idx) { true => { assert_ge_eq(safe_gej_normalize(gej_a), exp_ge); }, false => (), };
+}

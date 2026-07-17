@@ -45,10 +45,8 @@ fn op(o: FunctionToTest) -> u8 {
 mod u64_tests {
     use rand::Rng as _;
 
-    use crate::{
-        FunctionToTest::U64Widen,
-        common::core::{Expect, run},
-    };
+    use crate::FunctionToTest::U64Widen;
+    use crate::common::core::{Expect, run};
 
     use super::*;
 
