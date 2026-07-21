@@ -69,6 +69,6 @@ pub fn ge_64(a: u64, b: u64) -> bool {
 }
 
 /// Widen `u64` to a `u256` scalar.
-pub fn u64_widen(val: u64) -> u256 {
+pub fn u64_into_u256(val: u64) -> u256 {
     <(u64, u64, u64, u64)>::into((0, 0, 0, val))
 }

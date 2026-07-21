@@ -54,7 +54,7 @@ mod u64_tests {
     uint_tests!(u64);
 
     #[simplex::test]
-    fn u64_widen(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u64_into_u256(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u64::MAX);
 
         let mut expected_widen: [u8; 32] = [0u8; 32];
