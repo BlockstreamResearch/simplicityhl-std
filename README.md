@@ -8,7 +8,7 @@ This repository contains the standard library for [SimplicityHL](https://github.
 ## Modules
 
 - asserts
-- logical_operations
+- binary
 - op_return
 - u8
 - u16
@@ -23,9 +23,9 @@ This repository contains the standard library for [SimplicityHL](https://github.
 Generic assertion helpers with equality checks between uint values and validation of Option uint variants.
 
 ---
-`Logical operations`
+`Binary`
 
-Basic boolean logic operations: and, or, not.
+Basic binary logic operations: and, or, not, xor.
 
 ---
 `OP_RETURN`

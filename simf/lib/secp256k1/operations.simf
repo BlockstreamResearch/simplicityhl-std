@@ -1,4 +1,4 @@
-use crate::lib::logical_operations::and;
+use crate::lib::binary::and;
 use crate::lib::asserts::{assert_eq_1, assert_eq_256};
 
 /// Compress an affine point to `(parity, x)`, where `parity = 1` iff `y` is odd.
