@@ -8,7 +8,7 @@ This repository contains the standard library for [SimplicityHL](https://github.
 ## Modules
 
 - asserts
-- logical_operations
+- boolean
 - op_return
 - u8
 - u16

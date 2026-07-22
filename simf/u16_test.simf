@@ -1,6 +1,6 @@
 use crate::lib::u16::{checked_add_16, safe_add_16, checked_sub_16, safe_sub_16, checked_mul_16, safe_mul_16, checked_div_16, safe_div_16, gt_16, ge_16};
 use crate::lib::asserts::{assert_none_16, assert_eq_16};
-use crate::lib::logical_operations::not;
+use crate::lib::boolean::not;
 use crate::helper::if_test_this_function;
 
 /// Asserts a `checked_*` result equals the expected Option.

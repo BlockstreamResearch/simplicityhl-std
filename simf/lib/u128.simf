@@ -1,4 +1,4 @@
-use crate::lib::logical_operations::{not, or, and};
+use crate::lib::boolean::{not, or, and};
 
 /// Bit logic
 

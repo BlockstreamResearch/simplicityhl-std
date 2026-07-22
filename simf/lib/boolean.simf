@@ -12,3 +12,8 @@ pub fn or(a: bool, b: bool) -> bool {
 pub fn and(a: bool, b: bool) -> bool {
    <u1>::into(jet::and_1(<bool>::into(a), <bool>::into(b)))
 }
+
+/// Returns the result of the XOR operation on the provided values
+pub fn xor(a: bool, b: bool) -> bool {
+   and(or(a, b), not(and(a, b)))
+}
