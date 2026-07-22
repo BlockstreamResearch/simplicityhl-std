@@ -67,6 +67,7 @@ fn op(o: CommonOp) -> u8 {
 pub fn checked_add_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::HALF_MAX);
     let b = rand::thread_rng().gen_range(T::ZERO..=T::HALF_MAX);
+
     run(
         &context,
         T::program(),
@@ -77,6 +78,7 @@ pub fn checked_add_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow
 
 pub fn checked_add_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = rand::thread_rng().gen_range(T::ONE..=T::MAX);
+
     run(
         &context,
         T::program(),
@@ -88,6 +90,7 @@ pub fn checked_add_overflow<T: TestUint>(context: simplex::TestContext) -> anyho
 pub fn safe_add_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::HALF_MAX);
     let b = rand::thread_rng().gen_range(T::ZERO..=T::HALF_MAX);
+
     run(
         &context,
         T::program(),
@@ -98,6 +101,7 @@ pub fn safe_add_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::R
 
 pub fn safe_add_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = rand::thread_rng().gen_range(T::ONE..=T::MAX);
+
     run(
         &context,
         T::program(),
@@ -110,6 +114,7 @@ pub fn safe_add_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::
 pub fn checked_sub_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
     let b = rand::thread_rng().gen_range(T::ZERO..=a);
+
     run(
         &context,
         T::program(),
@@ -121,6 +126,7 @@ pub fn checked_sub_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow
 pub fn checked_sub_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX - T::ONE);
     let b = rand::thread_rng().gen_range(a + T::ONE..=T::MAX);
+
     run(
         &context,
         T::program(),
@@ -132,6 +138,7 @@ pub fn checked_sub_overflow<T: TestUint>(context: simplex::TestContext) -> anyho
 pub fn safe_sub_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
     let b = rand::thread_rng().gen_range(T::ZERO..=a);
+
     run(
         &context,
         T::program(),
@@ -143,6 +150,7 @@ pub fn safe_sub_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::R
 pub fn safe_sub_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX - T::ONE);
     let b = rand::thread_rng().gen_range(a + T::ONE..=T::MAX);
+
     run(
         &context,
         T::program(),
@@ -155,6 +163,7 @@ pub fn safe_sub_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::
 pub fn checked_mul_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..T::MUL_BOUND);
     let b = rand::thread_rng().gen_range(T::ZERO..T::MUL_BOUND);
+
     run(
         &context,
         T::program(),
@@ -166,6 +175,7 @@ pub fn checked_mul_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow
 pub fn checked_mul_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let two = T::ONE + T::ONE;
     let b = rand::thread_rng().gen_range(two..=T::MAX);
+
     run(
         &context,
         T::program(),
@@ -177,6 +187,7 @@ pub fn checked_mul_overflow<T: TestUint>(context: simplex::TestContext) -> anyho
 pub fn safe_mul_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..T::MUL_BOUND);
     let b = rand::thread_rng().gen_range(T::ZERO..T::MUL_BOUND);
+
     run(
         &context,
         T::program(),
@@ -188,6 +199,7 @@ pub fn safe_mul_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::R
 pub fn safe_mul_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let two = T::ONE + T::ONE;
     let b = rand::thread_rng().gen_range(two..=T::MAX);
+
     run(
         &context,
         T::program(),
@@ -200,6 +212,7 @@ pub fn safe_mul_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::
 pub fn checked_div_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
     let b = rand::thread_rng().gen_range(T::ONE..=T::MAX);
+
     run(
         &context,
         T::program(),
@@ -210,6 +223,7 @@ pub fn checked_div_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow
 
 pub fn checked_div_by_zero<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
+
     run(
         &context,
         T::program(),
@@ -221,6 +235,7 @@ pub fn checked_div_by_zero<T: TestUint>(context: simplex::TestContext) -> anyhow
 pub fn safe_div_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
     let b = rand::thread_rng().gen_range(T::ONE..=T::MAX);
+
     run(
         &context,
         T::program(),
@@ -231,6 +246,7 @@ pub fn safe_div_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::R
 
 pub fn safe_div_by_zero<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
+
     run(
         &context,
         T::program(),

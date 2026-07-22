@@ -9,7 +9,7 @@ use simplicityhl_std::artifacts::boolean_test::derived_boolean_test::{
 
 mod boolean_tests {
     use super::*;
-    
+
     #[simplex::test]
     fn boolean_test(context: simplex::TestContext) -> anyhow::Result<()> {
         let program = BooleanTestProgram::new(BooleanTestArguments {});
