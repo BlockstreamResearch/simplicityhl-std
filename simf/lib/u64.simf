@@ -67,3 +67,8 @@ pub fn gt_64(a: u64, b: u64) -> bool {
 pub fn ge_64(a: u64, b: u64) -> bool {
     jet::le_64(b, a)
 }
+
+/// Widen `u64` to a `u256` scalar.
+pub fn u64_into_u256(val: u64) -> u256 {
+    <(u64, u64, u64, u64)>::into((0, 0, 0, val))
+}
