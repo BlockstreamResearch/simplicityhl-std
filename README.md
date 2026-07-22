@@ -5,7 +5,7 @@ This repository contains the standard library for [SimplicityHL](https://github.
 > [!NOTE]
 > The VS Code syntax-highlighting extension does not yet support modules and imports, so you may see spurious errors when editing files in this repo.
 
-## Modules:
+## Modules
 
 - asserts
 - logical_operations
@@ -15,6 +15,7 @@ This repository contains the standard library for [SimplicityHL](https://github.
 - u32
 - u64
 - u128
+- secp256k1
 
 ---
 `Asserts`
@@ -35,6 +36,7 @@ Utilities for detecting and enforcing OP_RETURN (null data) outputs.
 `u8`
 
 Operations for the u8 type:
+
 - overflow-checked arithmetic operations;
 - comparison helpers.
 
@@ -42,6 +44,7 @@ Operations for the u8 type:
 `u16`
 
 Operations for the u16 type:
+
 - overflow-checked arithmetic operations;
 - comparison helpers.
 
@@ -49,6 +52,7 @@ Operations for the u16 type:
 `u32`
 
 Operations for the u32 type:
+
 - overflow-checked arithmetic operations;
 - comparison helpers.
 
@@ -56,6 +60,7 @@ Operations for the u32 type:
 `u64`
 
 Operations for the u64 type:
+
 - overflow-checked arithmetic operations;
 - comparison helpers.
 
@@ -63,9 +68,22 @@ Operations for the u64 type:
 `u128`
 
 Operations for the u128 type:
+
 - overflow-checked arithmetic operations;
 - comparison helpers;
 - basic operations that are available as jets for `u8`-`u64` but are missing for `u128`.
+
+---
+`secp256k1`
+
+Operations on the secp256k1 curve:
+
+- subtraction for `Fe`, `Scalar`, `Gej`;
+- equality predicates and their `assert_*` counterparts;
+- conversions between `Ge`, `Gej`, and compressed `Point`;
+- safe Jacobian-to-affine normalization.
+
+`fe_eq` and `scalar_eq` use modular arithmetic, so `fe_eq(0, p) == true`. `ge_eq` and `gej_point_eq` distinguish `P` from `-P`.
 
 ## Installation
 
@@ -116,7 +134,7 @@ simplex test --test-threads 8
 To run a specific test module:
 
 ```bash
-simplex test u8_test
+simplex test u8_tests
 ```
 
 To run a specific test:

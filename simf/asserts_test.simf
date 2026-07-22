@@ -15,7 +15,7 @@ fn main() {
 
     let a_u16: Option<u16> = witness::FIRST_ARG_U16;
     let b_u16: Option<u16> = witness::SECOND_ARG_U16;
-    
+
     let a_u32: Option<u32> = witness::FIRST_ARG_U32;
     let b_u32: Option<u32> = witness::SECOND_ARG_U32;
 

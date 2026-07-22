@@ -93,17 +93,17 @@ pub fn assert_point_eq(a: Point, b: Point) {
     assert_eq_1(ap, bp);
 }
 
-/// Check if two points represent the same point.
+/// Assert a point equals the point encoded by a compressed `Point`.
 pub fn assert_gej_point_eq(a: Gej, p: Point) {
     assert!(gej_point_eq(a, p));
 }
 
-/// Check if two points represent the same point.
+/// Assert two points represent the same curve point.
 pub fn assert_gej_eq(a: Gej, b: Gej) {
     assert!(jet::gej_equiv(a, b));
 }
 
-/// Check if two points represent the same point.
+/// Assert point equal an affine point (no normalize required).
 pub fn assert_gej_ge_eq(a: Gej, b: Ge) {
     assert!(jet::gej_ge_equiv(a, b));
 }
