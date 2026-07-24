@@ -1,9 +1,9 @@
 [package]
 name = "simplicityhl-std"
+version = "0.0.1"
+description = "SimplicityHL Standard Library"
 edition = "2024"
 rust-version = "1.91.0"
-version = "0.1.0"
-description = "SimplicityHL Standard Library"
 license = "MIT"
 repository = "https://github.com/BlockstreamResearch/simplicityhl-std"
 readme = "README.md"
