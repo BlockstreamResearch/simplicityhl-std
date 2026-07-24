@@ -1,0 +1,21 @@
+use crate::lib::binary::{not, or, and, xor};
+
+fn main() {
+   assert!(not(false));
+   assert!(not(not(true)));
+
+   assert!(or(true, false));
+   assert!(or(false, true));
+   assert!(or(true, true));
+   assert!(not(or(false, false)));
+
+   assert!(and(true, true));
+   assert!(not(and(true, false)));
+   assert!(not(and(false, true)));
+   assert!(not(and(false, false)));
+
+   assert!(xor(true, false));
+   assert!(xor(false, true));
+   assert!(not(xor(true, true)));
+   assert!(not(xor(false, false)));
+}

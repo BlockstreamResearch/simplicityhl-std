@@ -1,0 +1,109 @@
+use crate::lib::binary::and;
+use crate::lib::asserts::{assert_eq_1, assert_eq_256};
+
+/// Compress an affine point to `(parity, x)`, where `parity = 1` iff `y` is odd.
+pub fn ge_to_point(p: Ge) -> Point {
+    let (x, y): (Fe, Fe) = p;
+
+    match jet::fe_is_odd(y) {
+        true => (1, x),
+        false => (0, x),
+    }
+}
+
+/// Decompress a `Point` into a Jacobian point with `z = 1`.
+pub fn point_to_gej(p: Point) -> Gej {
+    (unwrap(jet::decompress(p)), 1)
+}
+
+/// Convert the point into affine coordinates.
+pub fn safe_gej_normalize(p: Gej) -> Ge {
+    unwrap(jet::gej_normalize(p))
+}
+
+/// Subtract two field elements.
+pub fn fe_sub(a: Fe, b: Fe) -> Fe {
+    jet::fe_add(a, jet::fe_negate(b))
+}
+
+/// Subtract two scalars.
+pub fn scalar_sub(a: Scalar, b: Scalar) -> Scalar {
+    jet::scalar_add(a, jet::scalar_negate(b))
+}
+
+/// Subtract two points.
+pub fn gej_sub(p: Gej, q: Gej) -> Gej {
+    jet::gej_add(p, jet::gej_negate(q))
+}
+
+/// Field equality modulo `p`.
+pub fn fe_eq(a: Fe, b: Fe) -> bool {
+    jet::fe_is_zero(fe_sub(a, b))
+}
+
+/// Scalar equality modulo `n`.
+pub fn scalar_eq(a: Scalar, b: Scalar) -> bool {
+    jet::scalar_is_zero(scalar_sub(a, b))
+}
+
+/// Affine point equality.
+pub fn ge_eq(a: Ge, b: Ge) -> bool {
+    let (ax, ay): (Fe, Fe) = a;
+    let (bx, by): (Fe, Fe) = b;
+    and(fe_eq(ax, bx), fe_eq(ay, by))
+}
+
+/// Check if two points are equal.
+pub fn point_point_eq(a: Point, b: Point) -> bool {
+    let (ap, ax): (u1, u256) = a;
+    let (bp, bx): (u1, u256) = b;
+    and(jet::eq_256(ax, bx), jet::eq_1(ap, bp))
+}
+
+/// Check if two points represent the same point
+pub fn gej_point_eq(a: Gej, p: Point) -> bool {
+    jet::gej_ge_equiv(a, unwrap(jet::decompress(p)))
+}
+
+/// Field equality modulo `p`.
+pub fn assert_fe_eq(a: Fe, b: Fe) {
+    assert!(fe_eq(a, b));
+}
+
+/// Scalar equality modulo `n`.
+pub fn assert_scalar_eq(a: Scalar, b: Scalar) {
+    assert!(scalar_eq(a, b));
+}
+
+/// Affine point equality.
+pub fn assert_ge_eq(a: Ge, b: Ge) {
+    let (ax, ay): (Fe, Fe) = a;
+    let (bx, by): (Fe, Fe) = b;
+    
+    assert_fe_eq(ax, bx);
+    assert_fe_eq(ay, by);
+}
+
+/// Check if two points are equal.
+pub fn assert_point_eq(a: Point, b: Point) {
+    let (ap, ax): (u1, u256) = a;
+    let (bp, bx): (u1, u256) = b;
+
+    assert_eq_256(ax, bx);
+    assert_eq_1(ap, bp);
+}
+
+/// Assert a point equals the point encoded by a compressed `Point`.
+pub fn assert_gej_point_eq(a: Gej, p: Point) {
+    assert!(gej_point_eq(a, p));
+}
+
+/// Assert two points represent the same curve point.
+pub fn assert_gej_eq(a: Gej, b: Gej) {
+    assert!(jet::gej_equiv(a, b));
+}
+
+/// Assert point equal an affine point (no normalize required).
+pub fn assert_gej_ge_eq(a: Gej, b: Ge) {
+    assert!(jet::gej_ge_equiv(a, b));
+}

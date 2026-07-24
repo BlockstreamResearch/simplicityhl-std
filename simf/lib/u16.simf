@@ -1,0 +1,69 @@
+/// Returns the sum of two u16 values wrapped in Some, or None if the result overflows u16
+pub fn checked_add_16(a: u16, b: u16) -> Option<u16> {
+    let (carry, sum): (bool, u16) = jet::add_16(a, b);
+
+    match carry {
+        true => None,
+        false => Some(sum),
+    }
+}
+
+/// Returns the sum of two u16 values, panics if the result overflows u16
+pub fn safe_add_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_add_16(a, b))
+}
+
+/// Returns the difference of two u16 values wrapped in Some, or None if the result overflows u16
+pub fn checked_sub_16(a: u16, b: u16) -> Option<u16> {
+    let (borrow, diff): (bool, u16) = jet::subtract_16(a, b);
+    
+    match borrow {
+        true => None,
+        false => Some(diff),
+    }
+}
+
+/// Returns the difference of two u16 values, panics if the result overflows u16
+pub fn safe_sub_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_sub_16(a, b))
+}
+
+/// Returns the product of two u16 values wrapped in Some, or None if the result overflows u16
+pub fn checked_mul_16(a: u16, b: u16) -> Option<u16> {
+    let result: u32 = jet::multiply_16(a, b);
+
+    let (high, low): (u16, u16) = <u32>::into(result);
+
+    match jet::is_zero_16(high) {
+        true => Some(low),
+        false => None,
+    }
+}
+
+/// Returns the product of two u16 values, panics if the result overflows u16
+pub fn safe_mul_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_mul_16(a, b))
+}
+
+/// Returns the quotient of two u16 values wrapped in Some, or None if the result overflows u16
+pub fn checked_div_16(a: u16, b: u16) -> Option<u16> {
+    match jet::is_zero_16(b) {
+        true => None,
+        false => Some(jet::divide_16(a, b)),
+    }
+}
+
+/// Returns the quotient of two u16 values, panics if the result overflows u16
+pub fn safe_div_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_div_16(a, b))
+}
+
+/// Check if an integer is greater than another integer
+pub fn gt_16(a: u16, b: u16) -> bool {
+    jet::lt_16(b, a)
+}
+
+/// Check if an integer is greater than or equal to another integer
+pub fn ge_16(a: u16, b: u16) -> bool {
+    jet::le_16(b, a)
+}

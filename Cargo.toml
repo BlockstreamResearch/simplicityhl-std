@@ -1,0 +1,22 @@
+[package]
+name = "simplicityhl-std"
+version = "0.0.1"
+description = "SimplicityHL Standard Library"
+edition = "2024"
+rust-version = "1.91.0"
+license = "MIT"
+repository = "https://github.com/BlockstreamResearch/simplicityhl-std"
+readme = "README.md"
+keywords = ["simplicity", "liquid", "elements", "smart-contracts"]
+categories = ["cryptography::cryptocurrencies"]
+
+[dependencies]
+smplx-std = "0.0.8"
+
+[dev-dependencies]
+anyhow = { version = "1.0.101" }
+rand = { version = "0.8.6" }
+primitive-types = { version = "0.14" }
+num-bigint = { version = "0.5.1" }
+num-traits = { version = "0.2.19" }
+secp256k1-zkp = { version = "0.11.0", features = ["rand"] }

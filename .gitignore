@@ -1,0 +1,12 @@
+# Build output
+target/
+
+# Simplex output
+src/artifacts
+
+# IDE/editors (optional but common minimal)
+**/.DS_Store
+.idea/
+.vscode/
+.cache
+.env
