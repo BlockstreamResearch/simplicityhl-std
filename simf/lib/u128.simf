@@ -141,7 +141,7 @@ pub fn add_128(a: u128, b: u128) -> (bool, u128) {
     (carry_high, res)
 }
 
-/// Adds the 128-bit integer with the 64-bit integer. Returns a tuple of the sum and the carry
+/// Adds the 128-bit integer with the 64-bit integer and returns the carry
 pub fn add_128_64(a: u128, b: u64) -> (bool, u128) {
     let (a_high, a_low): (u64, u64) = <u128>::into(a);
 
@@ -149,6 +149,18 @@ pub fn add_128_64(a: u128, b: u64) -> (bool, u128) {
     let (carry_high, res_high): (bool, u64) = jet::full_add_64(carry_low, a_high, 0);
 
     (carry_high, <(u64, u64)>::into((res_high, res_low)))
+}
+
+/// Add two integers. Take a carry-in and return a carry-out
+pub fn full_add_128(carry_low: bool, a: u128, b: u128) -> (bool, u128) {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    let (carry_low, sum_low): (bool, u64) = jet::full_add_64(carry_low, a_low, b_low);
+    let (carry_high, sum_high): (bool, u64) = jet::full_add_64(carry_low, a_high, b_high);
+
+    let res: u128 = <(u64, u64)>::into((sum_high, sum_low));
+    (carry_high, res)
 }
 
 /// Returns the sum of two u128 values wrapped in Some, or None if the result overflows u128
@@ -177,6 +189,8 @@ pub fn sub_128(a: u128, b: u128) -> (bool, u128) {
     let res: u128 = <(u64, u64)>::into((diff_high, diff_low));
     (borrow_high, res)
 }
+
+// todo full_sub_128
 
 /// Returns the difference of two u128 values wrapped in Some, or None if the result overflows u128
 pub fn checked_sub_128(a: u128, b: u128) -> Option<u128> {
@@ -248,26 +262,12 @@ pub fn safe_mul_128(a: u128, b: u128) -> u128 {
     unwrap(checked_mul_128(a, b))
 }
 
-/// Splits the u256 integer into four u64 integers
-// TODO: Move to u256 once that module is added.
-pub fn split_256_into_64(a: u256) -> ((u64, u64), (u64, u64)) {
-    let (high, low): (u128, u128) = <u256>::into(a); 
-
-    (<u128>::into(high), <u128>::into(low))
-}
-
-/// Helper function, can be used with jet::div_mod_128_64.
-/// Normalizes two u128 values by multiplying both by the same factor,
-/// ensuring that the most significant non-zero word of `b` is at least 2^63.
-///
-/// If `is_b_u128` is true, expects the upper half of `b` to be non-zero.
-/// If `is_b_u128` is false, expects `b` to fit into u64.
-///
-/// Division algorithms operate in base 2^64, so the normalization threshold is 2^63.
-pub fn normalize_to_threshold(a: u128, b: u128, is_b_u128: bool) -> (u256, u128) {
-    // Compile-time constant: 2^63. Avoids a runtime jet::left_shift_64 call.
+/// Helper function that can be used with jet::div_mod_128_64 or Algorithm D.
+/// Returns the normalization factor by which `b` should be multiplied so that
+/// its most significant non-zero word is greater than or equal to 2^63
+pub fn calculate_normalizer_base_64(b: u128, is_b_u128: bool) -> u64 { 
+    // Compile-time constant: 2^63. Avoids a runtime jet::left_shift_64 call
     let threshold: u64 = 0x8000000000000000;
-
     let (b_high, b_low): (u64, u64) = <u128>::into(b);
 
     let b_highest_word: u64 = match is_b_u128 {
@@ -281,45 +281,56 @@ pub fn normalize_to_threshold(a: u128, b: u128, is_b_u128: bool) -> (u256, u128)
 
     let (norm, remainder): (u64, u64) = jet::div_mod_64(threshold, b_highest_word);
 
-    let norm: u64 = match jet::is_zero_64(remainder) {
+    match jet::is_zero_64(remainder) {
         true => norm,
         false => {
             let (_, norm): (bool, u64) = jet::add_64(norm, 1); // norm <= 2^63, so norm + 1 can not overflow
             norm
         }
-    };
-    let norm: u128 = <(u64, u64)>::into((0, norm));
-
-    match jet::lt_64(b_highest_word, threshold) {
-        true => (mul_128(a, norm), safe_mul_128(b, norm)), 
-        false => (<(u128, u128)>::into((0, a)), b),
     }
 }
 
-/// Divides the first u128 integer by the second u128 integer,
-/// returns the u64 quotient and the u128 remainder.
-/// Implements Algorithm D by Donald Knuth.
-/// Requires the upper half of the divisor to be non-zero.
-pub fn algorithm_d(dividend: u128, divisor: u128) -> (u64, u128) {
-    let (norm_dividend, norm_divisor): (u256, u128) = normalize_to_threshold(dividend, divisor, true);
+/// Helper function, can be used with jet::div_mod_128_64 or Algorithm D.
+/// Normalizes two u128 values by multiplying both by the same factor,
+/// ensuring that the most significant non-zero word of `b` is at least 2^63.
+///
+/// If `is_b_u128` is true, expects the upper half of `b` to be non-zero.
+/// If `is_b_u128` is false, expects `b` to fit into u64.
+///
+/// Division algorithms operate in base 2^64, so the normalization threshold is 2^63
+fn normalize_to_threshold_128_63(
+    a: u128,
+    b: u128,
+    is_b_u128: bool
+) -> (u256, u128, u64) {
+    let norm: u64 = calculate_normalizer_base_64(b, is_b_u128);
+    let norm_128: u128 = <(u64, u64)>::into((0, norm));
 
-    // normalized dividend fits into 192 bits
-    let ((_, u2), (u1, u0)): ((u64, u64), (u64, u64)) = split_256_into_64(norm_dividend);
-    let (v1, v0): (u64, u64) = <u128>::into(norm_divisor);
+    match jet::eq_64(norm, 1) {
+        true => (<(u128, u128)>::into((0, a)), b, norm),
+        false => (mul_128(a, norm_128), safe_mul_128(b, norm_128), norm),
+    }
+}
 
+/// Estimates and corrects the next quotient digit (q_hat) for Algorithm D.
+/// Returns the quotient digit to use in the subsequent multiply-and-subtract step.
+/// Expects result to fit into u64
+pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u64) -> u64 {
     let (q_hat, r_hat): (u64, u64) = jet::div_mod_128_64(<(u64, u64)>::into((u2, u1)), v1); 
 
     let r_hat_u0: u128 = <(u64, u64)>::into((r_hat, u0));
 
     // correcting estimation: q_hat is off by at most 2.
-    let q: u64 = match lt_128(r_hat_u0, jet::multiply_64(q_hat, v0)) {
+    match lt_128(r_hat_u0, jet::multiply_64(q_hat, v0)) {
         true => {
             // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
             let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1); 
             let (carry, r_hat): (bool, u64) = jet::add_64(r_hat, v1);
-           
+
             match carry {
-                true => q_hat,
+                true => {
+                    q_hat
+                },
                 false => {
                     let r_hat_u0: u128 = <(u64, u64)>::into((r_hat, u0));
 
@@ -327,17 +338,34 @@ pub fn algorithm_d(dividend: u128, divisor: u128) -> (u64, u128) {
                         true => {
                             // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
                             let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1); 
-                            
+
                             q_hat
                         }
-                        false => q_hat,
+                        false => {
+                            q_hat
+                        },
                     }
                 }
-                
             }
         },
-        false => q_hat,
-    };
+        false => {
+            q_hat
+        },
+    }
+}
+
+/// Divides the first u128 integer by the second u128 integer,
+/// returns the u64 quotient and the u128 remainder.
+/// Implements Algorithm D by Donald Knuth.
+/// Requires the upper half of the divisor to be non-zero.
+fn algorithm_d_128_128(dividend: u128, divisor: u128) -> (u64, u128) {
+    let (norm_dividend, norm_divisor, _): (u256, u128, u64) = normalize_to_threshold_128_63(dividend, divisor, true);
+
+     // normalized dividend fits into 192 bits
+    let (_, u2, u1, u0): (u64, u64, u64, u64) = <u256>::into(norm_dividend);
+    let (v1, v0): (u64, u64) = <u128>::into(norm_divisor);
+
+    let q: u64 = estimate_quotient_digit_base_64(u2, u1, u0, v1, v0);
 
     let remainder: u128 = safe_sub_128(dividend, safe_mul_128(divisor, <(u64, u64)>::into((0, q))));
     (q, remainder)
@@ -355,16 +383,15 @@ pub fn div_mod_128_64(a: u128, b: u64) -> (u128, u64) {
     let a_prime: u128 = <(u64, u64)>::into((remainder, a_low));
 
     // we need to normalize here, because jet::div_mod_128_64 only accepts b >= 2^63
-    let (a_normalized, b_normalized): (u256, u128) = normalize_to_threshold(a_prime, <(u64, u64)>::into((0, b)), false);
+    let (a_normalized, b_normalized, norm): (u256, u128, u64) = normalize_to_threshold_128_63(a_prime, <(u64, u64)>::into((0, b)), false);
 
     // a_normalized fits into u128, because remainder < b and b_normalized fits into u64
     let (_, a_normalized): (u128, u128) = <u256>::into(a_normalized);
     let (_, b_normalized): (u64, u64) = <u128>::into(b_normalized);
 
     // remainder < b, so (remainder * 2^64 + a_low) / b fits into u64
-    let (q_low, _): (u64, u64) = jet::div_mod_128_64(a_normalized, b_normalized); // remainder is not valid here due to normalizing
-    
-    let (_, remainder): (u64, u64) =  <u128>::into(safe_sub_128(a_prime, jet::multiply_64(q_low, b)));
+    let (q_low, r_normalized): (u64, u64) = jet::div_mod_128_64(a_normalized, b_normalized);
+    let remainder: u64 = jet::divide_64(r_normalized, norm);
 
     (<(u64, u64)>::into((q_high, q_low)), remainder)
 }
@@ -399,7 +426,7 @@ pub fn div_mod_128(a: u128, b: u128) -> (u128, u128) {
                                     (q, <(u64, u64)>::into((0, r)))
                                 },
                                 false => {
-                                    let (q, r): (u64, u128) = algorithm_d(a, b);
+                                    let (q, r): (u64, u128) = algorithm_d_128_128(a, b);
                                     (<(u64, u64)>::into((0, q)), r)
                                 }
                             } 
