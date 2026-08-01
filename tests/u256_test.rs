@@ -43,6 +43,6 @@ impl TestUint for U256Wrapper {
 mod u256_tests {
     use super::*;
 
-    // Stamps the 16 `#[simplex::test]` entry points for U256Wrapper. Logic lives in common::uint.
+    // Stamps the 22 `#[simplex::test]` entry points for U256Wrapper. Logic lives in common::uint.
     uint_tests!(U256Wrapper);
 }

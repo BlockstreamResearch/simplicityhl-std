@@ -33,6 +33,6 @@ impl TestUint for u16 {
 mod u16_tests {
     use super::*;
 
-    // Stamps the 16 `#[simplex::test]` entry points for u16. Logic lives in common::uint.
+    // Stamps the 22 `#[simplex::test]` entry points for u16. Logic lives in common::uint.
     uint_tests!(u16);
 }
