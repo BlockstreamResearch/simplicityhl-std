@@ -3,6 +3,7 @@ mod common;
 use primitive_types::U256;
 use rand::Rng;
 
+use crate::common::helper::DEFAULT_BOOL;
 use common::core::{Expect, run};
 
 use simplicityhl_std::artifacts::u128_test_arithmetic::U128TestArithmeticProgram;
@@ -31,7 +32,6 @@ fn op(o: FunctionToTest) -> u8 {
     o as u8
 }
 
-const DEFAULT_BOOL: bool = false;
 const DEFAULT_EXPECTED: u128 = 0;
 
 fn program() -> U128TestArithmeticProgram {
