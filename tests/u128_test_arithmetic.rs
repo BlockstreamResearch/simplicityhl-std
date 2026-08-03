@@ -650,7 +650,7 @@ mod u128_tests_arithmetic {
     ) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..u128::MAX);
         let b = u128::MAX;
-        let (result, result_borrow) = a.overflowing_div(b);
+        let (result, result_borrow) = a.overflowing_sub(b);
 
         let borrow_low = 1_u128;
 
