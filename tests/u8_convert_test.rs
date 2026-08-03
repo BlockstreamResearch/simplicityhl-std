@@ -15,7 +15,7 @@ enum FunctionToTest {
     U8ToU32,
     U8ToU64,
     U8ToU128,
-    U8ToU256,
+    // U8ToU256, TODO: uncomment when u256 functions are merged
 }
 
 #[inline]
@@ -102,19 +102,21 @@ mod u8_convert_test {
         )
     }
 
-    #[simplex::test]
-    fn u8_convert_test_u8_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..=u8::MAX);
+    // TODO: uncomment when u256 functions are merged
 
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::U8ToU256),
-                a,
-                U256::from(a).to_big_endian(),
-            ),
-            Expect::Ok,
-        )
-    }
+    // #[simplex::test]
+    // fn u8_convert_test_u8_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
+    //     let a = rand::thread_rng().gen_range(0..=u8::MAX);
+
+    //     run(
+    //         &context,
+    //         program(),
+    //         build_witness(
+    //             op(FunctionToTest::U8ToU256),
+    //             a,
+    //             U256::from(a).to_big_endian(),
+    //         ),
+    //         Expect::Ok,
+    //     )
+    // }
 }
