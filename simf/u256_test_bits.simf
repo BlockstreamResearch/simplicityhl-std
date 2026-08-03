@@ -18,7 +18,7 @@ fn main() {
 
     match if_test_this_function(3, fn_idx) { 
         true => {
-            let ((_, _,), (_, a)): ((u64, u64), (u64, u64)) = split_256_into_64(a);
+            let (_, _, _, a): (u64, u64, u64, u64) = split_256_into_64(a);
             let shift: u8 = jet::rightmost_64_8(a);
 
             assert!(eq_256(left_shift_256(shift, b), unwrap(expected))); 
@@ -27,7 +27,7 @@ fn main() {
 
     match if_test_this_function(4, fn_idx) { 
         true => {
-            let ((_, _,), (_, a)): ((u64, u64), (u64, u64)) = split_256_into_64(a);
+            let (_, _, _, a): (u64, u64, u64, u64) = split_256_into_64(a);
             let shift: u8 = jet::rightmost_64_8(a);
 
             assert!(eq_256(right_shift_256(shift, b), unwrap(expected))); 

@@ -44,7 +44,7 @@ fn main() {
 
     match if_test_this_function(3, fn_idx) {
         true => {
-            let ((res1, res2), (res3, res4)): ((u64, u64), (u64, u64)) = split_256_into_64(a);
+            let (res1, res2, res3, res4): (u64, u64, u64, u64) = split_256_into_64(a);
 
             let (high, low): (u128, u128) = <u256>::into(unwrap(expected));
 

@@ -176,10 +176,8 @@ pub fn ge_256(
 /// Splits the u256 integer into four u64 integers
 pub fn split_256_into_64(
     a: u256
-) -> ((u64, u64), (u64, u64)) {
-    let (high, low): (u128, u128) = <u256>::into(a);
-
-    (<u128>::into(high), <u128>::into(low))
+) -> (u64, u64, u64, u64) {
+    <u256>::into(a)
 }
 
 /// Adds two integers and returns the carry
@@ -411,7 +409,7 @@ fn normalize_to_threshold_256_127(a: u256, b: u256, is_b_u256: bool) -> (u256, u
 /// Divides the 256-bit integer by the 64-bit integer,
 /// returns a tuple of the u256 quotient and the u64 remainder
 pub fn div_mod_256_64(dividend: u256, divisor: u64) -> (u256, u64) {
-    let ((u3, u2), (u1, u0)): ((u64, u64), (u64, u64)) = split_256_into_64(dividend);
+    let (u3, u2, u1, u0): (u64, u64, u64, u64) = split_256_into_64(dividend);
 
     // calculate the upper part of the quotient
     let (q3, remainder): (u64, u64) = jet::div_mod_64(u3, divisor);
@@ -423,7 +421,7 @@ pub fn div_mod_256_64(dividend: u256, divisor: u64) -> (u256, u64) {
         normalize_to_threshold_256_63(dividend, divisor, false);
 
     // normalized dividend fits into 256 bits
-    let ((u3, u2), (u1, u0)): ((u64, u64), (u64, u64)) = split_256_into_64(norm_dividend_low);
+    let (u3, u2, u1, u0): (u64, u64, u64, u64) = split_256_into_64(norm_dividend_low);
     let (_, v0): (u64, u64) = <u128>::into(norm_divisor);
 
     let (q2, remainder): (u64, u64) = jet::div_mod_128_64( <(u64, u64)>::into((u3, u2)), v0);
@@ -445,7 +443,7 @@ fn mul_and_sub(q: u64, u2: u64, u1: u64, u0: u64, v: u128) -> (u64, u64) {
     let q_v: u256 = mul_128(<(u64, u64)>::into((0, q)), v);
 
     let u_updated: u256 = safe_sub_256(u, q_v);
-    let ((_, _), (u1, u0)): ((u64, u64), (u64, u64)) = split_256_into_64(u_updated);
+    let (_, _, u1, u0): (u64, u64, u64, u64) = split_256_into_64(u_updated);
 
     (u1, u0)
 }
@@ -459,8 +457,8 @@ fn algorithm_d_256_128(dividend: u256, divisor: u128) -> (u256, u128) {
         normalize_to_threshold_256_63(dividend, divisor, true);
 
     // normalized dividend fits into 320 bits
-    let ((_, _), (_, u4)): ((u64, u64), (u64, u64)) = split_256_into_64(norm_dividend_high);
-    let ((u3, u2), (u1, u0)): ((u64, u64), (u64, u64)) = split_256_into_64(norm_dividend_low);
+    let (_, _, _, u4): (u64, u64, u64, u64) = split_256_into_64(norm_dividend_high);
+    let (u3, u2, u1, u0): (u64, u64, u64, u64) = split_256_into_64(norm_dividend_low);
     let (v1, v0): (u64, u64) = <u128>::into(norm_divisor);
 
     let q2: u64 = estimate_quotient_digit_base_64(u4, u3, u2, v1, v0);

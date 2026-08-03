@@ -54,8 +54,8 @@ fn main() {
 
     match if_test_this_function(2, fn_idx) {
         true => {
-            let ((_, _), (_, b)): ((u64, u64), (u64, u64)) = split_256_into_64(b);
-            let ((_, _), (_, expected_r)): ((u64, u64), (u64, u64)) = split_256_into_64(second_expected);
+            let (_, _, _, b): (u64, u64, u64, u64) = split_256_into_64(b);
+            let (_, _, _, expected_r): (u64, u64, u64, u64) = split_256_into_64(second_expected);
 
             let (q, r): (u256, u64) = div_mod_256_64(a, b);
 
