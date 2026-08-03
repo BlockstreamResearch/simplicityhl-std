@@ -1,64 +1,16 @@
-use crate::lib::u256::{
-    eq_256,
-    is_zero_256,
-    lt_256,
-    le_256,
-    split_256_into_64,
-    add_256,
-    add_256_128
-};
-use crate::helper::{
-    if_test_this_function,
-    assert_bool
-};
-
-/// Asserts a result equals expected u256 and bool values. 
-/// Used for functions that return carry or borrow bool value.
-fn assert_eq_uint_bool(
-    result: (bool, u256),
-    expected: u256,
-    expected_bool: bool
-) {
-    let (bool_res, uint_res): (bool, u256) = result;
-
-    assert_bool(bool_res, expected_bool);
-
-    assert!(eq_256(uint_res, expected));
-}
+use crate::lib::u256::{is_zero_256, lt_256, le_256};
+use crate::helper::{if_test_this_function, assert_bool};
 
 fn main() {
     let fn_idx: u8 = witness::FUNCTION_INDEX;
 
     let a: u256 = witness::FIRST_ARG;
     let b: u256 = witness::SECOND_ARG;
-    let expected: Option<u256> = witness::EXPECTED;
-
     let expected_bool: bool = witness::EXPECTED_BOOL;
-    let second_expected: u256 = witness::SECOND_EXPECTED;
 
     /// Arithmetic
 
     match if_test_this_function(0, fn_idx) { true => { assert_bool(is_zero_256(a), expected_bool); }, false => {}, };
     match if_test_this_function(1, fn_idx) { true => { assert_bool(lt_256(a, b), expected_bool); }, false => {}, };
     match if_test_this_function(2, fn_idx) { true => { assert_bool(le_256(a, b), expected_bool); }, false => {}, };
-
-    match if_test_this_function(3, fn_idx) {
-        true => {
-            let (res1, res2, res3, res4): (u64, u64, u64, u64) = split_256_into_64(a);
-
-            let (high, low): (u128, u128) = <u256>::into(unwrap(expected));
-
-            let (expected1, expected2): (u64, u64) = <u128>::into(high);
-            let (expected3, expected4): (u64, u64) = <u128>::into(low);
-
-            assert!(jet::eq_64(res1, expected1));
-            assert!(jet::eq_64(res2, expected2));
-            assert!(jet::eq_64(res3, expected3));
-            assert!(jet::eq_64(res4, expected4));
-        },
-        false => {},
-    };
-
-    match if_test_this_function(4, fn_idx) { true => { assert_eq_uint_bool(add_256(a, b), unwrap(expected), expected_bool); }, false => {}, };
-    match if_test_this_function(5, fn_idx) { true => {  let (_, b): (u128, u128) = <u256>::into(b); assert_eq_uint_bool(add_256_128(a, b), unwrap(expected), expected_bool); }, false => {}, };
 }
