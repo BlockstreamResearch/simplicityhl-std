@@ -13,7 +13,6 @@ use crate::lib::u128::{
     sub_128,
     full_sub_128,
     mul_128,
-    safe_add_128,
     calculate_normalizer_base_64,
     estimate_quotient_digit_base_64,
     div_mod_128,
@@ -78,9 +77,7 @@ pub fn left_shift_256(shift: u8, a: u256) -> u256 {
 /// Right-shift a 256-bit value by the given amount. Bits are filled with zeroes
 pub fn right_shift_256(shift: u8, a: u256) -> u256 {
     match jet::is_zero_8(shift) {
-        true => {
-            a
-        },
+        true => a,
         false => {
             let (a_high, a_low): (u128, u128) = <u256>::into(a);
 
@@ -130,9 +127,7 @@ pub fn lt_256(a: u256, b: u256) -> bool {
                 }
             }
         },
-        true => {
-            true
-        }
+        true => true,
     }
 }
 
@@ -155,9 +150,7 @@ pub fn le_256(
                 }
             }
         },
-        true => {
-            true
-        }
+        true => true,
     }
 }
 
@@ -211,12 +204,8 @@ pub fn checked_add_256(
     let (carry, sum): (bool, u256) = add_256(a, b);
 
     match carry {
-        false => {
-            Some(sum)
-        },
-        true => {
-            None
-        }
+        false => Some(sum),
+        true => None,
     }
 }
 
@@ -251,12 +240,8 @@ pub fn checked_sub_256(
     let (borrow, diff): (bool, u256) = sub_256(a, b);
 
     match borrow {
-        false => {
-            Some(diff)
-        },
-        true => {
-            None
-        }
+        false => Some(diff),
+        true => None,
     }
 }
 
@@ -315,12 +300,8 @@ pub fn checked_mul_256(
     let (result_high, result_low): (u256, u256) = mul_256(a, b);
 
     match is_zero_256(result_high) {
-        false => {
-            None
-        },
-        true => {
-            Some(result_low)
-        }
+        false => None,
+        true => Some(result_low),
     }
 }
 
@@ -335,7 +316,11 @@ pub fn safe_mul_256(
 /// Normalizes the dividend and divisor for Algorithm D by multiplying 
 /// both u256 and u128 by the same factor, ensuring that 
 /// the most significant non-zero word of `b` is at least 2^63.
-fn normalize_to_threshold_256_63(a: u256, b: u128, is_b_u128: bool) -> (u256, u256, u128, u64) {
+fn normalize_to_threshold_256_63(
+    a: u256,
+    b: u128,
+    is_b_u128: bool
+) -> (u256, u256, u128, u64) {
     let norm: u64 = calculate_normalizer_base_64(b, is_b_u128);
     let norm_128: u128 = <(u64, u64)>::into((0, norm));
 
@@ -372,9 +357,7 @@ fn normalize_to_threshold_256_127(a: u256, b: u256, is_b_u256: bool) -> (u256, u
     let (norm, remainder): (u128, u128) = div_mod_128(threshold, b_highest_word);
 
     let norm: u128 = match is_zero_128(remainder) {
-        true => {
-            norm
-        },
+        true => norm,
         false => {
             let (_, norm): (bool, u128) = add_128(norm, 1); // norm <= 2^127, so norm + 1 can not overflow
             norm
@@ -388,9 +371,7 @@ fn normalize_to_threshold_256_127(a: u256, b: u256, is_b_u256: bool) -> (u256, u
 
             (high, low, safe_mul_256(b, norm))
         },
-        false => {
-            (0, a, b)
-        },
+        false => (0, a, b),
     }
 }
 
@@ -516,9 +497,7 @@ fn algorithm_d_256_256(dividend: u256, divisor: u256) -> (u128, u256) {
             let (carry, r_hat): (bool, u128) = add_128(r_hat, v1);
 
             match carry {
-                true => {
-                    q_hat
-                },
+                true => q_hat,
                 false => {
                     let r_hat_u0: u256 = <(u128, u128)>::into((r_hat, u0));
                     let (_, u_hat): (bool, u256) = sub_256(u_hat, <(u128, u128)>::into((0, v0)));
@@ -530,17 +509,12 @@ fn algorithm_d_256_256(dividend: u256, divisor: u256) -> (u128, u256) {
 
                             q_hat
                         }
-                        false => {
-                            q_hat
-                        },
+                        false => q_hat,
                     }
                 }
-
             }
         },
-        false => {
-            q_hat
-        },
+        false => q_hat,
     };
 
     let remainder: u256 = safe_sub_256(dividend, safe_mul_256(divisor, <(u128, u128)>::into((0, q))));
@@ -554,9 +528,7 @@ pub fn div_mod_256(a: u256, b: u256) -> (u256, u256) {
     let (b_high, b_low): (u128, u128) = <u256>::into(b);
 
     match lt_256(a, b) {
-        true => {
-            (0, a)
-        },
+        true => (0, a),
         false => {
             match and(is_zero_128(a_high), is_zero_128(b_high)) { 
                 true => { 
@@ -607,12 +579,8 @@ pub fn checked_div_256(
     b: u256
 ) -> Option<u256> {
     match is_zero_256(b) {
-        false => {
-            Some(div_256(a, b))
-        },
-        true => {
-            None
-        }
+        false => Some(div_256(a, b)),
+        true => None,
     }
 }
 
