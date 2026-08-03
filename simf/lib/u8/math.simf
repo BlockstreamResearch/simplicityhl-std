@@ -1,60 +1,100 @@
 /// Returns the sum of two u8 values wrapped in Some, or None if the result overflows u8
-pub fn checked_add_8(a: u8, b: u8) -> Option<u8> {
+pub fn checked_add_8(
+    a: u8,
+    b: u8
+) -> Option<u8> {
     let (carry, sum): (bool, u8) = jet::add_8(a, b);
 
     match carry {
-        true => None,
-        false => Some(sum),
+        false => {
+            Some(sum)
+        },
+        true => {
+            None
+        }
     }
 }
 
 /// Returns the sum of two u8 values, panics if the result overflows u8
-pub fn safe_add_8(a: u8, b: u8) -> u8 {
+pub fn safe_add_8(
+    a: u8,
+    b: u8
+) -> u8 {
     unwrap(checked_add_8(a, b))
 }
 
 /// Returns the difference of two u8 values wrapped in Some, or None if the result overflows u8
-pub fn checked_sub_8(a: u8, b: u8) -> Option<u8> {
+pub fn checked_sub_8(
+    a: u8,
+    b: u8
+) -> Option<u8> {
     let (borrow, diff): (bool, u8) = jet::subtract_8(a, b);
 
     match borrow {
-        true => None,
-        false => Some(diff),
+        false => {
+            Some(diff)
+        },
+        true => {
+            None
+        }
     }
 }
 
 /// Returns the difference of two u8 values, panics if the result overflows u8
-pub fn safe_sub_8(a: u8, b: u8) -> u8 {
+pub fn safe_sub_8(
+    a: u8,
+    b: u8
+) -> u8 {
     unwrap(checked_sub_8(a, b))
 }
 
 /// Returns the product of two u8 values wrapped in Some, or None if the result overflows u8
-pub fn checked_mul_8(a: u8, b: u8) -> Option<u8> {
+pub fn checked_mul_8(
+    a: u8,
+    b: u8
+) -> Option<u8> {
     let result: u16 = jet::multiply_8(a, b);
 
     let (high, low): (u8, u8) = <u16>::into(result);
 
     match jet::is_zero_8(high) {
-        true => Some(low),
-        false => None,
+        false => {
+            None
+        },
+        true => {
+            Some(low)
+        }
     }
 }
 
 /// Returns the product of two u8 values, panics if the result overflows u8
-pub fn safe_mul_8(a: u8, b: u8) -> u8 {
+pub fn safe_mul_8(
+    a: u8,
+    b: u8
+) -> u8 {
     unwrap(checked_mul_8(a, b))
 }
 
 /// Returns the quotient of two u8 values wrapped in Some, or None if the result overflows u8
-pub fn checked_div_8(a: u8, b: u8) -> Option<u8> {
+pub fn checked_div_8(
+    a: u8,
+    b: u8
+) -> Option<u8> {
     match jet::is_zero_8(b) {
-        true => None,
-        false => Some(jet::divide_8(a, b)),
+        false => {
+            Some(jet::divide_8(a, b))
+        },
+        true => {
+            None
+        }
     }
 }
 
 /// Returns the quotient of two u8 values, panics if the result overflows u8
-pub fn safe_div_8(a: u8, b: u8) -> u8 {
+pub fn safe_div_8(
+    a: u8,
+    b: u8
+) -> u8 {
     unwrap(checked_div_8(a, b))
 }
 
@@ -64,6 +104,9 @@ pub fn gt_8(a: u8, b: u8) -> bool {
 }
 
 /// Check if an integer is greater than or equal to another integer
-pub fn ge_8(a: u8, b: u8) -> bool {
+pub fn ge_8(
+    a: u8,
+    b: u8
+) -> bool {
     jet::le_8(b, a)
 }

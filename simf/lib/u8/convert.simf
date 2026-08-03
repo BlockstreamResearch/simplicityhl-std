@@ -1,0 +1,63 @@
+/// Widening uint conversions
+
+/// Converts u8 to u16
+pub fn u8_to_u16(a: u8) -> u16 {
+    <(u8, u8)>::into((0, a))
+}
+
+/// Converts u8 to u32
+pub fn u8_to_u32(a: u8) -> u32 {
+    <(u8, u8, u8, u8)>::into((0, 0, 0, a))
+}
+
+/// Converts u8 to u64
+pub fn u8_to_u64(a: u8) -> u64 {
+    <(u8, u8, u8, u8, u8, u8, u8, u8)>::into((0, 0, 0, 0, 0, 0, 0, a))
+}
+
+/// Converts u8 to u128
+pub fn u8_to_u128(a: u8) -> u128 {
+    <(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8)>::into(
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a)
+    )
+}
+
+/// Converts u8 to u256
+pub fn u8_to_u256(a: u8) -> u256 {
+    <(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8)>::into(
+        (
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            a
+        )
+    )
+}
