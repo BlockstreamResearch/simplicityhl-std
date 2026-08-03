@@ -7,6 +7,7 @@ use crate::lib::u128::{
     add_128_64,
     full_add_128,
     sub_128,
+    full_sub_128,
     mul_128,
     calculate_normalizer_base_64,
     estimate_quotient_digit_base_64,
@@ -55,8 +56,9 @@ fn main() {
     match if_test_this_function(5, fn_idx) { true => { assert_eq_uint_bool(full_add_128(eq_128(second_expected, 1), a, b), unwrap(expected), expected_bool); }, false => {}, };
 
     match if_test_this_function(6, fn_idx) { true => { assert_eq_uint_bool(sub_128(a, b), unwrap(expected), expected_bool); }, false => {}, };
+    match if_test_this_function(7, fn_idx) { true => { assert_eq_uint_bool(full_sub_128(eq_128(second_expected, 1), a, b), unwrap(expected), expected_bool); }, false => {}, };
 
-    match if_test_this_function(7, fn_idx) {
+    match if_test_this_function(8, fn_idx) {
         true => {
             let result: u256 = mul_128(a, b);
 
@@ -68,7 +70,7 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(8, fn_idx) {
+    match if_test_this_function(9, fn_idx) {
         true => {
             let norm: u64 = calculate_normalizer_base_64(b, expected_bool);
 
@@ -79,7 +81,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(9, fn_idx) {
+    match if_test_this_function(10, fn_idx) {
         true => {
             let (_, u2): (u64, u64) = <u128>::into(a);
             let (u1, u0): (u64, u64) = <u128>::into(b);
@@ -94,7 +96,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(10, fn_idx) {
+    match if_test_this_function(11, fn_idx) {
         true => {
             let (_, b): (u64, u64) = <u128>::into(b);
             let (_, expected_r): (u64, u64) = <u128>::into(second_expected);
@@ -107,7 +109,7 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(11, fn_idx) {
+    match if_test_this_function(12, fn_idx) {
         true => {
             let (q, r): (u128, u128) = div_mod_128(a, b);
 
@@ -117,5 +119,5 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(12, fn_idx) { true => { assert!(eq_128(div_128(a, b), unwrap(expected))); }, false => {}, };
+    match if_test_this_function(13, fn_idx) { true => { assert!(eq_128(div_128(a, b), unwrap(expected))); }, false => {}, };
 }

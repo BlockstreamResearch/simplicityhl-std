@@ -151,16 +151,16 @@ pub fn add_128_64(a: u128, b: u64) -> (bool, u128) {
     (carry_high, <(u64, u64)>::into((res_high, res_low)))
 }
 
-/// Add two integers. Take a carry-in and return a carry-out
-pub fn full_add_128(carry_low: bool, a: u128, b: u128) -> (bool, u128) {
+/// Adds two integers. Takes a carry-in and returns a carry-out
+pub fn full_add_128(carry_in: bool, a: u128, b: u128) -> (bool, u128) {
     let (a_high, a_low): (u64, u64) = <u128>::into(a);
     let (b_high, b_low): (u64, u64) = <u128>::into(b);
 
-    let (carry_low, sum_low): (bool, u64) = jet::full_add_64(carry_low, a_low, b_low);
-    let (carry_high, sum_high): (bool, u64) = jet::full_add_64(carry_low, a_high, b_high);
+    let (carry_low, sum_low): (bool, u64) = jet::full_add_64(carry_in, a_low, b_low);
+    let (carry_out, sum_high): (bool, u64) = jet::full_add_64(carry_low, a_high, b_high);
 
     let res: u128 = <(u64, u64)>::into((sum_high, sum_low));
-    (carry_high, res)
+    (carry_out, res)
 }
 
 /// Returns the sum of two u128 values wrapped in Some, or None if the result overflows u128
@@ -190,7 +190,17 @@ pub fn sub_128(a: u128, b: u128) -> (bool, u128) {
     (borrow_high, res)
 }
 
-// todo full_sub_128
+/// Subtracts the second integer from the first integer, takes a borrow-in and returns a borrow-out
+pub fn full_sub_128(borrow_in: bool, a: u128, b: u128) -> (bool, u128) {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+    let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+    let (borrow_low, diff_low): (bool, u64) = jet::full_subtract_64(borrow_in, a_low, b_low);
+    let (borrow_out, diff_high): (bool, u64) = jet::full_subtract_64(borrow_low, a_high, b_high);
+
+    let res: u128 = <(u64, u64)>::into((diff_high, diff_low));
+    (borrow_out, res)
+}
 
 /// Returns the difference of two u128 values wrapped in Some, or None if the result overflows u128
 pub fn checked_sub_128(a: u128, b: u128) -> Option<u128> {
@@ -361,7 +371,7 @@ pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u
 fn algorithm_d_128_128(dividend: u128, divisor: u128) -> (u64, u128) {
     let (norm_dividend, norm_divisor, _): (u256, u128, u64) = normalize_to_threshold_128_63(dividend, divisor, true);
 
-     // normalized dividend fits into 192 bits
+    // normalized dividend fits into 192 bits
     let (_, u2, u1, u0): (u64, u64, u64, u64) = <u256>::into(norm_dividend);
     let (v1, v0): (u64, u64) = <u128>::into(norm_divisor);
 

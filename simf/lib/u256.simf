@@ -11,6 +11,7 @@ use crate::lib::u128::{
     add_128,
     full_add_128,
     sub_128,
+    full_sub_128,
     mul_128,
     safe_add_128,
     calculate_normalizer_base_64,
@@ -235,24 +236,11 @@ pub fn sub_256(
     let (a_high, a_low): (u128, u128) = <u256>::into(a);
     let (b_high, b_low): (u128, u128) = <u256>::into(b);
 
-    let (borrow_high, diff_high): (bool, u128) = sub_128(a_high, b_high);
     let (borrow_low, diff_low): (bool, u128) = sub_128(a_low, b_low);
+    let (borrow_high, diff_high): (bool, u128) = full_sub_128(borrow_low, a_high, b_high);
 
-    match borrow_low {
-        false => {
-            let res: u256 = <(u128, u128)>::into((diff_high, diff_low));
-
-            (borrow_high, res)
-        },
-        true => {
-            let (borrow, diff_high): (bool, u128) = sub_128(diff_high, 1);
-
-            let final_borrow: bool = or(borrow, borrow_high);
-            let res: u256 = <(u128, u128)>::into((diff_high, diff_low));
-
-            (final_borrow, res)
-        }
-    }
+    let res: u256 = <(u128, u128)>::into((diff_high, diff_low));
+    (borrow_high, res)
 }
 
 /// Returns the difference of two u256 values wrapped in Some, or None if the result overflows u256
@@ -356,7 +344,7 @@ fn normalize_to_threshold_256_63(a: u256, b: u128, is_b_u128: bool) -> (u256, u2
         false => {
             let (high, low): (u256, u256) = mul_256(a, <(u128, u128)>::into((0, norm_128)));
             let b_norm: u256 = mul_128(b, norm_128);
-            let( _, b_norm): (u128, u128) = <u256>::into(b_norm);
+            let (_, b_norm): (u128, u128) = <u256>::into(b_norm);
 
             (high, low, b_norm, norm)
         },
@@ -437,7 +425,13 @@ pub fn div_mod_256_64(dividend: u256, divisor: u64) -> (u256, u64) {
 /// Multiplies the divisor by the quotient digit and subtracts the result from
 /// the corresponding dividend limbs. Returns the updated dividend segment,
 /// which is used by Algorithm D
-fn mul_and_sub(q: u64, u2: u64, u1: u64, u0: u64, v: u128) -> (u64, u64) {
+fn mul_and_sub(
+    q: u64,
+    u2: u64,
+    u1: u64,
+    u0: u64,
+    v: u128
+) -> (u64, u64) {
     let u: u256 = <(u64, u64, u64, u64)>::into((0, u2, u1, u0));
 
     let q_v: u256 = mul_128(<(u64, u64)>::into((0, q)), v);

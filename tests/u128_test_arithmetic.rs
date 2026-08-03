@@ -19,6 +19,7 @@ enum FunctionToTest {
     Add128_64,
     FullAdd128,
     Sub128,
+    FullSub128,
     Mul128,
     CalculateNormalizerBase64,
     EstimateQuotientDigitBase64,
@@ -561,6 +562,108 @@ mod u128_tests_arithmetic {
                 Some(result),
                 true,
                 DEFAULT_EXPECTED,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_full_sub_128_borrow_low_false(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u128::MAX);
+        let b = rand::thread_rng().gen_range(0..=a);
+        let result = a - b;
+        let result_borrow = false;
+        let borrow_low = 0_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullSub128),
+                a,
+                b,
+                Some(result),
+                result_borrow,
+                borrow_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_full_sub_128_overflow_borrow_low_false(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..u128::MAX);
+        let b = u128::MAX;
+        let result = a + 1;
+        let result_borrow = true;
+        let borrow_low = 0_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullSub128),
+                a,
+                b,
+                Some(result),
+                result_borrow,
+                borrow_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_full_sub_128_borrow_low_true(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u128::MAX);
+        let b = rand::thread_rng().gen_range(0..a);
+        let result = a - b - 1;
+        let result_borrow = false;
+        let borrow_low = 1_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullSub128),
+                a,
+                b,
+                Some(result),
+                result_borrow,
+                borrow_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_full_sub_128_overflow_borrow_low_true(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..u128::MAX);
+        let b = u128::MAX;
+        let (result, result_borrow) = a.overflowing_div(b);
+
+        let borrow_low = 1_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullSub128),
+                a,
+                b,
+                Some(result - 1),
+                result_borrow,
+                borrow_low,
                 DEFAULT_EXPECTED,
             ),
             Expect::Ok,
