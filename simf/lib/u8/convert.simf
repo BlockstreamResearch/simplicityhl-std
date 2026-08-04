@@ -1,7 +1,11 @@
+use crate::lib::asserts::assert_eq_8;
+
 /// Widening uint conversions
 
 /// Converts u8 to u16
-pub fn u8_to_u16(a: u8) -> u16 {
+pub fn u8_to_u16(
+    a: u8
+) -> u16 {
     <(u8, u8)>::into((0, a))
 }
 
@@ -60,4 +64,29 @@ pub fn u8_to_u256(a: u8) -> u256 {
             a
         )
     )
+}
+
+/// Splitting uint conversions
+
+/// Splits u8 into eight u1
+pub fn split_u8_to_u1(
+    a: u8
+) -> (u1, u1, u1, u1, u1, u1, u1, u1) {
+    <u8>::into(a)
+}
+
+/// Narrowing uint conversions
+
+/// Converts u8 into u1.
+/// Panics if the value does not fit in u1
+pub fn safe_u8_to_u1(
+    a: u8
+) -> u1 {
+    let (_, _, _, _, _, _, _, a_u1): (u1, u1, u1, u1, u1, u1, u1, u1) = split_u8_to_u1(a);
+
+    let a_recovered: u8 = <(u1, u1, u1, u1, u1, u1, u1, u1)>::into((0, 0, 0, 0, 0, 0, 0, a_u1));
+
+    assert_eq_8(a, a_recovered);
+
+    a_u1
 }

@@ -15,7 +15,9 @@ enum FunctionToTest {
     U8ToU32,
     U8ToU64,
     U8ToU128,
-    // U8ToU256, TODO: uncomment when u256 functions are merged
+    U8ToU256,
+    SplitU8ToU1,
+    SafeU8ToU1,
 }
 
 #[inline]
@@ -102,21 +104,67 @@ mod u8_convert_test {
         )
     }
 
-    // TODO: uncomment when u256 functions are merged
+    #[simplex::test]
+    fn u8_convert_test_u8_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u8::MAX);
 
-    // #[simplex::test]
-    // fn u8_convert_test_u8_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
-    //     let a = rand::thread_rng().gen_range(0..=u8::MAX);
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::U8ToU256),
+                a,
+                U256::from(a).to_big_endian(),
+            ),
+            Expect::Ok,
+        )
+    }
 
-    //     run(
-    //         &context,
-    //         program(),
-    //         build_witness(
-    //             op(FunctionToTest::U8ToU256),
-    //             a,
-    //             U256::from(a).to_big_endian(),
-    //         ),
-    //         Expect::Ok,
-    //     )
-    // }
+    #[simplex::test]
+    fn u8_convert_test_split_u8_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u8::MAX);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::SplitU8ToU1),
+                a,
+                U256::from(a).to_big_endian(),
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u8_convert_test_safe_u8_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=1);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::SafeU8ToU1),
+                a,
+                U256::from(a).to_big_endian(),
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u8_convert_test_safe_u8_to_u1_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(2..=u8::MAX);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::SafeU8ToU1),
+                a,
+                U256::from(a).to_big_endian(),
+            ),
+            Expect::AssertFailed,
+        )
+    }
 }
