@@ -1,5 +1,6 @@
-use crate::lib::u256::{eq_256, div_mod_256_128, div_mod_256, div_256};
+use crate::lib::u256::{div_mod_256_128, div_mod_256, div_256};
 use crate::lib::u128::eq_128;
+use crate::lib::asserts::assert_eq_256;
 use crate::helper::if_test_this_function;
 
 fn main() {
@@ -20,7 +21,7 @@ fn main() {
 
             let (q, r): (u256, u128) = div_mod_256_128(a, b);
 
-            assert!(eq_256(q, unwrap(expected))); 
+            assert_eq_256(q, unwrap(expected)); 
             assert!(eq_128(r, expected_r)); 
         },
         false => {},
@@ -30,11 +31,11 @@ fn main() {
         true => {
             let (q, r): (u256, u256) = div_mod_256(a, b);
 
-            assert!(eq_256(q, unwrap(expected))); 
-            assert!(eq_256(r, second_expected)); 
+            assert_eq_256(q, unwrap(expected)); 
+            assert_eq_256(r, second_expected); 
         },
         false => {},
     };
 
-    match if_test_this_function(2, fn_idx) { true => { assert!(eq_256(div_256(a, b), unwrap(expected))); }, false => {}, };
+    match if_test_this_function(2, fn_idx) { true => { assert_eq_256(div_256(a, b), unwrap(expected)); }, false => {}, };
 }

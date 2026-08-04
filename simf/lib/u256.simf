@@ -40,14 +40,6 @@ pub fn or_256(a: u256, b: u256) -> u256 {
     <(u128, u128)>::into((or_128(a_high, b_high), or_128(a_low, b_low)))
 }
 
-/// Checks if two 256-bit values are equal
-pub fn eq_256(a: u256, b: u256) -> bool {
-    let (a_high, a_low): (u128, u128) = <u256>::into(a);
-    let (b_high, b_low): (u128, u128) = <u256>::into(b);
-
-    and(eq_128(a_high, b_high), eq_128(a_low, b_low))
-}
-
 /// Left-shift a 256-bit value by the given amount. Bits are filled with zeroes
 pub fn left_shift_256(shift: u8, a: u256) -> u256 {
     match jet::is_zero_8(shift) {

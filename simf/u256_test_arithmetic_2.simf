@@ -1,4 +1,5 @@
-use crate::lib::u256::{eq_256, split_256_into_64, add_256, add_256_128};
+use crate::lib::u256::{split_256_into_64, add_256, add_256_128};
+use crate::lib::asserts::assert_eq_256;
 use crate::helper::{
     if_test_this_function,
     assert_bool
@@ -15,7 +16,7 @@ fn assert_eq_uint_bool(
 
     assert_bool(bool_res, expected_bool);
 
-    assert!(eq_256(uint_res, expected));
+    assert_eq_256(uint_res, expected);
 }
 
 fn main() {

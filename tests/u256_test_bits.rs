@@ -14,7 +14,6 @@ use simplicityhl_std::artifacts::u256_test_bits::derived_u256_test_bits::{
 enum FunctionToTest {
     And256,
     Or256,
-    Eq256,
     LeftShift256,
     RightShift256,
 }
@@ -84,43 +83,6 @@ mod u256_tests_bits {
                 b.to_big_endian(),
                 Some(result),
                 DEFAULT_BOOL,
-            ),
-            Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn u256_test_eq_256_true(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = generate_u256(U256::zero(), U256::MAX).to_big_endian();
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::Eq256),
-                a,
-                a,
-                Some(DEFAULT_EXPECTED),
-                true,
-            ),
-            Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn u256_test_eq_256_false(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = generate_u256(U256::one(), U256::MAX);
-        let b = a - 1;
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::Eq256),
-                a.to_big_endian(),
-                b.to_big_endian(),
-                Some(DEFAULT_EXPECTED),
-                false,
             ),
             Expect::Ok,
         )

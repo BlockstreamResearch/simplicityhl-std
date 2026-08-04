@@ -1,4 +1,5 @@
-use crate::lib::u256::{and_256, or_256, eq_256, left_shift_256, right_shift_256, split_256_into_64};
+use crate::lib::u256::{and_256, or_256, left_shift_256, right_shift_256, split_256_into_64};
+use crate::lib::asserts::assert_eq_256;
 use crate::helper::{if_test_this_function, assert_bool};
 
 fn main() {
@@ -12,25 +13,24 @@ fn main() {
 
     /// Bit logic
 
-    match if_test_this_function(0, fn_idx) { true => { assert!(eq_256(and_256(a, b), unwrap(expected))); }, false => {}, };
-    match if_test_this_function(1, fn_idx) { true => { assert!(eq_256(or_256(a, b), unwrap(expected))); }, false => {}, };
-    match if_test_this_function(2, fn_idx) { true => { assert_bool(eq_256(a, b), expected_bool); }, false => {}, };
+    match if_test_this_function(0, fn_idx) { true => { assert_eq_256(and_256(a, b), unwrap(expected)); }, false => {}, };
+    match if_test_this_function(1, fn_idx) { true => { assert_eq_256(or_256(a, b), unwrap(expected)); }, false => {}, };
+
+    match if_test_this_function(2, fn_idx) { 
+        true => {
+            let (_, _, _, a): (u64, u64, u64, u64) = split_256_into_64(a);
+            let shift: u8 = jet::rightmost_64_8(a);
+
+            assert_eq_256(left_shift_256(shift, b), unwrap(expected)); 
+        }, false => {}, 
+    };
 
     match if_test_this_function(3, fn_idx) { 
         true => {
             let (_, _, _, a): (u64, u64, u64, u64) = split_256_into_64(a);
             let shift: u8 = jet::rightmost_64_8(a);
 
-            assert!(eq_256(left_shift_256(shift, b), unwrap(expected))); 
-        }, false => {}, 
-    };
-
-    match if_test_this_function(4, fn_idx) { 
-        true => {
-            let (_, _, _, a): (u64, u64, u64, u64) = split_256_into_64(a);
-            let shift: u8 = jet::rightmost_64_8(a);
-
-            assert!(eq_256(right_shift_256(shift, b), unwrap(expected))); 
+            assert_eq_256(right_shift_256(shift, b), unwrap(expected)); 
         }, false => {}, 
     };
 }
