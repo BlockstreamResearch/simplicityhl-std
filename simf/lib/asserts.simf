@@ -35,6 +35,11 @@ pub fn assert_eq_256(a: u256, b: u256) {
     assert!(jet::eq_256(a, b));
 }
 
+/// Asserts that two bool values are equal
+pub fn assert_eq_bool(a: bool, b: bool) {
+    assert_eq_1(<bool>::into(a), <bool>::into(b));
+}
+
 /// Asserts that provided `Option<u1>` value is a `None`
 pub fn assert_none_1(val: Option<u1>) {
     assert!(is_none::<u1>(val));
