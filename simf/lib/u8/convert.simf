@@ -11,59 +11,30 @@ pub fn u8_to_u16(
 
 /// Converts u8 to u32
 pub fn u8_to_u32(a: u8) -> u32 {
-    <(u8, u8, u8, u8)>::into((0, 0, 0, a))
+    let a_u16: u16 = u8_to_u16(a);
+
+    <(u16, u16)>::into((0, a_u16))
 }
 
 /// Converts u8 to u64
 pub fn u8_to_u64(a: u8) -> u64 {
-    <(u8, u8, u8, u8, u8, u8, u8, u8)>::into((0, 0, 0, 0, 0, 0, 0, a))
+    let a_u32: u32 = u8_to_u32(a);
+
+    <(u32, u32)>::into((0, a_u32))
 }
 
 /// Converts u8 to u128
 pub fn u8_to_u128(a: u8) -> u128 {
-    <(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8)>::into(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a)
-    )
+    let a_u64: u64 = u8_to_u64(a);
+
+    <(u64, u64)>::into((0, a_u64))
 }
 
 /// Converts u8 to u256
 pub fn u8_to_u256(a: u8) -> u256 {
-    <(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8)>::into(
-        (
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            a
-        )
-    )
+    let a_u128: u128 = u8_to_u128(a);
+
+    <(u128, u128)>::into((0, a_u128))
 }
 
 /// Splitting uint conversions
