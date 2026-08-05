@@ -17,22 +17,16 @@ use crate::helper::if_test_this_function;
 /// Asserts a `checked_*` result equals the expected Option.
 /// `None` encodes the overflow case, `Some(e)` the fitting case, so a single
 /// witness value carries both, removing the need for a separate overflow flag.
-fn assert_eq_opt(
-    result: Option<u8>,
-    expected: Option<u8>
-) {
+fn assert_eq_opt(result: Option<u8>, expected: Option<u8>) {
     match expected {
-        None => assert_none_8(result),
         Some(e: u8) => assert_eq_8(unwrap(result), e),
+        None => assert_none_8(result),
     }
 }
 
 /// Asserts a result equals the expected bool value.
 /// `None` encodes `false`, and `Some(_)` encodes `true`.
-fn assert_bool_by_opt(
-    result: bool,
-    expected: Option<u8>
-) {
+fn assert_bool_by_opt(result: bool, expected: Option<u8>) {
     match expected {
         Some(_: u8) => assert!(result),
         None => assert!(not(result)),

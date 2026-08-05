@@ -20,52 +20,51 @@ fn main() {
     let expected: u256 = witness::EXPECTED;
 
     match if_test_this_function(0, fn_idx) {
-        false => {},
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let (_, _, _, expected): (u16, u16, u16, u16) = <u64>::into(expected);
 
             assert!(jet::eq_16(u8_to_u16(a), expected));
-        }
+        },
+        false => {},
     };
 
     match if_test_this_function(1, fn_idx) {
-        false => {},
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let (_, expected): (u32, u32) = <u64>::into(expected);
 
             assert!(jet::eq_32(u8_to_u32(a), expected));
-        }
+        },
+        false => {},
     };
 
     match if_test_this_function(2, fn_idx) {
-        false => {},
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
 
             assert!(jet::eq_64(u8_to_u64(a), expected));
-        }
+        },
+        false => {},
     };
 
     match if_test_this_function(3, fn_idx) {
-        false => {},
         true => {
             let (_, expected): (u128, u128) = <u256>::into(expected);
 
             assert!(eq_128(u8_to_u128(a), expected));
-        }
+        },
+        false => {},
     };
 
     match if_test_this_function(4, fn_idx) {
-        false => {},
         true => {
             assert!(jet::eq_256(u8_to_u256(a), expected));
-        }
+        },
+        false => {},
     };
 
     match if_test_this_function(5, fn_idx) {
-        false => {},
         true => {
             let (
                 a7,
@@ -100,11 +99,11 @@ fn main() {
             assert_eq_1(a2, expected2);
             assert_eq_1(a1, expected1);
             assert_eq_1(a0, expected0);
-        }
+        },
+        false => {},
     };
 
     match if_test_this_function(6, fn_idx) {
-        false => {},
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let (_, _, _, expected): (u16, u16, u16, u16) = <u64>::into(expected);
@@ -121,6 +120,7 @@ fn main() {
             ): (u1, u1, u1, u1, u1, u1, u1, u1) = <u8>::into(expected);
 
             assert_eq_1(safe_u8_to_u1(a), expected);
-        }
+        },
+        false => {},
     };
 }
