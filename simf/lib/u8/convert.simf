@@ -4,21 +4,17 @@ use crate::lib::asserts::assert_eq_8;
 
 /// Converts u8 to u16
 pub fn u8_to_u16(a: u8) -> u16 {
-    <(u8, u8)>::into((0, a))
+    jet::left_pad_low_8_16(a)
 }
 
 /// Converts u8 to u32
 pub fn u8_to_u32(a: u8) -> u32 {
-    let a_u16: u16 = u8_to_u16(a);
-
-    <(u16, u16)>::into((0, a_u16))
+    jet::left_pad_low_8_32(a)
 }
 
 /// Converts u8 to u64
 pub fn u8_to_u64(a: u8) -> u64 {
-    let a_u32: u32 = u8_to_u32(a);
-
-    <(u32, u32)>::into((0, a_u32))
+    jet::left_pad_low_8_64(a)
 }
 
 /// Converts u8 to u128
@@ -47,11 +43,9 @@ pub fn split_u8_to_u1(a: u8) -> (u1, u1, u1, u1, u1, u1, u1, u1) {
 /// Converts u8 into u1.
 /// Panics if the value does not fit in u1
 pub fn safe_u8_to_u1(a: u8) -> u1 {
-    let (_, _, _, _, _, _, _, a_u1): (u1, u1, u1, u1, u1, u1, u1, u1) = split_u8_to_u1(a);
+    let u1_max: u8 = jet::left_pad_low_1_8(jet::high_1());
 
-    let a_recovered: u8 = <(u1, u1, u1, u1, u1, u1, u1, u1)>::into((0, 0, 0, 0, 0, 0, 0, a_u1));
+    assert!(jet::le_8(a, u1_max));
 
-    assert_eq_8(a, a_recovered);
-
-    a_u1
+    jet::rightmost_8_1(a)
 }
