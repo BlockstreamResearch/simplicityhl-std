@@ -23,8 +23,6 @@ fn op(o: FunctionToTest) -> u8 {
     o as u8
 }
 
-const DEFAULT_EXPECTED: [u8; 32] = [0; 32];
-
 fn program() -> U256TestBitsProgram {
     U256TestBitsProgram::new(U256TestBitsArguments {})
 }

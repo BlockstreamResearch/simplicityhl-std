@@ -5,12 +5,13 @@ use primitive_types::U256;
 use crate::common::helper::generate_u256;
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_test_arithmetic_4::U256TestArithmetic4Program;
-use simplicityhl_std::artifacts::u256_test_arithmetic_4::derived_u256_test_arithmetic_4::{
-    U256TestArithmetic4Arguments, U256TestArithmetic4Witness,
+use simplicityhl_std::artifacts::u256_test_div::U256TestDivProgram;
+use simplicityhl_std::artifacts::u256_test_div::derived_u256_test_div::{
+    U256TestDivArguments, U256TestDivWitness,
 };
 
 enum FunctionToTest {
+    DivMod256_64,
     DivMod256_128,
     DivMod256,
     Div256,
@@ -23,8 +24,8 @@ fn op(o: FunctionToTest) -> u8 {
 
 const DEFAULT_EXPECTED: [u8; 32] = [0; 32];
 
-fn program() -> U256TestArithmetic4Program {
-    U256TestArithmetic4Program::new(U256TestArithmetic4Arguments {})
+fn program() -> U256TestDivProgram {
+    U256TestDivProgram::new(U256TestDivArguments {})
 }
 
 fn build_witness(
@@ -33,8 +34,8 @@ fn build_witness(
     b: [u8; 32],
     expected: Option<[u8; 32]>,
     second_expected: [u8; 32],
-) -> U256TestArithmetic4Witness {
-    U256TestArithmetic4Witness {
+) -> U256TestDivWitness {
+    U256TestDivWitness {
         function_index: function,
         first_arg: a,
         second_arg: b,
@@ -45,6 +46,47 @@ fn build_witness(
 
 mod u256_tests_arithmetic {
     use super::*;
+
+    #[simplex::test]
+    fn test_div_mod_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = generate_u256(U256::zero(), U256::MAX);
+        let b = generate_u256(U256::one(), U256::from(u64::MAX));
+
+        let q = (a / b).to_big_endian();
+        let r = (a % b).to_big_endian();
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::DivMod256_64),
+                a.to_big_endian(),
+                b.to_big_endian(),
+                Some(q),
+                r,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn test_div_mod_256_64_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = generate_u256(U256::zero(), U256::MAX);
+        let b = [0; 32];
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::DivMod256_64),
+                a.to_big_endian(),
+                b,
+                Some(DEFAULT_EXPECTED),
+                DEFAULT_EXPECTED,
+            ),
+            Expect::AssertFailed,
+        )
+    }
 
     #[simplex::test]
     fn test_div_mod_256_128(context: simplex::TestContext) -> anyhow::Result<()> {

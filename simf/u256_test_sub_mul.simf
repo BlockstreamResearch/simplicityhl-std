@@ -1,4 +1,4 @@
-use crate::lib::u256::{split_256_into_64, sub_256, mul_256, div_mod_256_64};
+use crate::lib::u256::{sub_256, mul_256};
 use crate::lib::asserts::assert_eq_256;
 use crate::helper::{if_test_this_function, assert_bool};
 
@@ -32,19 +32,6 @@ fn main() {
 
             assert_eq_256(result_high, unwrap(expected));
             assert_eq_256(result_low, second_expected);
-        },
-        false => {},
-    };
-
-    match if_test_this_function(2, fn_idx) {
-        true => {
-            let (_, _, _, b): (u64, u64, u64, u64) = split_256_into_64(b);
-            let (_, _, _, expected_r): (u64, u64, u64, u64) = split_256_into_64(second_expected);
-
-            let (q, r): (u256, u64) = div_mod_256_64(a, b);
-
-            assert_eq_256(q, unwrap(expected)); 
-            assert!(jet::eq_64(r, expected_r)); 
         },
         false => {},
     };

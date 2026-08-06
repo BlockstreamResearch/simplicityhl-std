@@ -6,15 +6,14 @@ use rand::Rng;
 use crate::common::helper::{DEFAULT_BOOL, generate_u256};
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_test_arithmetic_3::U256TestArithmetic3Program;
-use simplicityhl_std::artifacts::u256_test_arithmetic_3::derived_u256_test_arithmetic_3::{
-    U256TestArithmetic3Arguments, U256TestArithmetic3Witness,
+use simplicityhl_std::artifacts::u256_test_sub_mul::U256TestSubMulProgram;
+use simplicityhl_std::artifacts::u256_test_sub_mul::derived_u256_test_sub_mul::{
+    U256TestSubMulArguments, U256TestSubMulWitness,
 };
 
 enum FunctionToTest {
     Sub256,
     Mul256,
-    DivMod256_64,
 }
 
 #[inline]
@@ -24,8 +23,8 @@ fn op(o: FunctionToTest) -> u8 {
 
 const DEFAULT_EXPECTED: [u8; 32] = [0; 32];
 
-fn program() -> U256TestArithmetic3Program {
-    U256TestArithmetic3Program::new(U256TestArithmetic3Arguments {})
+fn program() -> U256TestSubMulProgram {
+    U256TestSubMulProgram::new(U256TestSubMulArguments {})
 }
 
 fn build_witness(
@@ -35,8 +34,8 @@ fn build_witness(
     expected: Option<[u8; 32]>,
     expected_bool: bool,
     second_expected: [u8; 32],
-) -> U256TestArithmetic3Witness {
-    U256TestArithmetic3Witness {
+) -> U256TestSubMulWitness {
+    U256TestSubMulWitness {
         function_index: function,
         first_arg: a,
         second_arg: b,
@@ -209,49 +208,6 @@ mod u256_tests_arithmetic {
                 result_low,
             ),
             Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn test_div_mod_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = generate_u256(U256::zero(), U256::MAX);
-        let b = generate_u256(U256::one(), U256::from(u64::MAX));
-
-        let q = (a / b).to_big_endian();
-        let r = (a % b).to_big_endian();
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::DivMod256_64),
-                a.to_big_endian(),
-                b.to_big_endian(),
-                Some(q),
-                DEFAULT_BOOL,
-                r,
-            ),
-            Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn test_div_mod_256_64_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = generate_u256(U256::zero(), U256::MAX);
-        let b = [0; 32];
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::DivMod256_64),
-                a.to_big_endian(),
-                b,
-                Some(DEFAULT_EXPECTED),
-                DEFAULT_BOOL,
-                DEFAULT_EXPECTED,
-            ),
-            Expect::AssertFailed,
         )
     }
 }

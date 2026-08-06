@@ -5,9 +5,9 @@ use primitive_types::U256;
 use crate::common::helper::{DEFAULT_BOOL, generate_u256};
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_test_arithmetic_2::U256TestArithmetic2Program;
-use simplicityhl_std::artifacts::u256_test_arithmetic_2::derived_u256_test_arithmetic_2::{
-    U256TestArithmetic2Arguments, U256TestArithmetic2Witness,
+use simplicityhl_std::artifacts::u256_test_split_add::U256TestSplitAddProgram;
+use simplicityhl_std::artifacts::u256_test_split_add::derived_u256_test_split_add::{
+    U256TestSplitAddArguments, U256TestSplitAddWitness,
 };
 
 enum FunctionToTest {
@@ -23,8 +23,8 @@ fn op(o: FunctionToTest) -> u8 {
 
 const DEFAULT_EXPECTED: [u8; 32] = [0; 32];
 
-fn program() -> U256TestArithmetic2Program {
-    U256TestArithmetic2Program::new(U256TestArithmetic2Arguments {})
+fn program() -> U256TestSplitAddProgram {
+    U256TestSplitAddProgram::new(U256TestSplitAddArguments {})
 }
 
 fn build_witness(
@@ -33,8 +33,8 @@ fn build_witness(
     b: [u8; 32],
     expected: Option<[u8; 32]>,
     expected_bool: bool,
-) -> U256TestArithmetic2Witness {
-    U256TestArithmetic2Witness {
+) -> U256TestSplitAddWitness {
+    U256TestSplitAddWitness {
         function_index: function,
         first_arg: a,
         second_arg: b,

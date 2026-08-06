@@ -5,9 +5,9 @@ use primitive_types::U256;
 use crate::common::helper::generate_u256;
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_test_arithmetic_1::U256TestArithmetic1Program;
-use simplicityhl_std::artifacts::u256_test_arithmetic_1::derived_u256_test_arithmetic_1::{
-    U256TestArithmetic1Arguments, U256TestArithmetic1Witness,
+use simplicityhl_std::artifacts::u256_test_compare::U256TestCompareProgram;
+use simplicityhl_std::artifacts::u256_test_compare::derived_u256_test_compare::{
+    U256TestCompareArguments, U256TestCompareWitness,
 };
 
 enum FunctionToTest {
@@ -23,8 +23,8 @@ fn op(o: FunctionToTest) -> u8 {
 
 const DEFAULT_EXPECTED: [u8; 32] = [0; 32];
 
-fn program() -> U256TestArithmetic1Program {
-    U256TestArithmetic1Program::new(U256TestArithmetic1Arguments {})
+fn program() -> U256TestCompareProgram {
+    U256TestCompareProgram::new(U256TestCompareArguments {})
 }
 
 fn build_witness(
@@ -32,8 +32,8 @@ fn build_witness(
     a: [u8; 32],
     b: [u8; 32],
     expected_bool: bool,
-) -> U256TestArithmetic1Witness {
-    U256TestArithmetic1Witness {
+) -> U256TestCompareWitness {
+    U256TestCompareWitness {
         function_index: function,
         first_arg: a,
         second_arg: b,
