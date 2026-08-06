@@ -1,5 +1,3 @@
-use crate::lib::asserts::assert_eq_16;
-
 /// Widening uint conversions
 
 /// Converts u16 to u32
@@ -45,7 +43,7 @@ pub fn safe_u16_to_u1(a: u16) -> u1 {
     jet::rightmost_16_1(a)
 }
 
-/// Converts u16 into u1.
+/// Converts u16 into u8.
 /// Panics if the value does not fit in u8
 pub fn safe_u16_to_u8(a: u16) -> u8 {
     let u8_max: u16 = jet::left_pad_low_8_16(jet::high_8());
