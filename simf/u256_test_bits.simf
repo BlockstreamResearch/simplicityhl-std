@@ -13,8 +13,8 @@ fn main() {
 
     /// Bit logic
 
-    match if_test_this_function(0, fn_idx) { true => { assert_eq_256(and_256(a, b), unwrap(expected)); }, false => {}, };
-    match if_test_this_function(1, fn_idx) { true => { assert_eq_256(or_256(a, b), unwrap(expected)); }, false => {}, };
+    match if_test_this_function(0, fn_idx) { true => { assert_eq_256(and_256(a, b), unwrap(expected)); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert_eq_256(or_256(a, b), unwrap(expected)); }, false => (), };
 
     match if_test_this_function(2, fn_idx) { 
         true => {
@@ -22,7 +22,7 @@ fn main() {
             let shift: u8 = jet::rightmost_64_8(a);
 
             assert_eq_256(left_shift_256(shift, b), unwrap(expected)); 
-        }, false => {}, 
+        }, false => (), 
     };
 
     match if_test_this_function(3, fn_idx) { 
@@ -31,6 +31,6 @@ fn main() {
             let shift: u8 = jet::rightmost_64_8(a);
 
             assert_eq_256(right_shift_256(shift, b), unwrap(expected)); 
-        }, false => {}, 
+        }, false => (), 
     };
 }

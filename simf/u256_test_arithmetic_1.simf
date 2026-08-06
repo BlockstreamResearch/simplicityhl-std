@@ -10,7 +10,7 @@ fn main() {
 
     /// Arithmetic
 
-    match if_test_this_function(0, fn_idx) { true => { assert_bool(is_zero_256(a), expected_bool); }, false => {}, };
-    match if_test_this_function(1, fn_idx) { true => { assert_bool(lt_256(a, b), expected_bool); }, false => {}, };
-    match if_test_this_function(2, fn_idx) { true => { assert_bool(le_256(a, b), expected_bool); }, false => {}, };
+    match if_test_this_function(0, fn_idx) { true => { assert_bool(is_zero_256(a), expected_bool); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert_bool(lt_256(a, b), expected_bool); }, false => (), };
+    match if_test_this_function(2, fn_idx) { true => { assert_bool(le_256(a, b), expected_bool); }, false => (), };
 }

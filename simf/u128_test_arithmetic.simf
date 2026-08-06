@@ -15,18 +15,11 @@ use crate::lib::u128::{
     div_mod_128,
     div_128
 };
-use crate::helper::{
-    if_test_this_function,
-    assert_bool
-};
+use crate::helper::{if_test_this_function, assert_bool};
 
 /// Asserts a result equals expected u128 and bool values. 
 /// Used for functions that return carry or borrow bool value.
-fn assert_eq_uint_bool(
-    result: (bool, u128),
-    expected: u128,
-    expected_bool: bool
-) {
+fn assert_eq_uint_bool(result: (bool, u128), expected: u128, expected_bool: bool) {
     let (bool_res, uint_res): (bool, u128) = result;
 
     assert_bool(bool_res, expected_bool);
@@ -47,16 +40,16 @@ fn main() {
 
     /// Arithmetic
 
-    match if_test_this_function(0, fn_idx) { true => { assert_bool(is_zero_128(a), expected_bool); }, false => {}, };
-    match if_test_this_function(1, fn_idx) { true => { assert_bool(lt_128(a, b), expected_bool); }, false => {}, };
-    match if_test_this_function(2, fn_idx) { true => { assert_bool(le_128(a, b), expected_bool); }, false => {}, };
+    match if_test_this_function(0, fn_idx) { true => { assert_bool(is_zero_128(a), expected_bool); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert_bool(lt_128(a, b), expected_bool); }, false => (), };
+    match if_test_this_function(2, fn_idx) { true => { assert_bool(le_128(a, b), expected_bool); }, false => (), };
 
-    match if_test_this_function(3, fn_idx) { true => { assert_eq_uint_bool(add_128(a, b), unwrap(expected), expected_bool); }, false => {}, };
-    match if_test_this_function(4, fn_idx) { true => {  let (_, b): (u64, u64) = <u128>::into(b); assert_eq_uint_bool(add_128_64(a, b), unwrap(expected), expected_bool); }, false => {}, };
-    match if_test_this_function(5, fn_idx) { true => { assert_eq_uint_bool(full_add_128(eq_128(second_expected, 1), a, b), unwrap(expected), expected_bool); }, false => {}, };
+    match if_test_this_function(3, fn_idx) { true => { assert_eq_uint_bool(add_128(a, b), unwrap(expected), expected_bool); }, false => (), };
+    match if_test_this_function(4, fn_idx) { true => {  let (_, b): (u64, u64) = <u128>::into(b); assert_eq_uint_bool(add_128_64(a, b), unwrap(expected), expected_bool); }, false => (), };
+    match if_test_this_function(5, fn_idx) { true => { assert_eq_uint_bool(full_add_128(eq_128(second_expected, 1), a, b), unwrap(expected), expected_bool); }, false => (), };
 
-    match if_test_this_function(6, fn_idx) { true => { assert_eq_uint_bool(sub_128(a, b), unwrap(expected), expected_bool); }, false => {}, };
-    match if_test_this_function(7, fn_idx) { true => { assert_eq_uint_bool(full_sub_128(eq_128(second_expected, 1), a, b), unwrap(expected), expected_bool); }, false => {}, };
+    match if_test_this_function(6, fn_idx) { true => { assert_eq_uint_bool(sub_128(a, b), unwrap(expected), expected_bool); }, false => (), };
+    match if_test_this_function(7, fn_idx) { true => { assert_eq_uint_bool(full_sub_128(eq_128(second_expected, 1), a, b), unwrap(expected), expected_bool); }, false => (), };
 
     match if_test_this_function(8, fn_idx) {
         true => {
@@ -86,7 +79,7 @@ fn main() {
             let (_, u2): (u64, u64) = <u128>::into(a);
             let (u1, u0): (u64, u64) = <u128>::into(b);
             let (v1, v0): (u64, u64) = <u128>::into(second_expected);
-            
+
             let q: u64 = estimate_quotient_digit_base_64(u2, u1, u0, v1, v0);
 
             let (_, expected_q): (u64, u64) = <u128>::into(unwrap(expected));
@@ -119,5 +112,5 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(13, fn_idx) { true => { assert!(eq_128(div_128(a, b), unwrap(expected))); }, false => {}, };
+    match if_test_this_function(13, fn_idx) { true => { assert!(eq_128(div_128(a, b), unwrap(expected))); }, false => (), };
 }

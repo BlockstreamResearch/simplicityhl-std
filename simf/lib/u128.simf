@@ -94,12 +94,10 @@ pub fn lt_128(a: u128, b: u128) -> bool {
 
     match jet::lt_64(a_high, b_high) {
         true => true,
-        false => {
-            match jet::eq_64(a_high, b_high) {
-                true => jet::lt_64(a_low, b_low),
-                false => false,
-            }
-        }
+        false => match jet::eq_64(a_high, b_high) {
+            true => jet::lt_64(a_low, b_low),
+            false => false,
+        },
     }
 }
 
@@ -110,13 +108,11 @@ pub fn le_128(a: u128, b: u128) -> bool {
 
     match jet::lt_64(a_high, b_high) {
         true => true,
-        false => {
-            match jet::eq_64(a_high, b_high) {
-                true => jet::le_64(a_low, b_low),
-                false => false,
-            }
-        }
-    } 
+        false => match jet::eq_64(a_high, b_high) {
+            true => jet::le_64(a_low, b_low),
+            false => false,
+        },
+    }
 }
 
 /// Check if an integer is greater than another integer
@@ -308,11 +304,7 @@ pub fn calculate_normalizer_base_64(b: u128, is_b_u128: bool) -> u64 {
 /// If `is_b_u128` is false, expects `b` to fit into u64.
 ///
 /// Division algorithms operate in base 2^64, so the normalization threshold is 2^63
-fn normalize_to_threshold_128_63(
-    a: u128,
-    b: u128,
-    is_b_u128: bool
-) -> (u256, u128, u64) {
+fn normalize_to_threshold_128_63(a: u128, b: u128, is_b_u128: bool) -> (u256, u128, u64) {
     let norm: u64 = calculate_normalizer_base_64(b, is_b_u128);
     let norm_128: u128 = <(u64, u64)>::into((0, norm));
 
@@ -338,9 +330,7 @@ pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u
             let (carry, r_hat): (bool, u64) = jet::add_64(r_hat, v1);
 
             match carry {
-                true => {
-                    q_hat
-                },
+                true => q_hat,
                 false => {
                     let r_hat_u0: u128 = <(u64, u64)>::into((r_hat, u0));
 
@@ -351,16 +341,12 @@ pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u
 
                             q_hat
                         }
-                        false => {
-                            q_hat
-                        },
+                        false => q_hat,
                     }
                 }
             }
         },
-        false => {
-            q_hat
-        },
+        false => q_hat,
     }
 }
 

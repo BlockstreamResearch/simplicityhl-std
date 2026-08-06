@@ -37,5 +37,5 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(2, fn_idx) { true => { assert_eq_256(div_256(a, b), unwrap(expected)); }, false => {}, };
+    match if_test_this_function(2, fn_idx) { true => { assert_eq_256(div_256(a, b), unwrap(expected)); }, false => (), };
 }

@@ -1,17 +1,10 @@
 use crate::lib::u256::{split_256_into_64, sub_256, mul_256, div_mod_256_64};
 use crate::lib::asserts::assert_eq_256;
-use crate::helper::{
-    if_test_this_function,
-    assert_bool
-};
+use crate::helper::{if_test_this_function, assert_bool};
 
 /// Asserts a result equals expected u256 and bool values. 
 /// Used for functions that return carry or borrow bool value.
-fn assert_eq_uint_bool(
-    result: (bool, u256),
-    expected: u256,
-    expected_bool: bool
-) {
+fn assert_eq_uint_bool(result: (bool, u256), expected: u256, expected_bool: bool) {
     let (bool_res, uint_res): (bool, u256) = result;
 
     assert_bool(bool_res, expected_bool);
@@ -31,7 +24,7 @@ fn main() {
 
     /// Arithmetic
 
-    match if_test_this_function(0, fn_idx) { true => { assert_eq_uint_bool(sub_256(a, b), unwrap(expected), expected_bool); }, false => {}, };
+    match if_test_this_function(0, fn_idx) { true => { assert_eq_uint_bool(sub_256(a, b), unwrap(expected), expected_bool); }, false => (), };
 
     match if_test_this_function(1, fn_idx) {
         true => {
