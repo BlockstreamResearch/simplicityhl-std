@@ -47,7 +47,7 @@ mod u256_tests_arithmetic {
     use super::*;
 
     #[simplex::test]
-    fn u128_test_split_256_into_64(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u256_test_split_256_into_64(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = generate_u256(U256::one(), U256::MAX).to_big_endian();
 
         run(

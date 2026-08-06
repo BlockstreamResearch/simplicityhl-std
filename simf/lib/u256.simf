@@ -1,4 +1,4 @@
-use crate::lib::binary::{not, or, and};
+use crate::lib::binary::{not, and};
 use crate::lib::u128::{
     and_128,
     or_128,
