@@ -1,0 +1,42 @@
+/// Widening uint conversions
+
+/// Converts u1 to u8
+pub fn u1_to_u8(a: u1) -> u8 {
+    jet::left_pad_low_1_8(a)
+}
+
+/// Converts u1 to u16
+pub fn u1_to_u16(a: u1) -> u16 {
+    jet::left_pad_low_1_16(a)
+}
+
+/// Converts u1 to u32
+pub fn u1_to_u32(a: u1) -> u32 {
+    jet::left_pad_low_1_32(a)
+}
+
+/// Converts u1 to u64
+pub fn u1_to_u64(a: u1) -> u64 {
+    jet::left_pad_low_1_64(a)
+}
+
+/// Converts u1 to u128
+pub fn u1_to_u128(a: u1) -> u128 {
+    let a_u64: u64 = u1_to_u64(a);
+
+    <(u64, u64)>::into((0, a_u64))
+}
+
+/// Converts u1 to u256
+pub fn u1_to_u256(a: u1) -> u256 {
+    let a_u128: u128 = u1_to_u128(a);
+
+    <(u128, u128)>::into((0, a_u128))
+}
+
+/// Type conversions
+
+/// Converts u1 to bool
+pub fn u1_to_bool(a: u1) -> bool {
+    <u1>::into(a)
+}
