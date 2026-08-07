@@ -36,7 +36,7 @@ fn main() {
             assert!(jet::eq_64(res3, expected3));
             assert!(jet::eq_64(res4, expected4));
         },
-        false => {},
+        false => (),
     };
 
     match if_test_this_function(1, fn_idx) { true => { assert_eq_uint_bool(add_256(a, b), unwrap(expected), expected_bool); }, false => (), };

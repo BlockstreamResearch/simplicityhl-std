@@ -60,7 +60,7 @@ fn main() {
             assert!(eq_128(result_high, unwrap(expected)));
             assert!(eq_128(result_low, second_expected));
         },
-        false => {},
+        false => (),
     };
 
     match if_test_this_function(9, fn_idx) {
@@ -99,7 +99,7 @@ fn main() {
             assert!(eq_128(q, unwrap(expected))); 
             assert!(jet::eq_64(r, expected_r)); 
         },
-        false => {},
+        false => (),
     };
 
     match if_test_this_function(12, fn_idx) {
@@ -109,7 +109,7 @@ fn main() {
             assert!(eq_128(q, unwrap(expected))); 
             assert!(eq_128(r, second_expected)); 
         },
-        false => {},
+        false => (),
     };
 
     match if_test_this_function(13, fn_idx) { true => { assert!(eq_128(div_128(a, b), unwrap(expected))); }, false => (), };

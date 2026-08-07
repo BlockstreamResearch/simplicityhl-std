@@ -33,6 +33,6 @@ fn main() {
             assert_eq_256(result_high, unwrap(expected));
             assert_eq_256(result_low, second_expected);
         },
-        false => {},
+        false => (),
     };
 }
