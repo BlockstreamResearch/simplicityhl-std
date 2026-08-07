@@ -1,0 +1,62 @@
+use crate::lib::u8::math::{
+    checked_add_8,
+    safe_add_8,
+    checked_sub_8,
+    safe_sub_8,
+    checked_mul_8,
+    safe_mul_8,
+    checked_div_8,
+    safe_div_8,
+    gt_8,
+    ge_8
+};
+use crate::lib::asserts::{assert_none_8, assert_eq_8};
+use crate::lib::binary::not;
+use crate::helper::if_test_this_function;
+
+/// Asserts a `checked_*` result equals the expected Option.
+/// `None` encodes the overflow case, `Some(e)` the fitting case, so a single
+/// witness value carries both, removing the need for a separate overflow flag.
+fn assert_eq_opt(result: Option<u8>, expected: Option<u8>) {
+    match expected {
+        Some(e: u8) => assert_eq_8(unwrap(result), e),
+        None => assert_none_8(result),
+    }
+}
+
+/// Asserts a result equals the expected bool value.
+/// `None` encodes `false`, and `Some(_)` encodes `true`.
+fn assert_bool_by_opt(result: bool, expected: Option<u8>) {
+    match expected {
+        Some(_: u8) => assert!(result),
+        None => assert!(not(result)),
+    }
+}
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u8 = witness::FIRST_ARG;
+    let b: u8 = witness::SECOND_ARG;
+    let expected: Option<u8> = witness::EXPECTED;
+
+    // add
+    match if_test_this_function(0, fn_idx) { true => { assert_eq_opt(checked_add_8(a, b), expected); }, false => {}, };
+    match if_test_this_function(1, fn_idx) { true => { assert!(jet::eq_8(safe_add_8(a, b), unwrap(expected))); }, false => {}, };
+
+    // sub
+    match if_test_this_function(2, fn_idx) { true => { assert_eq_opt(checked_sub_8(a, b), expected); }, false => {}, };
+    match if_test_this_function(3, fn_idx) { true => { assert!(jet::eq_8(safe_sub_8(a, b), unwrap(expected))); }, false => {}, };
+
+    // mul
+    match if_test_this_function(4, fn_idx) { true => { assert_eq_opt(checked_mul_8(a, b), expected); }, false => {}, };
+    match if_test_this_function(5, fn_idx) { true => { assert!(jet::eq_8(safe_mul_8(a, b), unwrap(expected))); }, false => {}, };
+
+    // div
+    match if_test_this_function(6, fn_idx) { true => { assert_eq_opt(checked_div_8(a, b), expected); }, false => {}, };
+    match if_test_this_function(7, fn_idx) { true => { assert!(jet::eq_8(safe_div_8(a, b), unwrap(expected))); }, false => {}, };
+
+    // gt, ge
+    match if_test_this_function(8, fn_idx) { true => { assert_bool_by_opt(gt_8(a, b), expected); }, false => {}, };
+    match if_test_this_function(9, fn_idx) { true => { assert_bool_by_opt(ge_8(a, b), expected); }, false => {}, };
+}
