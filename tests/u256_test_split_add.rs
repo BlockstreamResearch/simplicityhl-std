@@ -107,7 +107,7 @@ mod u256_tests_arithmetic {
     #[simplex::test]
     fn u256_test_add_256_128_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = generate_u256(U256::zero(), U256::MAX / 2);
-        let b = generate_u256(U256::one(), U256::from(u128::MAX)) as U256;
+        let b = generate_u256(U256::one(), U256::from(u128::MAX));
         let result = (a + b).to_big_endian();
 
         run(
@@ -127,7 +127,7 @@ mod u256_tests_arithmetic {
     #[simplex::test]
     fn u256_test_add_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = U256::MAX;
-        let b = generate_u256(U256::one(), U256::from(u128::MAX)) as U256;
+        let b = generate_u256(U256::one(), U256::from(u128::MAX));
         let result = (b - 1).to_big_endian();
 
         run(

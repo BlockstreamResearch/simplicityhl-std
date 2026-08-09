@@ -144,7 +144,8 @@ pub fn add_128_64(a: u128, b: u64) -> (bool, u128) {
     let (carry_low, res_low): (bool, u64) = jet::add_64(a_low, b);
     let (carry_high, res_high): (bool, u64) = jet::full_add_64(carry_low, a_high, 0);
 
-    (carry_high, <(u64, u64)>::into((res_high, res_low)))
+    let res: u128 = <(u64, u64)>::into((res_high, res_low));
+    (carry_high, res)
 }
 
 /// Adds two integers. Takes a carry-in and returns a carry-out
@@ -241,7 +242,7 @@ pub fn mul_128(a: u128, b: u128) -> u256 {
     // `word_3` is the upper half of a_high * b_high. It is at most `u64::MAX - 1` when
     // either factor is `u64::MAX`, and even in the extreme case where
     // a == b == u128::MAX, the total product still fits into u256.
-    // Therefore, word_3 + carry_3a + carry_3b can not overflow, and `add_64`
+    // Therefore, word_3 + carry_3a + carry_3b can not overflow, and `full_add_64`
     // is used instead of `safe_add_64` to avoid the unnecessary overflow check
     let (_, res_3a): (bool, u64) = jet::full_add_64(carry_3a, word_3, 0);
     let (_, res_3): (bool, u64) = jet::full_add_64(carry_3b, res_3a, 0);

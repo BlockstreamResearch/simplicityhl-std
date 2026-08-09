@@ -217,8 +217,8 @@ mod u256_tests_arithmetic {
         let a_low = generate_u256(b_low, U256::from(u128::MAX));
         let high = generate_u256(U256::one(), U256::from(u128::MAX));
 
-        let a = ((high as U256) << 128) | (a_low as U256);
-        let b = ((high as U256) << 128) | (b_low as U256);
+        let a = (high << 128) | (a_low);
+        let b = (high << 128) | (b_low);
 
         let q = (a / b).to_big_endian();
         let r = (a % b).to_big_endian();
@@ -328,8 +328,8 @@ mod u256_tests_arithmetic {
     ) -> anyhow::Result<()> {
         let high = generate_u256(U256::one(), U256::from(u128::MAX));
 
-        let a = ((high as U256) << 128).to_big_endian();
-        let b = (((high as U256) << 128) | (U256::from(u128::MAX))).to_big_endian();
+        let a = (high << 128).to_big_endian();
+        let b = ((high << 128) | (U256::from(u128::MAX))).to_big_endian();
 
         run(
             &context,

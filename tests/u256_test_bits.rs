@@ -3,7 +3,7 @@ mod common;
 use primitive_types::U256;
 use rand::Rng;
 
-use crate::common::helper::{DEFAULT_BOOL, generate_u256};
+use crate::common::helper::generate_u256;
 use common::core::{Expect, run};
 
 use simplicityhl_std::artifacts::u256_test_bits::U256TestBitsProgram;
@@ -32,14 +32,12 @@ fn build_witness(
     a: [u8; 32],
     b: [u8; 32],
     expected: Option<[u8; 32]>,
-    expected_bool: bool,
 ) -> U256TestBitsWitness {
     U256TestBitsWitness {
         function_index: function,
         first_arg: a,
         second_arg: b,
         expected,
-        expected_bool,
     }
 }
 
@@ -60,7 +58,6 @@ mod u256_tests_bits {
                 a.to_big_endian(),
                 b.to_big_endian(),
                 Some(result),
-                DEFAULT_BOOL,
             ),
             Expect::Ok,
         )
@@ -80,7 +77,6 @@ mod u256_tests_bits {
                 a.to_big_endian(),
                 b.to_big_endian(),
                 Some(result),
-                DEFAULT_BOOL,
             ),
             Expect::Ok,
         )
@@ -88,7 +84,7 @@ mod u256_tests_bits {
 
     #[simplex::test]
     fn u256_test_left_shift_256(context: simplex::TestContext) -> anyhow::Result<()> {
-        let shift = rand::thread_rng().gen_range(1..=127_u8);
+        let shift = rand::thread_rng().gen_range(1..u8::MAX);
         let val = generate_u256(U256::zero(), U256::MAX);
         let result = (val << shift).to_big_endian();
 
@@ -100,7 +96,6 @@ mod u256_tests_bits {
                 U256::from(shift).to_big_endian(),
                 val.to_big_endian(),
                 Some(result),
-                DEFAULT_BOOL,
             ),
             Expect::Ok,
         )
@@ -120,7 +115,6 @@ mod u256_tests_bits {
                 U256::from(shift).to_big_endian(),
                 val,
                 Some(result),
-                DEFAULT_BOOL,
             ),
             Expect::Ok,
         )
@@ -140,7 +134,6 @@ mod u256_tests_bits {
                 U256::from(shift).to_big_endian(),
                 val.to_big_endian(),
                 Some(result),
-                DEFAULT_BOOL,
             ),
             Expect::Ok,
         )
@@ -148,7 +141,7 @@ mod u256_tests_bits {
 
     #[simplex::test]
     fn u256_test_right_shift_256(context: simplex::TestContext) -> anyhow::Result<()> {
-        let shift = rand::thread_rng().gen_range(1..=127_u128);
+        let shift = rand::thread_rng().gen_range(1..u8::MAX);
         let val = generate_u256(U256::zero(), U256::MAX);
         let result = (val >> shift).to_big_endian();
 
@@ -160,7 +153,6 @@ mod u256_tests_bits {
                 U256::from(shift).to_big_endian(),
                 val.to_big_endian(),
                 Some(result),
-                DEFAULT_BOOL,
             ),
             Expect::Ok,
         )
@@ -180,7 +172,6 @@ mod u256_tests_bits {
                 U256::from(shift).to_big_endian(),
                 val,
                 Some(result),
-                DEFAULT_BOOL,
             ),
             Expect::Ok,
         )
@@ -200,7 +191,6 @@ mod u256_tests_bits {
                 U256::from(shift).to_big_endian(),
                 val.to_big_endian(),
                 Some(result),
-                DEFAULT_BOOL,
             ),
             Expect::Ok,
         )
