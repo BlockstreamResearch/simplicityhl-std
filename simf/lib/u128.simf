@@ -319,35 +319,53 @@ fn normalize_to_threshold_128_63(a: u128, b: u128, is_b_u128: bool) -> (u256, u1
 /// Returns the quotient digit to use in the subsequent multiply-and-subtract step.
 /// Expects result to fit into u64
 pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u64) -> u64 {
-    let (q_hat, r_hat): (u64, u64) = jet::div_mod_128_64(<(u64, u64)>::into((u2, u1)), v1); 
-
-    let r_hat_u0: u128 = <(u64, u64)>::into((r_hat, u0));
-
-    // correcting estimation: q_hat is off by at most 2.
-    match lt_128(r_hat_u0, jet::multiply_64(q_hat, v0)) {
+    let (q_hat, r_hat, carry): (u64, u64, bool) = match jet::lt_64(u2, v1) {
         true => {
-            // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
-            let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1); 
-            let (carry, r_hat): (bool, u64) = jet::add_64(r_hat, v1);
-
-            match carry {
-                true => q_hat,
-                false => {
-                    let r_hat_u0: u128 = <(u64, u64)>::into((r_hat, u0));
-
-                    match lt_128(r_hat_u0, jet::multiply_64(q_hat, v0)) {
-                        true => {
-                            // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
-                            let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1); 
-
-                            q_hat
-                        }
-                        false => q_hat,
-                    }
-                }
-            }
+            let (q_hat, r_hat) : (u64, u64) =jet::div_mod_128_64(<(u64, u64)>::into((u2, u1)), v1);
+            (q_hat, r_hat, false)
         },
-        false => q_hat,
+        false => {
+            // This means u2 == v1, q_hat = 2^64, and r_hat = u1.
+            // Therefore, we need to decrement q and add v1 to r_hat.
+            // r_hat = u1 + v1 may overflow u64, which means that the estimate is exact.
+            let (carry, r_hat): (bool, u64) = jet::add_64(u1, v1);
+
+            (jet::high_64(), r_hat, carry)
+        }
+    };
+
+    match carry {
+        true => q_hat,
+        false => {
+            let r_hat_u0: u128 = <(u64, u64)>::into((r_hat, u0));
+
+            // correcting estimation: q_hat is off by at most 2.
+            match lt_128(r_hat_u0, jet::multiply_64(q_hat, v0)) {
+                true => {
+                    // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
+                    let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1); 
+                    let (carry, r_hat): (bool, u64) = jet::add_64(r_hat, v1);
+
+                    match carry {
+                        true => q_hat,
+                        false => {
+                            let r_hat_u0: u128 = <(u64, u64)>::into((r_hat, u0));
+
+                            match lt_128(r_hat_u0, jet::multiply_64(q_hat, v0)) {
+                                true => {
+                                    // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
+                                    let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1); 
+
+                                    q_hat
+                                }
+                                false => q_hat,
+                            }
+                        }
+                    }
+                },
+                false => q_hat,
+            }
+        }
     }
 }
 

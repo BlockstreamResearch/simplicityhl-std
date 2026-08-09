@@ -340,6 +340,27 @@ mod u256_tests_arithmetic {
     }
 
     #[simplex::test]
+    fn u256_test_div_mod_256_edge_case(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a: U256 = U256::from(2).pow(U256::from(255));
+        let b = U256::from(2).pow(U256::from(127)) + U256::from(2).pow(U256::from(64)) - 1;
+
+        let (q, r) = a.div_mod(b);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::DivMod256),
+                a.to_big_endian(),
+                b.to_big_endian(),
+                Some(q.to_big_endian()),
+                r.to_big_endian(),
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
     fn u256_test_div_256(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = generate_u256(U256::zero(), U256::MAX);
         let b = generate_u256(U256::one(), U256::MAX);
