@@ -905,7 +905,7 @@ mod u128_tests_arithmetic {
         let b_high = rand::thread_rng().gen_range(threshold..u64::MAX);
         let b_low = rand::thread_rng().gen_range(0..=u64::MAX);
 
-        let a_high = rand::thread_rng().gen_range(b_high..=u64::MAX);
+        let a_high = rand::thread_rng().gen_range(b_high + 1..=u64::MAX);
         let a_low = rand::thread_rng().gen_range(0..=u128::MAX);
 
         let a = ((U256::from(a_high)) << 128) | (U256::from(a_low));

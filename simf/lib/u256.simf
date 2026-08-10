@@ -155,7 +155,7 @@ pub fn add_256(a: u256, b: u256) -> (bool, u256) {
     (carry_high, res)
 }
 
-/// Adds the 128-bit integer with the 64-bit integer and returns the carry
+/// Adds the 256-bit integer with the 128-bit integer and returns the carry
 pub fn add_256_128(a: u256, b: u128) -> (bool, u256) {
     let b: u256 = <(u128, u128)>::into((0, b));
 
@@ -316,9 +316,8 @@ fn safe_mul_256_128(a: u256, b: u128) -> u256 {
 /// both u256 and u128 by the same factor, ensuring that 
 /// the most significant non-zero word of `b` is at least 2^63.
 /// 
-/// Returns the normalized `a` as a `(u64, u256)` pair and the normalized
-/// `b` as a `(u128, u64)` pair. 
-/// The `is_b_u128` flag indicates whether `b` is a u128 or u64 value.
+/// Returns the normalized `a` as a `(u64, u256)` pair, 
+/// the normalized `b` and the normalization factor.
 fn normalize_to_threshold_256_63(a: u256, b: u128, is_b_u128: bool) -> (u64, u256, u128, u64) {
     let norm: u64 = calculate_normalizer_base_64(b, is_b_u128);
     let norm_128: u128 = <(u64, u64)>::into((0, norm));
@@ -403,7 +402,7 @@ pub fn div_mod_256_64(dividend: u256, divisor: u64) -> (u256, u64) {
 fn mul_and_sub(q: u64, u2: u64, u1: u64, u0: u64, v: u128) -> (u64, u64) {
     let u: u256 = <(u64, u64, u64, u64)>::into((0, u2, u1, u0));
 
-    let q_v: u256 = mul_128(<(u64, u64)>::into((0, q)), v);
+    let q_v: u256 = mul_128_64(v, q);
 
     let u_updated: u256 = safe_sub_256(u, q_v);
     let (_, _, u1, u0): (u64, u64, u64, u64) = split_256_into_64(u_updated);
@@ -420,7 +419,6 @@ fn algorithm_d_256_128(dividend: u256, divisor: u128) -> (u256, u128) {
         normalize_to_threshold_256_63(dividend, divisor, true);
 
     // normalized dividend fits into 320 bits
-    //let (_, _, _, u4): (u64, u64, u64, u64) = split_256_into_64(norm_dividend_high);
     let (u3, u2, u1, u0): (u64, u64, u64, u64) = split_256_into_64(norm_dividend_low);
     let (v1, v0): (u64, u64) = <u128>::into(norm_divisor);
 
