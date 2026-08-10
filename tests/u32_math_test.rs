@@ -2,13 +2,15 @@ mod common;
 
 use common::uint::TestUint;
 
-use simplicityhl_std::artifacts::u32_test::U32TestProgram;
-use simplicityhl_std::artifacts::u32_test::derived_u32_test::{U32TestArguments, U32TestWitness};
+use simplicityhl_std::artifacts::u32_math_test::U32MathTestProgram;
+use simplicityhl_std::artifacts::u32_math_test::derived_u32_math_test::{
+    U32MathTestArguments, U32MathTestWitness,
+};
 
 // The only per-width code for the common operations.
 impl TestUint for u32 {
-    type Program = U32TestProgram;
-    type Witness = U32TestWitness;
+    type Program = U32MathTestProgram;
+    type Witness = U32MathTestWitness;
 
     const ZERO: u32 = 0;
     const ONE: u32 = 1;
@@ -16,12 +18,12 @@ impl TestUint for u32 {
     const HALF_MAX: u32 = u32::MAX / 2;
     const MUL_BOUND: u32 = 1 << 16; // 2^(32/2)
 
-    fn program() -> U32TestProgram {
-        U32TestProgram::new(U32TestArguments {})
+    fn program() -> U32MathTestProgram {
+        U32MathTestProgram::new(U32MathTestArguments {})
     }
 
-    fn witness(op: u8, a: u32, b: u32, expected: Option<u32>) -> U32TestWitness {
-        U32TestWitness {
+    fn witness(op: u8, a: u32, b: u32, expected: Option<u32>) -> U32MathTestWitness {
+        U32MathTestWitness {
             function_index: op,
             first_arg: a,
             second_arg: b,
@@ -30,7 +32,7 @@ impl TestUint for u32 {
     }
 }
 
-mod u32_tests {
+mod u32_math_tests {
     use super::*;
 
     // Stamps the 16 `#[simplex::test]` entry points for u32. Logic lives in common::uint.

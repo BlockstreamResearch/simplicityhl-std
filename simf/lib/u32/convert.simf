@@ -1,0 +1,64 @@
+/// Widening uint conversions
+
+/// Converts u32 to u64
+pub fn u32_to_u64(a: u32) -> u64 {
+    jet::left_pad_low_32_64(a)
+}
+
+/// Converts u32 to u128
+pub fn u32_to_u128(a: u32) -> u128 {
+    let a_u64: u64 = u32_to_u64(a);
+
+    <(u64, u64)>::into((0, a_u64))
+}
+
+/// Converts u32 to u256
+pub fn u32_to_u256(a: u32) -> u256 {
+    let a_u128: u128 = u32_to_u128(a);
+
+    <(u128, u128)>::into((0, a_u128))
+}
+
+/// Splitting uint conversions
+
+/// Splits u32 into four u8
+pub fn split_u32_to_u8(a: u32) -> (u8, u8, u8, u8) {
+    <u32>::into(a)
+}
+
+/// Splits u32 into two u16
+pub fn split_u32_to_u16(a: u32) -> (u16, u16) {
+    <u32>::into(a)
+}
+
+/// Narrowing uint conversions
+
+/// Converts u32 into u1.
+/// Panics if the value does not fit in u1
+pub fn safe_u32_to_u1(a: u32) -> u1 {
+    let u1_max: u32 = jet::left_pad_low_1_32(jet::high_1());
+
+    assert!(jet::le_32(a, u1_max));
+
+    jet::rightmost_32_1(a)
+}
+
+/// Converts u32 into u8.
+/// Panics if the value does not fit in u8
+pub fn safe_u32_to_u8(a: u32) -> u8 {
+    let u8_max: u32 = jet::left_pad_low_8_32(jet::high_8());
+
+    assert!(jet::le_32(a, u8_max));
+
+    jet::rightmost_32_8(a)
+}
+
+/// Converts u32 into u16.
+/// Panics if the value does not fit in u16
+pub fn safe_u32_to_u16(a: u32) -> u16 {
+    let u16_max: u32 = jet::left_pad_low_16_32(jet::high_16());
+
+    assert!(jet::le_32(a, u16_max));
+
+    jet::rightmost_32_16(a)
+}
