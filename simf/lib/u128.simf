@@ -214,7 +214,7 @@ pub fn safe_sub_128(a: u128, b: u128) -> u128 {
     unwrap(checked_sub_128(a, b))
 }
 
-/// Multiply two integers. The output is a 256-bit integer
+/// Multiplies two integers. The output is a 256-bit integer.
 /// The idea is that u128-bit `a` divides into 64-bit `a_high` and `a_low`,
 /// so a = a_high * 2^64 + a_low.
 /// In the same way, b = b_high * 2^64 + b_low.
@@ -251,6 +251,27 @@ pub fn mul_128(a: u128, b: u128) -> u256 {
     let res_3_2: u128 = <(u64, u64)>::into((res_3, res_2));
 
     <(u128, u128)>::into((res_3_2, res_1_0))
+}
+
+/// Multiplies two integers. The output is a 256-bit integer.
+/// The idea is that u128-bit `a` divides into 64-bit `a_high` and `a_low`,
+/// so a = a_high * 2^64 + a_low.
+/// Therefore, a * b = 2^64 * a_high * b + a_low * b.
+pub fn mul_128_64(a: u128, b: u64) -> u256 {
+    let (a_high, a_low): (u64, u64) = <u128>::into(a);
+
+    let highest: u128 = jet::multiply_64(a_high, b);
+    let lowest: u128 = jet::multiply_64(a_low, b);
+
+    let (word_1, word_0): (u64, u64) = <u128>::into(lowest);
+    let (word_3, word_2): (u64, u64) = <u128>::into(highest);
+
+    let (carry_2, res_1): (bool, u64) = jet::add_64(word_1, word_2);
+    // a * b fits into u192, so addition below can not overflow and `full_add_64`
+    // is used instead of `safe_add_64` to avoid the unnecessary overflow check
+    let (_, res_2): (bool, u64) = jet::full_add_64(carry_2, word_3, 0);
+
+    <(u64, u64, u64, u64)>::into((0, res_2, res_1, word_0))
 }
 
 /// Returns the product of two u128 values wrapped in Some, or None if the result overflows u128

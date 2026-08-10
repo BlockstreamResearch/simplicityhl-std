@@ -14,6 +14,8 @@ use simplicityhl_std::artifacts::u256_test_sub_mul::derived_u256_test_sub_mul::{
 enum FunctionToTest {
     Sub256,
     Mul256,
+    Mul256_64,
+    Mul256_128,
 }
 
 #[inline]
@@ -201,6 +203,52 @@ mod u256_tests_arithmetic {
             program(),
             build_witness(
                 op(FunctionToTest::Mul256),
+                a.to_big_endian(),
+                b.to_big_endian(),
+                Some(result_high),
+                DEFAULT_BOOL,
+                result_low,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u256_test_mul_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = generate_u256(U256::one(), U256::MAX);
+        let b = generate_u256(U256::one(), U256::from(u64::MAX));
+        let result = a.full_mul(b).to_big_endian();
+
+        let (result_high, result_low) = split_u512(result);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::Mul256_64),
+                a.to_big_endian(),
+                b.to_big_endian(),
+                Some(result_high),
+                DEFAULT_BOOL,
+                result_low,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u256_test_mul_256_128(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = generate_u256(U256::one(), U256::MAX);
+        let b = generate_u256(U256::one(), U256::from(u128::MAX));
+        let result = a.full_mul(b).to_big_endian();
+
+        let (result_high, result_low) = split_u512(result);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::Mul256_128),
                 a.to_big_endian(),
                 b.to_big_endian(),
                 Some(result_high),

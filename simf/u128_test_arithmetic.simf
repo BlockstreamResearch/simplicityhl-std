@@ -9,6 +9,7 @@ use crate::lib::u128::{
     sub_128,
     full_sub_128,
     mul_128,
+    mul_128_64,
     calculate_normalizer_base_64,
     estimate_quotient_digit_base_64,
     div_mod_128_64,
@@ -63,7 +64,20 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(9, fn_idx) {
+     match if_test_this_function(9, fn_idx) {
+        true => {
+            let (_, b): (u64, u64) = <u128>::into(b);
+            let result: u256 = mul_128_64(a, b);
+
+            let (result_high, result_low): (u128, u128) = <u256>::into(result);
+
+            assert!(eq_128(result_high, unwrap(expected)));
+            assert!(eq_128(result_low, second_expected));
+        },
+        false => (),
+    };
+
+    match if_test_this_function(10, fn_idx) {
         true => {
             let norm: u64 = calculate_normalizer_base_64(b, expected_bool);
 
@@ -74,7 +88,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(10, fn_idx) {
+    match if_test_this_function(11, fn_idx) {
         true => {
             let (_, u2): (u64, u64) = <u128>::into(a);
             let (u1, u0): (u64, u64) = <u128>::into(b);
@@ -89,7 +103,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(11, fn_idx) {
+    match if_test_this_function(12, fn_idx) {
         true => {
             let (_, b): (u64, u64) = <u128>::into(b);
             let (_, expected_r): (u64, u64) = <u128>::into(second_expected);
@@ -102,7 +116,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(12, fn_idx) {
+    match if_test_this_function(13, fn_idx) {
         true => {
             let (q, r): (u128, u128) = div_mod_128(a, b);
 
@@ -112,5 +126,5 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(13, fn_idx) { true => { assert!(eq_128(div_128(a, b), unwrap(expected))); }, false => (), };
+    match if_test_this_function(14, fn_idx) { true => { assert!(eq_128(div_128(a, b), unwrap(expected))); }, false => (), };
 }

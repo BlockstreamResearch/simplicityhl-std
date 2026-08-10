@@ -1,5 +1,5 @@
-use crate::lib::u256::{sub_256, mul_256};
-use crate::lib::asserts::assert_eq_256;
+use crate::lib::u256::{sub_256, mul_256, mul_256_64, mul_256_128, split_256_into_64};
+use crate::lib::asserts::{assert_eq_64, assert_eq_128, assert_eq_256};
 use crate::helper::{if_test_this_function, assert_bool};
 
 /// Asserts a result equals expected u256 and bool values. 
@@ -28,9 +28,35 @@ fn main() {
 
     match if_test_this_function(1, fn_idx) {
         true => {
-            let (result_high, result_low): (u256,u256) = mul_256(a, b);
+            let (result_high, result_low): (u256, u256) = mul_256(a, b);
 
             assert_eq_256(result_high, unwrap(expected));
+            assert_eq_256(result_low, second_expected);
+        },
+        false => (),
+    };
+
+    match if_test_this_function(2, fn_idx) {
+        true => {
+            let (_, _, _, b): (u64, u64, u64, u64) = split_256_into_64(b);
+            let (_, _, _, expected): (u64, u64, u64, u64) = split_256_into_64(unwrap(expected));
+
+            let (result_high, result_low): (u64, u256) = mul_256_64(a, b);
+
+            assert_eq_64(result_high, expected);
+            assert_eq_256(result_low, second_expected);
+        },
+        false => (),
+    };
+
+    match if_test_this_function(3, fn_idx) {
+        true => {
+            let (_, b): (u128, u128) = <u256>::into(b);
+            let (_, expected): (u128, u128) = <u256>::into(unwrap(expected));
+
+            let (result_high, result_low): (u128, u256) = mul_256_128(a, b);
+
+            assert_eq_128(result_high, expected);
             assert_eq_256(result_low, second_expected);
         },
         false => (),

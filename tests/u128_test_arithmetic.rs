@@ -21,6 +21,7 @@ enum FunctionToTest {
     Sub128,
     FullSub128,
     Mul128,
+    Mul128_64,
     CalculateNormalizerBase64,
     EstimateQuotientDigitBase64,
     DivMod128_64,
@@ -685,6 +686,30 @@ mod u128_tests_arithmetic {
                 op(FunctionToTest::Mul128),
                 a,
                 b,
+                Some(result_high),
+                DEFAULT_BOOL,
+                result_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_mul_128_64(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..u128::MAX);
+        let b = rand::thread_rng().gen_range(0..u64::MAX);
+        let result = U256::from(a) * U256::from(b);
+
+        let (result_high, result_low) = split_helper(result);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::Mul128_64),
+                a,
+                b as u128,
                 Some(result_high),
                 DEFAULT_BOOL,
                 result_low,

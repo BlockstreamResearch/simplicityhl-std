@@ -13,6 +13,7 @@ use crate::lib::u128::{
     sub_128,
     full_sub_128,
     mul_128,
+    mul_128_64,
     safe_mul_128,
     calculate_normalizer_base_64,
     estimate_quotient_digit_base_64,
@@ -203,7 +204,7 @@ pub fn safe_sub_256(a: u256, b: u256) -> u256 {
     unwrap(checked_sub_256(a, b))
 }
 
-/// Multiply two integers. The output is two 256-bit integers
+/// Multiplies two integers. The output is two 256-bit integers
 /// The idea is that u256-bit `a` divides into 128-bit `a_high` and `a_low`,
 /// so a = a_high * 2^128 + a_low.
 /// In the same way, b = b_high * 2^128 + b_low.
@@ -242,6 +243,52 @@ pub fn mul_256(a: u256, b: u256) -> (u256, u256) {
     (res_3_2, res_1_0)
 }
 
+/// Multiplies two integers. 
+/// The output consists of a 64-bit integer and a 256-bit integer.
+/// The idea is that u256-bit `a` divides into 128-bit `a_high` and `a_low`,
+/// so a = a_high * 2^128 + a_low,
+/// a * b = 2^128 * a_high * b + a_low * b
+pub fn mul_256_64(a: u256, b: u64) -> (u64, u256) {
+    let (a_high, a_low): (u128, u128) = <u256>::into(a);
+
+    let lowest: u256 = mul_128_64(a_low, b);
+    let highest: u256 = mul_128_64(a_high, b);
+
+    let (word_1, word_0): (u128, u128) = <u256>::into(lowest);
+    let (word_3, word_2): (u128, u128) = <u256>::into(highest);
+
+    let (_, word_3): (u64, u64) = <u128>::into(word_3);
+
+    let (carry_2, res_1): (bool, u128) = add_128(word_1, word_2);
+    // a * b fits into u320, so addition below can not overflow and 
+    // `full_add_64` is used to avoid the unnecessary overflow check
+    let (_, res_2): (bool, u64) = jet::full_add_64(carry_2, word_3, 0);
+
+    (res_2, <(u128, u128)>::into((res_1, word_0)))
+}
+
+/// Multiplies two integers. 
+/// The output consists of a 128-bit integer and a 256-bit integer.
+/// The idea is that u256-bit `a` divides into 128-bit `a_high` and `a_low`,
+/// so a = a_high * 2^128 + a_low,
+/// and a * b = 2^128 * a_high * b + a_low * b
+pub fn mul_256_128(a: u256, b: u128) -> (u128, u256) {
+    let (a_high, a_low): (u128, u128) = <u256>::into(a);
+
+    let lowest: u256 = mul_128(a_low, b);
+    let highest: u256 = mul_128(a_high, b);
+
+    let (word_1, word_0): (u128, u128) = <u256>::into(lowest);
+    let (word_3, word_2): (u128, u128) = <u256>::into(highest);
+
+    let (carry_2, res_1): (bool, u128) = add_128(word_1, word_2);
+    // a * b fits into u384, so addition below can not overflow and 
+    // `full_add_128` is used to avoid the unnecessary overflow check
+    let (_, res_2): (bool, u128) = full_add_128(carry_2, word_3, 0);
+
+    (res_2, <(u128, u128)>::into((res_1, word_0)))
+}
+
 /// Returns the product of two u256 values wrapped in Some, or None if the result overflows u256
 pub fn checked_mul_256(a: u256, b: u256) -> Option<u256> {
     let (result_high, result_low): (u256, u256) = mul_256(a, b);
@@ -257,17 +304,29 @@ pub fn safe_mul_256(a: u256, b: u256) -> u256 {
     unwrap(checked_mul_256(a, b))
 }
 
+/// Returns the product of u256 and u128 values, panics if the result overflows u256
+fn safe_mul_256_128(a: u256, b: u128) -> u256 {
+    let (result_high, result_low): (u128, u256) = mul_256_128(a, b);
+    assert!(is_zero_128(result_high));
+
+    result_low
+}
+
 /// Normalizes the dividend and divisor for Algorithm D by multiplying 
 /// both u256 and u128 by the same factor, ensuring that 
 /// the most significant non-zero word of `b` is at least 2^63.
-fn normalize_to_threshold_256_63(a: u256, b: u128, is_b_u128: bool) -> (u256, u256, u128, u64) {
+/// 
+/// Returns the normalized `a` as a `(u64, u256)` pair and the normalized
+/// `b` as a `(u128, u64)` pair. 
+/// The `is_b_u128` flag indicates whether `b` is a u128 or u64 value.
+fn normalize_to_threshold_256_63(a: u256, b: u128, is_b_u128: bool) -> (u64, u256, u128, u64) {
     let norm: u64 = calculate_normalizer_base_64(b, is_b_u128);
     let norm_128: u128 = <(u64, u64)>::into((0, norm));
 
     match jet::eq_64(norm, 1) {
         true => (0, a, b, norm),
         false => {
-            let (high, low): (u256, u256) = mul_256(a, <(u128, u128)>::into((0, norm_128)));
+            let (high, low): (u64, u256) = mul_256_64(a, norm);
             let b_norm: u128 = safe_mul_128(b, norm_128);
 
             (high, low, b_norm, norm)
@@ -278,7 +337,10 @@ fn normalize_to_threshold_256_63(a: u256, b: u128, is_b_u128: bool) -> (u256, u2
 /// Normalizes the dividend and divisor for Algorithm D by multiplying 
 /// both u256 values by the same factor, ensuring that 
 /// the most significant non-zero word of `b` is at least 2^127.
-fn normalize_to_threshold_256_127(a: u256, b: u256) -> (u256, u256, u256) {
+/// 
+/// The normalized dividend fits into 384 bits and is returned as a
+/// `(u128, u256)` pair. The normalized divisor fits into a `u256`.
+fn normalize_to_threshold_256_127(a: u256, b: u256) -> (u128, u256, u256) {
     // Compile-time constant: 2^127
     let threshold: u128 = 0x80000000000000000000000000000000;
 
@@ -295,13 +357,12 @@ fn normalize_to_threshold_256_127(a: u256, b: u256) -> (u256, u256, u256) {
             norm
         }
     };
-    let norm: u256 = <(u128, u128)>::into((0, norm));
 
     match lt_128(b_high, threshold) {
         true => {
-            let (high, low): (u256, u256) = mul_256(a, norm);
+            let (high, low): (u128, u256) = mul_256_128(a, norm);
 
-            (high, low, safe_mul_256(b, norm))
+            (high, low, safe_mul_256_128(b, norm))
         },
         false => (0, a, b),
     }
@@ -320,7 +381,7 @@ pub fn div_mod_256_64(dividend: u256, divisor: u64) -> (u256, u64) {
 
     // normalized dividend fits into 256 bits because remainder < divisor and 
     // divisor * norm fits into u64, so dividend * norm also fits
-    let (_, norm_dividend_low, norm_divisor, norm): (u256, u256, u128, u64) = 
+    let (_, norm_dividend_low, norm_divisor, norm): (u64, u256, u128, u64) = 
         normalize_to_threshold_256_63(dividend, divisor, false);
 
     let (u3, u2, u1, u0): (u64, u64, u64, u64) = split_256_into_64(norm_dividend_low);
@@ -355,11 +416,11 @@ fn mul_and_sub(q: u64, u2: u64, u1: u64, u0: u64, v: u128) -> (u64, u64) {
 /// Implements Algorithm D by Donald Knuth.
 /// Requires the upper half of the divisor to be non-zero (divisor >= 2^64)
 fn algorithm_d_256_128(dividend: u256, divisor: u128) -> (u256, u128) {
-    let (norm_dividend_high, norm_dividend_low, norm_divisor, norm): (u256, u256, u128, u64) = 
+    let (u4, norm_dividend_low, norm_divisor, norm): (u64, u256, u128, u64) = 
         normalize_to_threshold_256_63(dividend, divisor, true);
 
     // normalized dividend fits into 320 bits
-    let (_, _, _, u4): (u64, u64, u64, u64) = split_256_into_64(norm_dividend_high);
+    //let (_, _, _, u4): (u64, u64, u64, u64) = split_256_into_64(norm_dividend_high);
     let (u3, u2, u1, u0): (u64, u64, u64, u64) = split_256_into_64(norm_dividend_low);
     let (v1, v0): (u64, u64) = <u128>::into(norm_divisor);
 
@@ -398,10 +459,8 @@ pub fn div_mod_256_128(dividend: u256, divisor: u128) -> (u256, u128) {
 /// Implements Algorithm D by Donald Knuth.
 /// Requires the upper half of the divisor to be non-zero (divisor >= 2^128).
 fn algorithm_d_256_256(dividend: u256, divisor: u256) -> (u128, u256) {
-    let (norm_dividend_high, norm_dividend_low, norm_divisor): (u256, u256, u256) = normalize_to_threshold_256_127(dividend, divisor);
+    let (u2, norm_dividend_low, norm_divisor): (u128, u256, u256) = normalize_to_threshold_256_127(dividend, divisor);
 
-    // normalized dividend fits into 384 bits
-    let (_, u2): (u128, u128) = <u256>::into(norm_dividend_high);
     let (u1, u0): (u128, u128) = <u256>::into(norm_dividend_low);
     let (v1, v0): (u128, u128) = <u256>::into(norm_divisor);
 
@@ -439,7 +498,7 @@ fn algorithm_d_256_256(dividend: u256, divisor: u256) -> (u128, u256) {
         false => q_hat,
     };
 
-    let remainder: u256 = safe_sub_256(dividend, safe_mul_256(divisor, <(u128, u128)>::into((0, q))));
+    let remainder: u256 = safe_sub_256(dividend, safe_mul_256_128(divisor, q));
     (q, remainder)
 }
 
