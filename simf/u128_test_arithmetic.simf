@@ -1,4 +1,19 @@
-use crate::lib::u128::{ eq_128, is_zero_128, lt_128, le_128, add_128, add_128_64, sub_128, mul_128, split_256_into_64, normalize_to_threshold, algorithm_d, div_mod_128_64, div_mod_128, div_128 };
+use crate::lib::u128::math::{
+    eq_128,
+    is_zero_128,
+    lt_128,
+    le_128,
+    add_128,
+    add_128_64,
+    sub_128,
+    mul_128,
+    split_256_into_64,
+    normalize_to_threshold,
+    algorithm_d,
+    div_mod_128_64,
+    div_mod_128,
+    div_128
+};
 use crate::helper::{if_test_this_function, assert_bool};
 
 /// Asserts a result equals expected u128 and bool values. 
@@ -7,7 +22,7 @@ fn assert_eq_uint_bool(result: (bool, u128), expected: u128, expected_bool: bool
     let (bool_res, uint_res): (bool, u128) = result;
 
     assert_bool(bool_res, expected_bool);
-    
+
     assert!(eq_128(uint_res, expected));
 }
 
@@ -37,7 +52,7 @@ fn main() {
             let result: u256 = mul_128(a, b);
 
             let (result_high, result_low): (u128, u128) = <u256>::into(result);
-                
+
             assert!(eq_128(result_high, unwrap(expected)));
             assert!(eq_128(result_low, second_expected));
         },
@@ -51,7 +66,7 @@ fn main() {
 
             let (expected1, expected2): (u64, u64) = <u128>::into(unwrap(expected));
             let (expected3, expected4): (u64, u64) = <u128>::into(second_expected);
-                
+
             assert!(jet::eq_64(res1, expected1));
             assert!(jet::eq_64(res2, expected2));
             assert!(jet::eq_64(res3, expected3));

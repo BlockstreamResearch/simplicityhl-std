@@ -8,7 +8,7 @@ use crate::lib::u8::convert::{
     safe_u8_to_u1
 };
 // use crate::lib::u256::{split_256_into_64}; TODO: uncomment when u256 functions are merged
-use crate::lib::u128::eq_128;
+use crate::lib::u128::math::eq_128;
 use crate::lib::asserts::assert_eq_1;
 use crate::helper::if_test_this_function;
 

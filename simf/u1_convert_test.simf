@@ -7,7 +7,7 @@ use crate::lib::u1::convert::{
     u1_to_u256,
     u1_to_bool
 };
-use crate::lib::u128::eq_128;
+use crate::lib::u128::math::eq_128;
 use crate::lib::asserts::assert_eq_bool;
 use crate::helper::if_test_this_function;
 

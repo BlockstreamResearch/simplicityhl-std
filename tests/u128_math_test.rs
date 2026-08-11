@@ -2,15 +2,15 @@ mod common;
 
 use common::uint::TestUint;
 
-use simplicityhl_std::artifacts::u128_test::U128TestProgram;
-use simplicityhl_std::artifacts::u128_test::derived_u128_test::{
-    U128TestArguments, U128TestWitness,
+use simplicityhl_std::artifacts::u128_math_test::U128MathTestProgram;
+use simplicityhl_std::artifacts::u128_math_test::derived_u128_math_test::{
+    U128MathTestArguments, U128MathTestWitness,
 };
 
 // The only per-width code for the common operations.
 impl TestUint for u128 {
-    type Program = U128TestProgram;
-    type Witness = U128TestWitness;
+    type Program = U128MathTestProgram;
+    type Witness = U128MathTestWitness;
 
     const ZERO: u128 = 0;
     const ONE: u128 = 1;
@@ -18,12 +18,12 @@ impl TestUint for u128 {
     const HALF_MAX: u128 = u128::MAX / 2;
     const MUL_BOUND: u128 = 1 << 64; // 2^(128/2)
 
-    fn program() -> U128TestProgram {
-        U128TestProgram::new(U128TestArguments {})
+    fn program() -> U128MathTestProgram {
+        U128MathTestProgram::new(U128MathTestArguments {})
     }
 
-    fn witness(op: u8, a: u128, b: u128, expected: Option<u128>) -> U128TestWitness {
-        U128TestWitness {
+    fn witness(op: u8, a: u128, b: u128, expected: Option<u128>) -> U128MathTestWitness {
+        U128MathTestWitness {
             function_index: op,
             first_arg: a,
             second_arg: b,
@@ -32,7 +32,7 @@ impl TestUint for u128 {
     }
 }
 
-mod u128_tests {
+mod u128_math_tests {
     use super::*;
 
     // Stamps the 16 `#[simplex::test]` entry points for u128. Logic lives in common::uint.
