@@ -1,0 +1,82 @@
+use crate::lib::u1::convert::u1_to_u128;
+use crate::lib::u8::convert::u8_to_u128;
+use crate::lib::u16::convert::u16_to_u128;
+use crate::lib::u32::convert::u32_to_u128;
+// use crate::lib::u64::convert::u64_to_u128; TODO: add when merged
+use crate::lib::u128::math::le_128;
+
+/// Widening uint conversions
+
+/// Converts u128 to u256
+pub fn u128_to_u256(a: u128) -> u256 {
+    <(u128, u128)>::into((0, a))
+}
+
+/// Splitting uint conversions
+
+/// Splits u128 into four u32
+pub fn split_u128_to_u32(a: u128) -> (u32, u32, u32, u32) {
+    <u128>::into(a)
+}
+
+/// Splits u128 into two u64
+pub fn split_u128_to_u64(a: u128) -> (u64, u64) {
+    <u128>::into(a)
+}
+
+/// Narrowing uint conversions
+
+/// Converts u128 into u1.
+/// Panics if the value does not fit in u1
+pub fn safe_u128_to_u1(a: u128) -> u1 {
+    let u1_max: u128 = u1_to_u128(jet::high_1());
+    let (_, a_64): (u64, u64) = split_u128_to_u64(a);
+
+    assert!(le_128(a, u1_max));
+
+    jet::rightmost_64_1(a_64)
+}
+
+/// Converts u128 into u8.
+/// Panics if the value does not fit in u8
+pub fn safe_u128_to_u8(a: u128) -> u8 {
+    let u8_max: u128 = u8_to_u128(jet::high_8());
+    let (_, a_64): (u64, u64) = split_u128_to_u64(a);
+
+    assert!(le_128(a, u8_max));
+
+    jet::rightmost_64_8(a_64)
+}
+
+/// Converts u128 into u16.
+/// Panics if the value does not fit in u16
+pub fn safe_u128_to_u16(a: u128) -> u16 {
+    let u16_max: u128 = u16_to_u128(jet::high_16());
+    let (_, a_64): (u64, u64) = split_u128_to_u64(a);
+
+    assert!(le_128(a, u16_max));
+
+    jet::rightmost_64_16(a_64)
+}
+
+/// Converts u128 into u32.
+/// Panics if the value does not fit in u32
+pub fn safe_u128_to_u32(a: u128) -> u32 {
+    let u32_max: u128 = u32_to_u128(jet::high_32());
+    let (_, a_64): (u64, u64) = split_u128_to_u64(a);
+
+    assert!(le_128(a, u32_max));
+
+    jet::rightmost_64_32(a_64)
+}
+
+/// Converts u128 into u64.
+/// Panics if the value does not fit in u64
+pub fn safe_u128_to_u64(a: u128) -> u64 {
+    let u64_max: u128 = <(u64, u64)>::into((0, jet::high_64()));
+    let (_, a_64): (u64, u64) = split_u128_to_u64(a);
+
+    assert!(le_128(a, u64_max));
+
+    a_64
+}
