@@ -1,7 +1,7 @@
 use crate::lib::u128::convert::{
     u128_to_u256,
-    split_u128_to_u32,
-    split_u128_to_u64,
+    split_u128_into_u32,
+    split_u128_into_u64,
     safe_u128_to_u1,
     safe_u128_to_u8,
     safe_u128_to_u16,
@@ -34,7 +34,7 @@ fn main() {
 
     match if_test_this_function(1, fn_idx) {
         true => {
-            let (a3, a2, a1, a0): (u32, u32, u32, u32) = split_u128_to_u32(a);
+            let (a3, a2, a1, a0): (u32, u32, u32, u32) = split_u128_into_u32(a);
 
             let (_, _, expected1, expected0): (u64, u64, u64, u64) = <u256>::into(expected);
             let (expected3, expected2): (u32, u32) = <u64>::into(expected1);
@@ -50,7 +50,7 @@ fn main() {
 
     match if_test_this_function(2, fn_idx) {
         true => {
-            let (a1, a0): (u64, u64) = split_u128_to_u64(a);
+            let (a1, a0): (u64, u64) = split_u128_into_u64(a);
 
             let (_, _, expected1, expected0): (u64, u64, u64, u64) = <u256>::into(expected);
 

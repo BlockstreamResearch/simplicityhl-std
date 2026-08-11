@@ -15,12 +15,12 @@ pub fn u128_to_u256(a: u128) -> u256 {
 /// Splitting uint conversions
 
 /// Splits u128 into four u32
-pub fn split_u128_to_u32(a: u128) -> (u32, u32, u32, u32) {
+pub fn split_u128_into_u32(a: u128) -> (u32, u32, u32, u32) {
     <u128>::into(a)
 }
 
 /// Splits u128 into two u64
-pub fn split_u128_to_u64(a: u128) -> (u64, u64) {
+pub fn split_u128_into_u64(a: u128) -> (u64, u64) {
     <u128>::into(a)
 }
 
@@ -30,7 +30,7 @@ pub fn split_u128_to_u64(a: u128) -> (u64, u64) {
 /// Panics if the value does not fit in u1
 pub fn safe_u128_to_u1(a: u128) -> u1 {
     let u1_max: u128 = u1_to_u128(jet::high_1());
-    let (_, a_64): (u64, u64) = split_u128_to_u64(a);
+    let (_, a_64): (u64, u64) = split_u128_into_u64(a);
 
     assert!(le_128(a, u1_max));
 
@@ -41,7 +41,7 @@ pub fn safe_u128_to_u1(a: u128) -> u1 {
 /// Panics if the value does not fit in u8
 pub fn safe_u128_to_u8(a: u128) -> u8 {
     let u8_max: u128 = u8_to_u128(jet::high_8());
-    let (_, a_64): (u64, u64) = split_u128_to_u64(a);
+    let (_, a_64): (u64, u64) = split_u128_into_u64(a);
 
     assert!(le_128(a, u8_max));
 
@@ -52,7 +52,7 @@ pub fn safe_u128_to_u8(a: u128) -> u8 {
 /// Panics if the value does not fit in u16
 pub fn safe_u128_to_u16(a: u128) -> u16 {
     let u16_max: u128 = u16_to_u128(jet::high_16());
-    let (_, a_64): (u64, u64) = split_u128_to_u64(a);
+    let (_, a_64): (u64, u64) = split_u128_into_u64(a);
 
     assert!(le_128(a, u16_max));
 
@@ -63,7 +63,7 @@ pub fn safe_u128_to_u16(a: u128) -> u16 {
 /// Panics if the value does not fit in u32
 pub fn safe_u128_to_u32(a: u128) -> u32 {
     let u32_max: u128 = u32_to_u128(jet::high_32());
-    let (_, a_64): (u64, u64) = split_u128_to_u64(a);
+    let (_, a_64): (u64, u64) = split_u128_into_u64(a);
 
     assert!(le_128(a, u32_max));
 
@@ -74,7 +74,7 @@ pub fn safe_u128_to_u32(a: u128) -> u32 {
 /// Panics if the value does not fit in u64
 pub fn safe_u128_to_u64(a: u128) -> u64 {
     let u64_max: u128 = <(u64, u64)>::into((0, jet::high_64()));
-    let (_, a_64): (u64, u64) = split_u128_to_u64(a);
+    let (_, a_64): (u64, u64) = split_u128_into_u64(a);
 
     assert!(le_128(a, u64_max));
 

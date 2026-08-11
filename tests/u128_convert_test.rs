@@ -58,7 +58,7 @@ mod u128_convert_test {
     }
 
     #[simplex::test]
-    fn u128_convert_test_split_u128_to_u32(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u128_convert_test_split_u128_into_u32(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u128::MAX);
 
         run(
@@ -74,7 +74,7 @@ mod u128_convert_test {
     }
 
     #[simplex::test]
-    fn u128_convert_test_split_u128_to_u64(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u128_convert_test_split_u128_into_u64(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u128::MAX);
 
         run(
