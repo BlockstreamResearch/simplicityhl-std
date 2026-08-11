@@ -90,7 +90,7 @@ mod u32_convert_test {
     }
 
     #[simplex::test]
-    fn u32_convert_test_split_u32_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u32_convert_test_split_u32_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
         run(
@@ -106,7 +106,7 @@ mod u32_convert_test {
     }
 
     #[simplex::test]
-    fn u32_convert_test_split_u32_to_u16(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u32_convert_test_split_u32_into_u16(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
         run(
