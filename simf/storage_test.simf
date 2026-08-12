@@ -1,0 +1,14 @@
+use crate::lib::storage::{load, store};
+use crate::helper::if_test_this_function;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let state_data: u256 = witness::STATE_DATA;
+    let new_state: u256 = witness::NEW_STATE;
+    let index: u32 = witness::INDEX;
+
+    match if_test_this_function(0, fn_idx) { true => { load(state_data); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { store(new_state, index); }, false => (), };
+    match if_test_this_function(2, fn_idx) { true => { load(state_data); store(new_state, index); }, false => (), };
+}
