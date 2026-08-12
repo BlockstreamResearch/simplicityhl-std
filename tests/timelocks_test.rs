@@ -55,7 +55,7 @@ fn seq_duration(units: u16) -> Sequence {
     Sequence::from_consensus((1u32 << 22) | u32::from(units))
 }
 
-mod timelocks_test {
+mod timelocks_tests {
     use super::*;
 
     // ---------- shared: transaction version precondition ----------
