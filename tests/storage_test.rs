@@ -3,7 +3,7 @@ mod common;
 use simplex::simplicityhl::elements::Sequence;
 use simplex::transaction::PartialOutput;
 
-use common::core::{construct_final_tx, fund, run, run_with_outputs, Expect};
+use common::core::{assert_error_msg, construct_final_tx, fund, run, run_with_outputs, Expect};
 
 use simplicityhl_std::artifacts::op_return_test::OpReturnTestProgram;
 use simplicityhl_std::artifacts::op_return_test::derived_op_return_test::OpReturnTestArguments;
@@ -264,5 +264,59 @@ mod storage_tests {
         context.get_default_signer().broadcast(&ft3)?;
 
         Ok(())
+    }
+
+    #[simplex::test]
+    fn state_chain_second_hop_wrong_state_fails(context: simplex::TestContext) -> anyhow::Result<()> {
+        // Same shape as `state_chain_store_load_store_load`, but the second hop claims
+        // the wrong prior state -- demonstrating that a real, otherwise-legitimate chain
+        // genuinely halts if someone tries to continue it with a state that doesn't
+        // match what was actually committed, rather than the covenant just trusting
+        // whatever the witness happens to assert.
+        const STATE_1: [u8; 32] = [0x11; 32];
+        const WRONG_STATE_1: [u8; 32] = [0x99; 32];
+        const STATE_2: [u8; 32] = [0x22; 32];
+
+        let mut state1_program = program().with_storage_capacity(1);
+        state1_program.set_storage_at(0, STATE_1);
+        let state1_script = state1_program.as_ref().get_script_pubkey(context.get_network());
+
+        let mut state2_program = program().with_storage_capacity(1);
+        state2_program.set_storage_at(0, STATE_2);
+        let state2_script = state2_program.as_ref().get_script_pubkey(context.get_network());
+
+        let asset = context.get_network().policy_asset();
+
+        // Step 1 (genesis): spend a bare instance of the covenant, storing STATE_1 into
+        // output 0. This step succeeds -- the chain is genuinely underway.
+        let genesis_script = fund(&context, &program())?;
+        let ft1 = construct_final_tx(
+            &context,
+            &program(),
+            &genesis_script,
+            build_store_witness(STATE_1, 0),
+            Sequence::default(),
+            vec![PartialOutput::new(state1_script.clone(), 50, asset)],
+        )?;
+        context.get_default_signer().broadcast(&ft1)?.wait()?;
+
+        // Step 2 (transition, with a WRONG claimed prior state): spend the
+        // STATE_1-committing output, but claim WRONG_STATE_1 instead of STATE_1.
+        // `load`'s assert fails before `store` -- or broadcast -- ever comes into play.
+        let ft2 = construct_final_tx(
+            &context,
+            &state1_program,
+            &state1_script,
+            build_transition_witness(WRONG_STATE_1, STATE_2, 0),
+            Sequence::default(),
+            vec![PartialOutput::new(state2_script.clone(), 50, asset)],
+        )?;
+        let result2 = context
+            .get_default_signer()
+            .broadcast(&ft2)
+            .map(|receipt| receipt.to_string())
+            .map_err(anyhow::Error::from);
+
+        assert_error_msg(result2, Expect::AssertFailed)
     }
 }
