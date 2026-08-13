@@ -103,60 +103,6 @@ Q. Are there (or could there be) standard protocols or conventions for (1) coven
 * `is_none`, `is_some` (as generic macros)
   * We currently have `is_none<T>` where the type must be specified explicitly, but the compiler could figure out what it is and not require specifying it.
 * Oracle interpretation, once some oracle formats are standardized
-* Relative timelocks (replacements for deprecated jets).
-  * Implementations:
-  * ```javascript
-    fn enforce_relative_distance(min_distance: Distance) {
-        // Assert that the current input is spent in a transaction that can
-        // only appear a distance of at least min_distance blocks after the input's
-        // UTXO. Panic otherwise.
-    
-        // Transaction version must be at least 2.
-        assert!(jet::le_32(2, jet::version()));
-    
-        // Fetch and parse sequence for current transaction
-        let parsed_seq: Option<Either<Distance, Duration>> = jet::parse_sequence(jet::current_sequence());
-    
-        match parsed_seq {
-            // Failure condition
-            None => assert!(false),
-            // This is either a distance or a duration, but only a distance is
-            // acceptable here.
-            Some(actual_data: Either<Distance, Duration>) => match actual_data {
-                // Is the actual distance greater than or equal to the specified min_distance?
-                Left(actual_distance: Distance) => assert!(jet::le_16(min_distance, actual_distance)),
-                // A duration is not acceptable in this context.
-                Right(actual_duration: Duration) => assert!(false),
-            },
-        }
-    }
-    
-    fn enforce_relative_duration(min_duration: Duration) {
-        // Assert that the current input is spent in a transaction that can only
-        // appear a duration of at least min_duration units of 512 seconds after
-        // the input's UTXO. Panic otherwise.
-    
-        // Transaction version must be at least 2.
-        assert!(jet::le_32(2, jet::version()));
-    
-        // Fetch and parse sequence for current transaction
-        let parsed_seq: Option<Either<Distance, Duration>> = jet::parse_sequence(jet::current_sequence());
-    
-        match parsed_seq {
-            // Failure condition
-            None => assert!(false),
-            // This is either a distance or a duration, but only a duration is
-            // acceptable here.
-            Some(actual_data: Either<Distance, Duration>) => match actual_data {
-                // A distance is not acceptable in this context.
-                Left(actual_distance: Distance) => assert!(false),
-                // Is the actual duration greater than or equal to the specified min_duration?
-                Right(actual_duration: Duration) => assert!(jet::le_16(min_duration, actual_duration)),
-            },
-        }
-    }
-    
-    ```
-    * See also <https://docs.simplicity-lang.org/documentation/timelock> 
+√ Relative timelocks (replacements for deprecated jets). See also <https://docs.simplicity-lang.org/documentation/timelock> 
 * Fee management?
 * More convenient SHA256?
