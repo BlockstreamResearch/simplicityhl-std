@@ -12,6 +12,8 @@ use simplicityhl_std::artifacts::u128_convert_test::derived_u128_convert_test::{
 
 enum FunctionToTest {
     U128ToU256,
+    SplitU128IntoU8,
+    SplitU128IntoU16,
     SplitU128IntoU32,
     SplitU128IntoU64,
     SafeU128ToU1,
@@ -50,6 +52,38 @@ mod u128_convert_test {
             program(),
             build_witness(
                 op(FunctionToTest::U128ToU256),
+                a,
+                U256::from(a).to_big_endian(),
+            ),
+            Expect::Ok,
+        )
+    }
+    
+        #[simplex::test]
+    fn u128_convert_test_split_u128_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u128::MAX);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::SplitU128IntoU8),
+                a,
+                U256::from(a).to_big_endian(),
+            ),
+            Expect::Ok,
+        )
+    }
+
+        #[simplex::test]
+    fn u128_convert_test_split_u128_into_u16(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u128::MAX);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::SplitU128IntoU16),
                 a,
                 U256::from(a).to_big_endian(),
             ),

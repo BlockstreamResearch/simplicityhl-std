@@ -14,6 +14,18 @@ pub fn u128_to_u256(a: u128) -> u256 {
 
 /// Splitting uint conversions
 
+/// Splits u128 into sixteen u8
+pub fn split_u128_into_u8(
+    a: u128
+) -> (u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8) {
+    <u128>::into(a)
+}
+
+/// Splits u128 into eight u16
+pub fn split_u128_into_u16(a: u128) -> (u16, u16, u16, u16, u16, u16, u16, u16) {
+    <u128>::into(a)
+}
+
 /// Splits u128 into four u32
 pub fn split_u128_into_u32(a: u128) -> (u32, u32, u32, u32) {
     <u128>::into(a)
