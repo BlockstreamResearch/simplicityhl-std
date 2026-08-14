@@ -1,0 +1,38 @@
+use crate::lib::ct::relations::{
+    zero, add, sub, add_scaled, sub_scaled, is_balanced, assert_balanced,
+    is_scaled_eq, assert_scaled_eq, is_value_eq, assert_value_eq,
+    assert_ratio_eq, assert_sum_eq
+};
+use crate::lib::ct::commitment::{
+    asset_generator, value_commitment,
+    assert_asset_generator, assert_value_commitment, assert_opens_to
+};
+use crate::lib::secp256k1::operations::point_to_ge;
+
+fn main() {
+    let p: Point = witness::P;
+    let q: Point = witness::Q;
+    let s: Scalar = witness::S;
+    let id: u256 = witness::ID;
+    let asset: Asset1 = witness::ASSET;
+    let amount: Amount1 = witness::AMOUNT;
+
+    let acc: Gej = sub_scaled(add_scaled(sub(add(zero(), p), q), 2, p), 3, q);
+    assert!(is_balanced(acc, s));
+    assert_balanced(acc, s);
+
+    assert!(is_scaled_eq(q, 2, p, s));
+    assert_scaled_eq(q, 2, p, s);
+    assert!(is_value_eq(p, q, s));
+    assert_value_eq(p, q, s);
+    assert_ratio_eq(3, p, 5, q, s);
+    assert_sum_eq(p, q, p, s);
+
+    let h: Gej = asset_generator(id, s);
+    let c: Gej = value_commitment(7, h, s);
+    assert!(jet::gej_is_on_curve(c));
+
+    assert_asset_generator(point_to_ge(p), id, s);
+    assert_value_commitment(point_to_ge(p), 7, point_to_ge(q), s);
+    assert_opens_to(asset, amount, id, 7, s, s);
+}

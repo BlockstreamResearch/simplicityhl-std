@@ -1,0 +1,79 @@
+/*
+ * Confidential Transactions: relations between commitments.
+ *
+ * Nothing here takes a blinding factor, so nothing here discloses a committed
+ * value. For checks that do reveal a value or an asset id, see
+ * `crate::lib::ct::commitment`.
+ *
+ * A value commitment expands to
+ *
+ *     C = v*H_a + vbf*G  =  v*H_0 + (v*abf + vbf)*G
+ *
+ */
+
+use crate::lib::secp256k1::operations::{point_to_ge, point_to_gej};
+
+/// The empty accumulator (the point at infinity).
+pub fn zero() -> Gej {
+    jet::gej_infinity()
+}
+
+/// `acc + c`
+pub fn add(acc: Gej, c: Point) -> Gej {
+    jet::gej_ge_add(acc, point_to_ge(c))
+}
+
+/// `acc - c`
+pub fn sub(acc: Gej, c: Point) -> Gej {
+    jet::gej_ge_add(acc, jet::ge_negate(point_to_ge(c)))
+}
+
+/// `acc + k*c`
+pub fn add_scaled(acc: Gej, k: Scalar, c: Point) -> Gej {
+    jet::gej_add(acc, jet::scale(k, point_to_gej(c)))
+}
+
+/// `acc - k*c`
+pub fn sub_scaled(acc: Gej, k: Scalar, c: Point) -> Gej {
+    add_scaled(acc, jet::scalar_negate(k), c)
+}
+
+/// Returns true iff `acc == s*G`.
+pub fn is_balanced(acc: Gej, s: Scalar) -> bool {
+    jet::gej_equiv(acc, jet::generate(s))
+}
+
+/// Asserts that `acc == s*G`.
+pub fn assert_balanced(acc: Gej, s: Scalar) {
+    assert!(is_balanced(acc, s));
+}
+
+/// Returns true iff `q == k*p + s*G`.
+pub fn is_scaled_eq(q: Point, k: Scalar, p: Point, s: Scalar) -> bool {
+    jet::gej_ge_equiv(jet::linear_combination_1((k, point_to_gej(p)), s), point_to_ge(q))
+}
+
+/// Asserts that `q == k*p + s*G`.
+pub fn assert_scaled_eq(q: Point, k: Scalar, p: Point, s: Scalar,) {
+    jet::point_verify_1(((k, p), s), q);
+}
+
+/// Returns true iff `p == q + s*G`.
+pub fn is_value_eq(p: Point, q: Point, s: Scalar) -> bool {
+    is_scaled_eq(q, 1, p, s)
+}
+
+/// Asserts that `p == q + s*G`, i.e. that two commitments hold the same value.
+pub fn assert_value_eq(p: Point, q: Point, s: Scalar) {
+    assert_scaled_eq(q, 1, p, s);
+}
+
+/// Asserts that `a*x == b*y + s*G`.
+pub fn assert_ratio_eq(a: Scalar, x: Point, b: Scalar, y: Point, s: Scalar) {
+    assert_balanced(sub_scaled(add_scaled(zero(), a, x), b, y), s);
+}
+
+/// Asserts that `c1 + c2 == c_sum + s*G`.
+pub fn assert_sum_eq(c1: Point, c2: Point, c_sum: Point, s: Scalar) {
+    assert_balanced(sub(add(add(zero(), c1), c2), c_sum), s);
+}
