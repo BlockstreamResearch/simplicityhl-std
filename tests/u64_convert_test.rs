@@ -13,8 +13,8 @@ use simplicityhl_std::artifacts::u64_convert_test::derived_u64_convert_test::{
 enum FunctionToTest {
     U64ToU128,
     U64ToU256,
-    SplitU64ToU16,
-    SplitU64ToU32,
+    SplitU64IntoU16,
+    SplitU64IntoU32,
     SafeU64ToU1,
     SafeU64ToU8,
     SafeU64ToU16,
@@ -74,14 +74,14 @@ mod u64_convert_test {
     }
 
     #[simplex::test]
-    fn u64_convert_test_split_u64_to_u16(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u64_convert_test_split_u64_into_u16(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u64::MAX);
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::SplitU64ToU16),
+                op(FunctionToTest::SplitU64IntoU16),
                 a,
                 U256::from(a).to_big_endian(),
             ),
@@ -90,14 +90,14 @@ mod u64_convert_test {
     }
 
     #[simplex::test]
-    fn u64_convert_test_split_u64_to_u32(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u64_convert_test_split_u64_into_u32(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u64::MAX);
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::SplitU64ToU32),
+                op(FunctionToTest::SplitU64IntoU32),
                 a,
                 U256::from(a).to_big_endian(),
             ),

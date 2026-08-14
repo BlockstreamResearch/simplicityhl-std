@@ -22,12 +22,12 @@ pub fn u32_to_u256(a: u32) -> u256 {
 /// Splitting uint conversions
 
 /// Splits u32 into four u8
-pub fn split_u32_into_u8(a: u32) -> (u8, u8, u8, u8) {
+pub fn split_u32_to_u8(a: u32) -> (u8, u8, u8, u8) {
     <u32>::into(a)
 }
 
 /// Splits u32 into two u16
-pub fn split_u32_into_u16(a: u32) -> (u16, u16) {
+pub fn split_u32_to_u16(a: u32) -> (u16, u16) {
     <u32>::into(a)
 }
 
