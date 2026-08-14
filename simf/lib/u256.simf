@@ -1,5 +1,5 @@
 use crate::lib::binary::{not, and};
-use crate::lib::u128::{
+use crate::lib::u128::math::{
     and_128,
     or_128,
     eq_128,
