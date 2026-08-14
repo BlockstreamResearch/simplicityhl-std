@@ -1,6 +1,6 @@
 mod common;
 
-use simplex::simplicityhl::elements::Sequence;
+use simplex::simplicityhl::elements::{Script, Sequence};
 use simplex::transaction::PartialOutput;
 
 use common::core::{assert_error_msg, construct_final_tx, fund, run, run_with_outputs, Expect};
@@ -202,6 +202,56 @@ mod storage_tests {
             program(),
             build_store_witness(STATE_A, 0),
             vec![(other_script, 50)],
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn store_wrong_taproot_leaf_fails(context: simplex::TestContext) -> anyhow::Result<()> {
+        // (7) The output *is* a genuine Taproot output -- just not a Simplicity one. It's a
+        // real BIP-341 P2TR output whose sole leaf is an ordinary Bitcoin Script (OP_TRUE),
+        // combined with the same NUMS internal key our own contracts use, at the standard
+        // Elements Tapscript leaf version (0xc4, not Bitcoin's 0xc0). This scriptPubkey was
+        // computed once, out of band, with a throwaway generator built on the same taproot
+        // APIs `Program` itself uses (`TaprootBuilder`, `finalize`, `Address::p2tr`), then
+        // hardcoded here -- so the test doesn't need to reconstruct real BIP-341 tweaking
+        // machinery just to exercise this one case.
+        //
+        // `jet::output_script_hash` hashes the raw scriptPubKey bytes, whatever they are.
+        // So the hash here is `Some(...)`, just the wrong one, and `store`'s `assert!`
+        // fails on the mismatch -- unlike `store_nonexistent_index_fails`, this never reaches
+        // the pruned-branch case.
+
+        let alternate_leaf_script = Script::from(vec![
+            0x51, 0x20, 0xe4, 0xd6, 0x4b, 0x74, 0x54, 0x4b, 0xe8, 0x37, 0x4e, 0x44, 0x98, 0x19,
+            0xb5, 0x1c, 0xde, 0xe2, 0x9f, 0xec, 0x36, 0x3a, 0x71, 0xa8, 0x5a, 0x42, 0xb0, 0x9d,
+            0xbe, 0xb7, 0x92, 0xfc, 0x53, 0xf8,
+        ]);
+
+        run_with_outputs(
+            &context,
+            program(),
+            build_store_witness(STATE_A, 0),
+            vec![(alternate_leaf_script, 50)],
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn store_non_taproot_output_fails(context: simplex::TestContext) -> anyhow::Result<()> {
+        // (8) The output isn't a Taproot output at all -- a plain P2WPKH (SegWit v0)
+        // scriptPubkey, `OP_0 <20-byte-hash>`. The scriptPubKey is still wrong for our
+        // store() purposes, as this is another way in which an output can be "not us".
+        let p2wpkh_script = Script::from(vec![
+            0x00, 0x14, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc,
+            0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44,
+        ]);
+
+        run_with_outputs(
+            &context,
+            program(),
+            build_store_witness(STATE_A, 0),
+            vec![(p2wpkh_script, 50)],
             Expect::AssertFailed,
         )
     }
