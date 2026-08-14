@@ -1,0 +1,124 @@
+/*
+ * Confidential Transactions: relations between commitments.
+ *
+ * Nothing here takes a blinding factor, so nothing here discloses a committed
+ * value. For checks that do reveal a value or an asset id, see
+ * `crate::lib::ct::commitment`.
+ *
+ * A value commitment expands to
+ *
+ *     C = v*H_a + vbf*G  =  v*H_0 + (v*abf + vbf)*G
+ */
+
+use crate::lib::secp256k1::operations::{point_to_ge, point_to_gej};
+use crate::lib::u64::convert::u64_to_u256;
+
+/// Returns the generator that an amount of `asset` commits against:
+/// the blinded generator if `asset` is confidential, else `hash_to_curve(asset_id)`.
+pub fn asset_to_ge(asset: Asset1) -> Ge {
+    match asset {
+        Left(conf_asset: Point) => point_to_ge(conf_asset),
+        Right(explicit_asset: u256) => jet::hash_to_curve(explicit_asset),
+    }
+}
+
+/// Returns the value commitment of an `(asset, amount)` pair.
+/// An explicit amount `v` becomes the unblinded commitment `v*H_a`, as in Elements.
+pub fn amount_to_gej(asset: Asset1, amount: Amount1) -> Gej {
+    match amount {
+        Left(conf_amount: Point) => point_to_gej(conf_amount),
+        Right(explicit_amount: u64) => {
+            jet::scale(u64_to_u256(explicit_amount), (asset_to_ge(asset), 1))
+        },
+    }
+}
+
+/// The empty accumulator (the point at infinity).
+pub fn zero() -> Gej {
+    jet::gej_infinity()
+}
+
+/// `acc + c`
+pub fn add(acc: Gej, c: Point) -> Gej {
+    jet::gej_ge_add(acc, point_to_ge(c))
+}
+
+/// `acc - c`
+pub fn sub(acc: Gej, c: Point) -> Gej {
+    jet::gej_ge_add(acc, jet::ge_negate(point_to_ge(c)))
+}
+
+/// `acc + amount_to_gej(asset, amount)`
+pub fn add_amount(acc: Gej, asset: Asset1, amount: Amount1) -> Gej {
+    jet::gej_add(acc, amount_to_gej(asset, amount))
+}
+
+/// `acc - amount_to_gej(asset, amount)`
+pub fn sub_amount(acc: Gej, asset: Asset1, amount: Amount1) -> Gej {
+    jet::gej_add(acc, jet::gej_negate(amount_to_gej(asset, amount)))
+}
+
+/// `acc + k*c`
+pub fn add_scaled(acc: Gej, k: u64, c: Point) -> Gej {
+    jet::gej_add(acc, jet::scale(u64_to_u256(k), point_to_gej(c)))
+}
+
+/// `acc - k*c`
+pub fn sub_scaled(acc: Gej, k: u64, c: Point) -> Gej {
+    jet::gej_add(acc, jet::gej_negate(jet::scale(u64_to_u256(k), point_to_gej(c))))
+}
+
+/// Returns true iff `acc == s*G`.
+pub fn is_balanced(acc: Gej, s: Scalar) -> bool {
+    jet::gej_equiv(acc, jet::generate(s))
+}
+
+/// Asserts that `acc == s*G`.
+pub fn assert_balanced(acc: Gej, s: Scalar) {
+    assert!(is_balanced(acc, s));
+}
+
+/// Returns true iff `q == k*p + s*G`.
+pub fn is_scaled_eq(q: Point, k: u64, p: Point, s: Scalar) -> bool {
+    jet::gej_ge_equiv(
+        jet::linear_combination_1((u64_to_u256(k), point_to_gej(p)), s),
+        point_to_ge(q)
+    )
+}
+
+/// Asserts that `q == k*p + s*G`, i.e. that `q` holds `k` times the value of `p`.
+pub fn assert_scaled_eq(q: Point, k: u64, p: Point, s: Scalar) {
+    jet::point_verify_1(((u64_to_u256(k), p), s), q);
+}
+
+/// Returns true iff `q == p + s*G`.
+pub fn is_value_eq(q: Point, p: Point, s: Scalar) -> bool {
+    is_scaled_eq(q, 1, p, s)
+}
+
+/// Asserts that `q == p + s*G`, i.e. that two commitments hold the same value.
+pub fn assert_value_eq(q: Point, p: Point, s: Scalar) {
+    assert_scaled_eq(q, 1, p, s);
+}
+
+/// Returns true iff `q == p + s*G` for two asset generators.
+pub fn is_asset_eq(q: Point, p: Point, s: Scalar) -> bool {
+    is_scaled_eq(q, 1, p, s)
+}
+
+/// Asserts that `q == p + s*G`, i.e. that two asset generators blind the same
+/// asset id. Here `s = abf_q - abf_p`.
+pub fn assert_asset_eq(q: Point, p: Point, s: Scalar) {
+    assert_scaled_eq(q, 1, p, s);
+}
+
+/// Asserts that `a*x == b*y + s*G`, i.e. that the values of `x` and `y` are in
+/// the ratio `b : a`.
+pub fn assert_ratio_eq(a: u64, x: Point, b: u64, y: Point, s: Scalar) {
+    assert_balanced(sub_scaled(add_scaled(zero(), a, x), b, y), s);
+}
+
+/// Asserts that `c1 + c2 == c_sum + s*G`.
+pub fn assert_sum_eq(c1: Point, c2: Point, c_sum: Point, s: Scalar) {
+    assert_balanced(sub(add(add(zero(), c1), c2), c_sum), s);
+}
