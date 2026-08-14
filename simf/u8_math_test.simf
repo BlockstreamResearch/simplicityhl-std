@@ -41,22 +41,22 @@ fn main() {
     let expected: Option<u8> = witness::EXPECTED;
 
     // add
-    match if_test_this_function(0, fn_idx) { true => { assert_eq_opt(checked_add_8(a, b), expected); }, false => {}, };
-    match if_test_this_function(1, fn_idx) { true => { assert!(jet::eq_8(safe_add_8(a, b), unwrap(expected))); }, false => {}, };
+    match if_test_this_function(0, fn_idx) { true => { assert_eq_opt(checked_add_8(a, b), expected); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert!(jet::eq_8(safe_add_8(a, b), unwrap(expected))); }, false => (), };
 
     // sub
-    match if_test_this_function(2, fn_idx) { true => { assert_eq_opt(checked_sub_8(a, b), expected); }, false => {}, };
-    match if_test_this_function(3, fn_idx) { true => { assert!(jet::eq_8(safe_sub_8(a, b), unwrap(expected))); }, false => {}, };
+    match if_test_this_function(2, fn_idx) { true => { assert_eq_opt(checked_sub_8(a, b), expected); }, false => (), };
+    match if_test_this_function(3, fn_idx) { true => { assert!(jet::eq_8(safe_sub_8(a, b), unwrap(expected))); }, false => (), };
 
     // mul
-    match if_test_this_function(4, fn_idx) { true => { assert_eq_opt(checked_mul_8(a, b), expected); }, false => {}, };
-    match if_test_this_function(5, fn_idx) { true => { assert!(jet::eq_8(safe_mul_8(a, b), unwrap(expected))); }, false => {}, };
+    match if_test_this_function(4, fn_idx) { true => { assert_eq_opt(checked_mul_8(a, b), expected); }, false => (), };
+    match if_test_this_function(5, fn_idx) { true => { assert!(jet::eq_8(safe_mul_8(a, b), unwrap(expected))); }, false => (), };
 
     // div
-    match if_test_this_function(6, fn_idx) { true => { assert_eq_opt(checked_div_8(a, b), expected); }, false => {}, };
-    match if_test_this_function(7, fn_idx) { true => { assert!(jet::eq_8(safe_div_8(a, b), unwrap(expected))); }, false => {}, };
+    match if_test_this_function(6, fn_idx) { true => { assert_eq_opt(checked_div_8(a, b), expected); }, false => (), };
+    match if_test_this_function(7, fn_idx) { true => { assert!(jet::eq_8(safe_div_8(a, b), unwrap(expected))); }, false => (), };
 
     // gt, ge
-    match if_test_this_function(8, fn_idx) { true => { assert_bool_by_opt(gt_8(a, b), expected); }, false => {}, };
-    match if_test_this_function(9, fn_idx) { true => { assert_bool_by_opt(ge_8(a, b), expected); }, false => {}, };
+    match if_test_this_function(8, fn_idx) { true => { assert_bool_by_opt(gt_8(a, b), expected); }, false => (), };
+    match if_test_this_function(9, fn_idx) { true => { assert_bool_by_opt(ge_8(a, b), expected); }, false => (), };
 }

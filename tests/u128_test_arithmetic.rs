@@ -3,6 +3,7 @@ mod common;
 use primitive_types::U256;
 use rand::Rng;
 
+use crate::common::helper::DEFAULT_BOOL;
 use common::core::{Expect, run};
 
 use simplicityhl_std::artifacts::u128_test_arithmetic::U128TestArithmeticProgram;
@@ -16,11 +17,13 @@ enum FunctionToTest {
     Le128,
     Add128,
     Add128_64,
+    FullAdd128,
     Sub128,
+    FullSub128,
     Mul128,
-    Split256Into64,
-    NormalizeToThreshold,
-    AlgorithmD,
+    Mul128_64,
+    CalculateNormalizerBase64,
+    EstimateQuotientDigitBase64,
     DivMod128_64,
     DivMod128,
     Div128,
@@ -31,7 +34,6 @@ fn op(o: FunctionToTest) -> u8 {
     o as u8
 }
 
-const DEFAULT_BOOL: bool = false;
 const DEFAULT_EXPECTED: u128 = 0;
 
 fn program() -> U128TestArithmeticProgram {
@@ -323,6 +325,110 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
+    fn u128_test_full_add_128_not_overflow_carry_low_false(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u128::MAX / 2);
+        let b = rand::thread_rng().gen_range(0..=u128::MAX / 2);
+        let result = a + b;
+        let result_carry = false;
+        let carry_low = 0_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullAdd128),
+                a,
+                b,
+                Some(result),
+                result_carry,
+                carry_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_full_add_128_overflow_carry_low_false(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = u128::MAX;
+        let b = rand::thread_rng().gen_range(1..=u128::MAX);
+        let result = b - 1;
+        let result_carry = true;
+        let carry_low = 0_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullAdd128),
+                a,
+                b,
+                Some(result),
+                result_carry,
+                carry_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_full_add_128_not_overflow_carry_low_true(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u128::MAX / 2);
+        let b = rand::thread_rng().gen_range(0..=u128::MAX / 2);
+        let result = a + b + 1;
+        let result_carry = false;
+        let carry_low = 1_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullAdd128),
+                a,
+                b,
+                Some(result),
+                result_carry,
+                carry_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_full_add_128_overflow_carry_low_true(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = u128::MAX;
+        let b = rand::thread_rng().gen_range(1..=u128::MAX);
+        let result = b;
+        let result_carry = true;
+        let carry_low = 1_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullAdd128),
+                a,
+                b,
+                Some(result),
+                result_carry,
+                carry_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
     fn u128_test_sub_128_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = rand::thread_rng().gen_range(0..=a);
@@ -464,6 +570,108 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
+    fn u128_test_full_sub_128_borrow_low_false(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u128::MAX);
+        let b = rand::thread_rng().gen_range(0..=a);
+        let result = a - b;
+        let result_borrow = false;
+        let borrow_low = 0_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullSub128),
+                a,
+                b,
+                Some(result),
+                result_borrow,
+                borrow_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_full_sub_128_overflow_borrow_low_false(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..u128::MAX);
+        let b = u128::MAX;
+        let result = a + 1;
+        let result_borrow = true;
+        let borrow_low = 0_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullSub128),
+                a,
+                b,
+                Some(result),
+                result_borrow,
+                borrow_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_full_sub_128_borrow_low_true(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..=u128::MAX);
+        let b = rand::thread_rng().gen_range(0..a);
+        let result = a - b - 1;
+        let result_borrow = false;
+        let borrow_low = 1_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullSub128),
+                a,
+                b,
+                Some(result),
+                result_borrow,
+                borrow_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u128_test_full_sub_128_overflow_borrow_low_true(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..u128::MAX);
+        let b = u128::MAX;
+        let (result, result_borrow) = a.overflowing_sub(b);
+
+        let borrow_low = 1_u128;
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::FullSub128),
+                a,
+                b,
+                Some(result - 1),
+                result_borrow,
+                borrow_low,
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
     fn u128_test_mul_128(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..u128::MAX);
         let b = rand::thread_rng().gen_range(0..u128::MAX);
@@ -488,20 +696,23 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
-    fn u128_test_split_256_into_64(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..=u128::MAX);
-        let b = rand::thread_rng().gen_range(0..=u128::MAX);
+    fn u128_test_mul_128_64(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = rand::thread_rng().gen_range(0..u128::MAX);
+        let b = rand::thread_rng().gen_range(0..u64::MAX);
+        let result = U256::from(a) * U256::from(b);
+
+        let (result_high, result_low) = split_helper(result);
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::Split256Into64),
+                op(FunctionToTest::Mul128_64),
                 a,
-                b,
-                Some(a),
+                b as u128,
+                Some(result_high),
                 DEFAULT_BOOL,
-                b,
+                result_low,
                 DEFAULT_EXPECTED,
             ),
             Expect::Ok,
@@ -509,107 +720,94 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
-    fn u128_test_normalize_to_threshold_b_is_u64(
+    fn u128_test_calculate_normalizer_base_64_b_is_u64(
         context: simplex::TestContext,
     ) -> anyhow::Result<()> {
         let threshold = 1u128 << 63;
 
-        let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = rand::thread_rng().gen_range(1..threshold);
 
         let norm: u128 = threshold.div_ceil(b);
-
-        let result_a = U256::from(a) * U256::from(norm);
-        let result_b = b * norm;
-        let (result_a_high, result_a_low) = split_helper(result_a);
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::NormalizeToThreshold),
-                a,
+                op(FunctionToTest::CalculateNormalizerBase64),
+                DEFAULT_EXPECTED,
                 b,
-                Some(result_a_high),
+                Some(norm),
                 false,
-                result_a_low,
-                result_b,
+                DEFAULT_EXPECTED,
+                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
     }
 
     #[simplex::test]
-    fn u128_test_normalize_to_threshold_b_is_big_enough_not_normalize(
+    fn u128_test_calculate_normalizer_base_64_b_is_big_enough_not_normalize(
         context: simplex::TestContext,
     ) -> anyhow::Result<()> {
         let threshold = 1u128 << 63;
 
-        let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = rand::thread_rng().gen_range(threshold..=u64::MAX as u128);
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::NormalizeToThreshold),
-                a,
+                op(FunctionToTest::CalculateNormalizerBase64),
+                DEFAULT_EXPECTED,
                 b,
-                Some(0),
+                Some(1),
                 false,
-                a,
-                b,
+                DEFAULT_EXPECTED,
+                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
     }
 
     #[simplex::test]
-    fn u128_test_normalize_to_threshold_b_is_u128(
+    fn u128_test_calculate_normalizer_base_64_b_is_u128(
         context: simplex::TestContext,
     ) -> anyhow::Result<()> {
         let threshold = 1u128 << 63;
 
-        let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = rand::thread_rng().gen_range((u64::MAX as u128) + 1..=u128::MAX);
-
         let b_high = b >> 64;
 
         let norm: u128 = threshold.div_ceil(b_high);
-
-        let result_a = U256::from(a) * U256::from(norm);
-        let result_b = b * norm;
-        let (result_a_high, result_a_low) = split_helper(result_a);
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::NormalizeToThreshold),
-                a,
+                op(FunctionToTest::CalculateNormalizerBase64),
+                DEFAULT_EXPECTED,
                 b,
-                Some(result_a_high),
+                Some(norm),
                 true,
-                result_a_low,
-                result_b,
+                DEFAULT_EXPECTED,
+                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
     }
 
     #[simplex::test]
-    fn u128_test_normalize_to_threshold_b_is_u64_fail(
+    fn u128_test_calculate_normalizer_base_64_b_is_u64_fail(
         context: simplex::TestContext,
     ) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = rand::thread_rng().gen_range((u64::MAX as u128) + 1..=u128::MAX);
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::NormalizeToThreshold),
-                a,
+                op(FunctionToTest::CalculateNormalizerBase64),
+                DEFAULT_EXPECTED,
                 b,
                 Some(DEFAULT_EXPECTED),
                 false,
@@ -621,18 +819,17 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
-    fn u128_test_normalize_to_threshold_b_is_u128_fail(
+    fn u128_test_calculate_normalizer_base_64_b_is_u128_fail(
         context: simplex::TestContext,
     ) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = rand::thread_rng().gen_range(1..=u64::MAX as u128);
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::NormalizeToThreshold),
-                a,
+                op(FunctionToTest::CalculateNormalizerBase64),
+                DEFAULT_EXPECTED,
                 b,
                 Some(DEFAULT_EXPECTED),
                 true,
@@ -644,18 +841,17 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
-    fn u128_test_normalize_to_threshold_b_is_zero_fail(
+    fn u128_test_calculate_normalizer_base_64_b_is_zero_fail(
         context: simplex::TestContext,
     ) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = 0;
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::NormalizeToThreshold),
-                a,
+                op(FunctionToTest::CalculateNormalizerBase64),
+                DEFAULT_EXPECTED,
                 b,
                 Some(DEFAULT_EXPECTED),
                 false,
@@ -667,24 +863,32 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
-    fn u128_test_algorithm_d(context: simplex::TestContext) -> anyhow::Result<()> {
-        // divisor is expected to be greater than or equal to 2^64
-        let b = rand::thread_rng().gen_range((u64::MAX as u128) + 1..u128::MAX);
-        let a = rand::thread_rng().gen_range(b..=u128::MAX);
+    fn u128_test_estimate_quotient_digit_base_64(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let threshold = 1u64 << 63;
 
-        let q = a / b;
-        let r = a % b;
+        let b_high = rand::thread_rng().gen_range(threshold..=u64::MAX);
+        let b_low = rand::thread_rng().gen_range(0..=u64::MAX);
+
+        let a_high = rand::thread_rng().gen_range(0..b_high);
+        let a_low = rand::thread_rng().gen_range(0..=u128::MAX);
+
+        let a = ((U256::from(a_high)) << 128) | (U256::from(a_low));
+        let b = ((b_high as u128) << 64) | (b_low as u128);
+
+        let q = (a / b).as_u128();
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::AlgorithmD),
-                a,
-                b,
+                op(FunctionToTest::EstimateQuotientDigitBase64),
+                a_high as u128,
+                a_low,
                 Some(q),
                 DEFAULT_BOOL,
-                r,
+                b,
                 DEFAULT_EXPECTED,
             ),
             Expect::Ok,
@@ -692,24 +896,33 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
-    fn u128_test_algorithm_d_fail(context: simplex::TestContext) -> anyhow::Result<()> {
-        // expected to fail because divisor is less than 2^64
-        let b = rand::thread_rng().gen_range(1..=u64::MAX as u128);
-        let a = rand::thread_rng().gen_range(b..=u128::MAX);
+    fn u128_test_estimate_quotient_digit_base_64_fail(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        // expected to fail because a is to big for q to fit unto u64
+        let threshold = 1u64 << 63;
 
-        let q = a / b;
-        let r = a % b;
+        let b_high = rand::thread_rng().gen_range(threshold..u64::MAX);
+        let b_low = rand::thread_rng().gen_range(0..=u64::MAX);
+
+        let a_high = rand::thread_rng().gen_range(b_high + 1..=u64::MAX);
+        let a_low = rand::thread_rng().gen_range(0..=u128::MAX);
+
+        let a = ((U256::from(a_high)) << 128) | (U256::from(a_low));
+        let b = ((b_high as u128) << 64) | (b_low as u128);
+
+        let q = (a / b).as_u128();
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::AlgorithmD),
-                a,
-                b,
+                op(FunctionToTest::EstimateQuotientDigitBase64),
+                a_high as u128,
+                a_low,
                 Some(q),
                 DEFAULT_BOOL,
-                r,
+                b,
                 DEFAULT_EXPECTED,
             ),
             Expect::AssertFailed,
