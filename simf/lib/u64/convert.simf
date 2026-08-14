@@ -14,6 +14,11 @@ pub fn u64_to_u256(a: u64) -> u256 {
 
 /// Splitting uint conversions
 
+/// Splits u64 into eight u8
+pub fn split_u64_into_u8(a: u64) -> (u8, u8, u8, u8, u8, u8, u8, u8) {
+    <u64>::into(a)
+}
+
 /// Splits u64 into four u16
 pub fn split_u64_into_u16(a: u64) -> (u16, u16, u16, u16) {
     <u64>::into(a)
