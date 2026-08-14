@@ -8,7 +8,14 @@ use crate::lib::u16::convert::{
     safe_u16_to_u8
 };
 use crate::lib::u128::math::eq_128;
-use crate::lib::asserts::{assert_eq_1, assert_eq_8};
+use crate::lib::asserts::{
+    assert_eq_1,
+    assert_eq_8,
+    assert_eq_32,
+    assert_eq_64,
+    assert_eq_128,
+    assert_eq_256
+};
 use crate::helper::if_test_this_function;
 
 fn main() {
@@ -23,7 +30,7 @@ fn main() {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let (_, expected): (u32, u32) = <u64>::into(expected);
 
-            assert!(jet::eq_32(u16_to_u32(a), expected));
+            assert_eq_32(u16_to_u32(a), expected);
         },
         false => {},
     };
@@ -32,7 +39,7 @@ fn main() {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
 
-            assert!(jet::eq_64(u16_to_u64(a), expected));
+            assert_eq_64(u16_to_u64(a), expected);
         },
         false => {},
     };
@@ -41,14 +48,14 @@ fn main() {
         true => {
             let (_, expected): (u128, u128) = <u256>::into(expected);
 
-            assert!(eq_128(u16_to_u128(a), expected));
+            assert_eq_128(u16_to_u128(a), expected);
         },
         false => {},
     };
 
     match if_test_this_function(3, fn_idx) {
         true => {
-            assert!(jet::eq_256(u16_to_u256(a), expected));
+            assert_eq_256(u16_to_u256(a), expected);
         },
         false => {},
     };

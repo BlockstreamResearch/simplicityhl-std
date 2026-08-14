@@ -2,7 +2,7 @@ use crate::lib::u1::convert::u1_to_u128;
 use crate::lib::u8::convert::u8_to_u128;
 use crate::lib::u16::convert::u16_to_u128;
 use crate::lib::u32::convert::u32_to_u128;
-// use crate::lib::u64::convert::u64_to_u128; TODO: add when merged
+use crate::lib::u64::convert::u64_to_u128;
 use crate::lib::u128::math::le_128;
 
 /// Widening uint conversions
@@ -85,7 +85,7 @@ pub fn safe_u128_to_u32(a: u128) -> u32 {
 /// Converts u128 into u64.
 /// Panics if the value does not fit in u64
 pub fn safe_u128_to_u64(a: u128) -> u64 {
-    let u64_max: u128 = <(u64, u64)>::into((0, jet::high_64()));
+    let u64_max: u128 = u64_to_u128(jet::high_64());
     let (_, a_64): (u64, u64) = split_u128_into_u64(a);
 
     assert!(le_128(a, u64_max));
