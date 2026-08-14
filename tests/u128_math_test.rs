@@ -35,6 +35,6 @@ impl TestUint for u128 {
 mod u128_math_tests {
     use super::*;
 
-    // Stamps the 16 `#[simplex::test]` entry points for u128. Logic lives in common::uint.
+    // Stamps the 22 `#[simplex::test]` entry points for u128. Logic lives in common::uint.
     uint_tests!(u128);
 }

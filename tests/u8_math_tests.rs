@@ -35,6 +35,6 @@ impl TestUint for u8 {
 mod u8_math_tests {
     use super::*;
 
-    // Stamps the 16 `#[simplex::test]` entry points for u8. Logic lives in common::uint.
+    // Stamps the 22 `#[simplex::test]` entry points for u8. Logic lives in common::uint.
     uint_tests!(u8);
 }
