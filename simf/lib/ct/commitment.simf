@@ -1,0 +1,79 @@
+/*
+ * Confidential Transactions: commitment builders and openings.
+ *
+ *     H_a = hash_to_curve(asset_id) + abf*G     (asset generator)
+ *     C   = v*H_a + vbf*G                       (value commitment)
+ *
+ * Every assert in this module takes blinding factors, which means the value or
+ * asset id it checks becomes PUBLIC to anyone reading the witness.
+ * For checks that constrain commitments while keeping the values sealed, use
+ * `crate::lib::ct::relations`.
+ */
+
+use crate::lib::asserts::{assert_eq_64, assert_eq_256};
+use crate::lib::u64::convert::u64_to_u256;
+
+/// Asserts that `p` has the same x-coordinate as `expected`, i.e. `p == +/-expected`.
+/// Only use on points from the transaction, where consensus rules out the negation;
+/// a `Point` from the witness could be either sign.
+pub fn assert_x_eq(p: Point, expected: Gej) {
+    let (_, x): (u1, u256) = p;
+    assert!(jet::gej_x_equiv(x, expected));
+}
+
+/// Builds the asset generator `H_a = hash_to_curve(asset_id) + abf*G`.
+pub fn asset_generator(asset_id: u256, abf: Scalar) -> Gej {
+    jet::gej_ge_add(jet::generate(abf), jet::hash_to_curve(asset_id))
+}
+
+/// Builds the value commitment `C = v*asset_gen + vbf*G`.
+pub fn value_commitment(v: u64, asset_gen: Gej, vbf: Scalar) -> Gej {
+    jet::linear_combination_1((u64_to_u256(v), asset_gen), vbf)
+}
+
+/// Asserts that the asset generator `h` is `hash_to_curve(asset_id) + abf*G`.
+pub fn assert_asset_generator(h: Point, asset_id: u256, abf: Scalar) {
+    assert_x_eq(h, asset_generator(asset_id, abf));
+}
+
+/// Asserts that the value commitment `c` is `v*asset_gen + vbf*G`.
+pub fn assert_value_commitment(c: Point, v: u64, asset_gen: Gej, vbf: Scalar) {
+    assert_x_eq(c, value_commitment(v, asset_gen, vbf));
+}
+
+/// Asserts that an `(asset, amount)` pair opens to `expected_asset_id` and
+/// `expected_amount`.
+pub fn assert_opens_to(
+    asset: Asset1,
+    amount: Amount1,
+    expected_asset_id: u256,
+    expected_amount: u64,
+    abf: Scalar,
+    vbf: Scalar
+) {
+    match asset {
+        Left(conf_asset: Point) => {
+            let h: Gej = asset_generator(expected_asset_id, abf);
+            assert_x_eq(conf_asset, h);
+
+            match amount {
+                Left(conf_amount: Point) => {
+                    assert_value_commitment(conf_amount, expected_amount, h, vbf);
+                },
+                Right(explicit_amount: u64) => assert_eq_64(explicit_amount, expected_amount),
+            };
+        },
+        Right(explicit_asset: u256) => {
+            assert_eq_256(explicit_asset, expected_asset_id);
+
+            match amount {
+                // An explicit asset commits against the unblinded generator.
+                Left(conf_amount: Point) => {
+                    let h: Gej = (jet::hash_to_curve(expected_asset_id), 1);
+                    assert_value_commitment(conf_amount, expected_amount, h, vbf);
+                },
+                Right(explicit_amount: u64) => assert_eq_64(explicit_amount, expected_amount),
+            };
+        },
+    };
+}
