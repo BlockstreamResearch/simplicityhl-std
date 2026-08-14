@@ -1,4 +1,16 @@
-use crate::lib::u128::{ checked_add_128, safe_add_128, checked_sub_128, safe_sub_128, checked_mul_128, safe_mul_128, checked_div_128, safe_div_128, eq_128, gt_128, ge_128 };
+use crate::lib::u128::{
+    checked_add_128,
+    safe_add_128,
+    checked_sub_128,
+    safe_sub_128,
+    checked_mul_128,
+    safe_mul_128,
+    checked_div_128,
+    safe_div_128,
+    eq_128,
+    gt_128,
+    ge_128
+};
 use crate::lib::asserts::{assert_none_128, assert_eq_128};
 use crate::lib::binary::not;
 use crate::helper::if_test_this_function;
@@ -8,8 +20,8 @@ use crate::helper::if_test_this_function;
 /// witness value carries both, removing the need for a separate overflow flag.
 fn assert_eq_opt(result: Option<u128>, expected: Option<u128>) {
     match expected {
-        None => assert_none_128(result),
         Some(e: u128) => assert_eq_128(unwrap(result), e),
+        None => assert_none_128(result),
     }
 }
 

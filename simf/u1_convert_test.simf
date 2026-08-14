@@ -26,7 +26,7 @@ fn main() {
 
             assert!(jet::eq_8(u1_to_u8(a), expected));
         },
-        false => {},
+        false => (),
     };
 
     match if_test_this_function(1, fn_idx) {
@@ -36,7 +36,7 @@ fn main() {
 
             assert!(jet::eq_16(u1_to_u16(a), expected));
         },
-        false => {},
+        false => (),
     };
 
     match if_test_this_function(2, fn_idx) {
@@ -46,7 +46,7 @@ fn main() {
 
             assert!(jet::eq_32(u1_to_u32(a), expected));
         },
-        false => {},
+        false => (),
     };
 
     match if_test_this_function(3, fn_idx) {
@@ -55,7 +55,7 @@ fn main() {
 
             assert!(jet::eq_64(u1_to_u64(a), expected));
         },
-        false => {},
+        false => (),
     };
 
     match if_test_this_function(4, fn_idx) {
@@ -64,14 +64,14 @@ fn main() {
 
             assert!(eq_128(u1_to_u128(a), expected));
         },
-        false => {},
+        false => (),
     };
 
     match if_test_this_function(5, fn_idx) {
         true => {
             assert!(jet::eq_256(u1_to_u256(a), expected));
         },
-        false => {},
+        false => (),
     };
 
     match if_test_this_function(6, fn_idx) {
@@ -79,6 +79,6 @@ fn main() {
             let expected_bool: bool = jet::eq_256(expected, 1);
             assert_eq_bool(u1_to_bool(a), expected_bool);
         },
-        false => {},
+        false => (),
     };
 }
