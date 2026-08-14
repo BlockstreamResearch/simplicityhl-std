@@ -12,8 +12,8 @@ use simplicityhl_std::artifacts::u128_convert_test::derived_u128_convert_test::{
 
 enum FunctionToTest {
     U128ToU256,
-    SplitU128ToU32,
-    SplitU128ToU64,
+    SplitU128IntoU32,
+    SplitU128IntoU64,
     SafeU128ToU1,
     SafeU128ToU8,
     SafeU128ToU16,
@@ -65,7 +65,7 @@ mod u128_convert_test {
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::SplitU128ToU32),
+                op(FunctionToTest::SplitU128IntoU32),
                 a,
                 U256::from(a).to_big_endian(),
             ),
@@ -81,7 +81,7 @@ mod u128_convert_test {
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::SplitU128ToU64),
+                op(FunctionToTest::SplitU128IntoU64),
                 a,
                 U256::from(a).to_big_endian(),
             ),
