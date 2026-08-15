@@ -21,6 +21,8 @@ simf/lib
 │   └── Basic binary logic operations: `and`, `or`, `not`, `xor`.
 ├── op_return.simf
 │   └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
+├── timelocks.simf
+│   └── Enforcement of relative timelocks (`Distance` and `Duration`).
 ├── u8.simf
 ├── u16.simf
 ├── u32.simf

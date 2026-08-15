@@ -1,0 +1,11 @@
+use crate::lib::timelocks::{enforce_relative_distance, enforce_relative_duration};
+use crate::helper::if_test_this_function;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+    let min_distance: Distance = witness::MIN_DISTANCE;
+    let min_duration: Duration = witness::MIN_DURATION;
+
+    match if_test_this_function(0, fn_idx) { true => { enforce_relative_distance(min_distance); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { enforce_relative_duration(min_duration); }, false => (), };
+}

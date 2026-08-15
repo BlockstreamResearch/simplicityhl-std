@@ -1,0 +1,35 @@
+pub fn enforce_relative_distance(min_distance: Distance) {
+    // Assert that the current input is spent in a transaction that can
+    // only appear a distance of at least min_distance blocks after the
+    // block containing the input UTXO.
+    // Panic otherwise.
+
+    // This is a replacement for the deprecated jet::check_lock_distance.
+
+    // Transaction version must be at least 2.
+    assert!(jet::le_32(2, jet::version()));
+
+    // Fetch and parse sequence
+    let actual_data: Either<Distance, Duration> = unwrap(jet::parse_sequence(jet::current_sequence()));
+    let actual_distance: Distance = unwrap_left::<Duration>(actual_data);
+
+    assert!(jet::le_16(min_distance, actual_distance));
+}
+
+pub fn enforce_relative_duration(min_duration: Duration) {
+    // Assert that the current input is spent in a transaction that can
+    // only appear a duration of at least min_duration units of 512
+    // seconds after the creation of the block containing the input UTXO.
+    // Panic otherwise.
+
+    // This is a replacement for the deprecated jet::check_lock_duration.
+
+    // Transaction version must be at least 2.
+    assert!(jet::le_32(2, jet::version()));
+
+    // Fetch and parse sequence
+    let actual_data: Either<Distance, Duration> = unwrap(jet::parse_sequence(jet::current_sequence()));
+    let actual_duration: Duration = unwrap_right::<Duration>(actual_data);
+
+    assert!(jet::le_16(min_duration, actual_duration));
+}
