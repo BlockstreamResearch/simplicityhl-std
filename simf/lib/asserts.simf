@@ -1,4 +1,4 @@
-use crate::lib::u128::math::eq_128;
+use crate::lib::u128::bit::eq_128;
 
 /// Asserts that two `u1` are equal
 pub fn assert_eq_1(a: u1, b: u1) {

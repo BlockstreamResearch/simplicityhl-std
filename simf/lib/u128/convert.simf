@@ -3,7 +3,7 @@ use crate::lib::u8::convert::u8_to_u128;
 use crate::lib::u16::convert::u16_to_u128;
 use crate::lib::u32::convert::u32_to_u128;
 use crate::lib::u64::convert::u64_to_u128;
-use crate::lib::u128::math::le_128;
+use crate::lib::u128::comparison::le_128;
 
 /// Widening uint conversions
 

@@ -7,7 +7,7 @@ use crate::lib::u8::convert::{
     split_u8_to_u1,
     safe_u8_to_u1
 };
-use crate::lib::u128::math::eq_128;
+use crate::lib::u128::bit::eq_128;
 use crate::lib::asserts::{
     assert_eq_1,
     assert_eq_16,

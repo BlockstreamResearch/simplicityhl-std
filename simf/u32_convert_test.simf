@@ -8,7 +8,7 @@ use crate::lib::u32::convert::{
     safe_u32_to_u8,
     safe_u32_to_u16
 };
-use crate::lib::u128::math::eq_128;
+use crate::lib::u128::bit::eq_128;
 use crate::lib::asserts::{
     assert_eq_1,
     assert_eq_8,
