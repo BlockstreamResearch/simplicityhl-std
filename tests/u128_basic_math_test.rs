@@ -6,15 +6,12 @@ use rand::Rng;
 use crate::common::helper::DEFAULT_BOOL;
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u128_test_arithmetic::U128TestArithmeticProgram;
-use simplicityhl_std::artifacts::u128_test_arithmetic::derived_u128_test_arithmetic::{
-    U128TestArithmeticArguments, U128TestArithmeticWitness,
+use simplicityhl_std::artifacts::u128_basic_math_test::U128BasicMathTestProgram;
+use simplicityhl_std::artifacts::u128_basic_math_test::derived_u128_basic_math_test::{
+    U128BasicMathTestArguments, U128BasicMathTestWitness,
 };
 
 enum FunctionToTest {
-    IsZero128,
-    Lt128,
-    Le128,
     Add128,
     Add128_64,
     FullAdd128,
@@ -36,8 +33,8 @@ fn op(o: FunctionToTest) -> u8 {
 
 const DEFAULT_EXPECTED: u128 = 0;
 
-fn program() -> U128TestArithmeticProgram {
-    U128TestArithmeticProgram::new(U128TestArithmeticArguments {})
+fn program() -> U128BasicMathTestProgram {
+    U128BasicMathTestProgram::new(U128BasicMathTestArguments {})
 }
 
 fn build_witness(
@@ -47,16 +44,14 @@ fn build_witness(
     expected: Option<u128>,
     expected_bool: bool,
     second_expected: u128,
-    third_expected: u128,
-) -> U128TestArithmeticWitness {
-    U128TestArithmeticWitness {
+) -> U128BasicMathTestWitness {
+    U128BasicMathTestWitness {
         function_index: function,
         first_arg: a,
         second_arg: b,
         expected,
         expected_bool,
         second_expected,
-        third_expected,
     }
 }
 
@@ -69,172 +64,6 @@ fn split_helper(a: U256) -> (u128, u128) {
 
 mod u128_tests_arithmetic {
     use super::*;
-
-    #[simplex::test]
-    fn u128_test_is_zero_128_true(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = 0;
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::IsZero128),
-                a,
-                DEFAULT_EXPECTED,
-                Some(DEFAULT_EXPECTED),
-                true,
-                DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
-            ),
-            Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn u128_test_is_zero_128_false(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(1..=u128::MAX);
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::IsZero128),
-                a,
-                DEFAULT_EXPECTED,
-                Some(DEFAULT_EXPECTED),
-                false,
-                DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
-            ),
-            Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn u128_test_lt_128_less(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..u128::MAX);
-        let b = a + 1;
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::Lt128),
-                a,
-                b,
-                Some(DEFAULT_EXPECTED),
-                true,
-                DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
-            ),
-            Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn u128_test_lt_128_eq(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..u128::MAX);
-        let b = a;
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::Lt128),
-                a,
-                b,
-                Some(DEFAULT_EXPECTED),
-                false,
-                DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
-            ),
-            Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn u128_test_lt_128_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(1..=u128::MAX);
-        let b = a - 1;
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::Lt128),
-                a,
-                b,
-                Some(DEFAULT_EXPECTED),
-                false,
-                DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
-            ),
-            Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn u128_test_le_128_less(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..u128::MAX);
-        let b = a + 1;
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::Le128),
-                a,
-                b,
-                Some(DEFAULT_EXPECTED),
-                true,
-                DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
-            ),
-            Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn u128_test_le_128_eq(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..u128::MAX);
-        let b = a;
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::Le128),
-                a,
-                b,
-                Some(DEFAULT_EXPECTED),
-                true,
-                DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
-            ),
-            Expect::Ok,
-        )
-    }
-
-    #[simplex::test]
-    fn u128_test_le_128_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(1..=u128::MAX);
-        let b = a - 1;
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::Le128),
-                a,
-                b,
-                Some(DEFAULT_EXPECTED),
-                false,
-                DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
-            ),
-            Expect::Ok,
-        )
-    }
 
     #[simplex::test]
     fn u128_test_add_128_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
@@ -251,7 +80,6 @@ mod u128_tests_arithmetic {
                 b,
                 Some(result),
                 false,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::Ok,
@@ -274,7 +102,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 true,
                 DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -296,7 +123,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 false,
                 DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -317,7 +143,6 @@ mod u128_tests_arithmetic {
                 b,
                 Some(result),
                 true,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::Ok,
@@ -344,7 +169,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 result_carry,
                 carry_low,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -370,7 +194,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 result_carry,
                 carry_low,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -396,7 +219,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 result_carry,
                 carry_low,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -422,7 +244,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 result_carry,
                 carry_low,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -444,7 +265,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 false,
                 DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -463,7 +283,6 @@ mod u128_tests_arithmetic {
                 a,
                 Some(0),
                 false,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::Ok,
@@ -490,7 +309,6 @@ mod u128_tests_arithmetic {
                 b,
                 Some(result),
                 carry,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::Ok,
@@ -520,7 +338,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 carry,
                 DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -540,7 +357,6 @@ mod u128_tests_arithmetic {
                 b,
                 Some(a),
                 false,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::Ok,
@@ -562,7 +378,6 @@ mod u128_tests_arithmetic {
                 b,
                 Some(result),
                 true,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::Ok,
@@ -589,7 +404,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 result_borrow,
                 borrow_low,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -615,7 +429,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 result_borrow,
                 borrow_low,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -639,7 +452,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 result_borrow,
                 borrow_low,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -665,7 +477,6 @@ mod u128_tests_arithmetic {
                 Some(result - 1),
                 result_borrow,
                 borrow_low,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -689,7 +500,6 @@ mod u128_tests_arithmetic {
                 Some(result_high),
                 DEFAULT_BOOL,
                 result_low,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -713,7 +523,6 @@ mod u128_tests_arithmetic {
                 Some(result_high),
                 DEFAULT_BOOL,
                 result_low,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -739,7 +548,6 @@ mod u128_tests_arithmetic {
                 Some(norm),
                 false,
                 DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -762,7 +570,6 @@ mod u128_tests_arithmetic {
                 b,
                 Some(1),
                 false,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::Ok,
@@ -790,7 +597,6 @@ mod u128_tests_arithmetic {
                 Some(norm),
                 true,
                 DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -811,7 +617,6 @@ mod u128_tests_arithmetic {
                 b,
                 Some(DEFAULT_EXPECTED),
                 false,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::AssertFailed,
@@ -834,7 +639,6 @@ mod u128_tests_arithmetic {
                 Some(DEFAULT_EXPECTED),
                 true,
                 DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
             ),
             Expect::AssertFailed,
         )
@@ -855,7 +659,6 @@ mod u128_tests_arithmetic {
                 b,
                 Some(DEFAULT_EXPECTED),
                 false,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::AssertFailed,
@@ -889,7 +692,6 @@ mod u128_tests_arithmetic {
                 Some(q),
                 DEFAULT_BOOL,
                 b,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -923,7 +725,6 @@ mod u128_tests_arithmetic {
                 Some(q),
                 DEFAULT_BOOL,
                 b,
-                DEFAULT_EXPECTED,
             ),
             Expect::AssertFailed,
         )
@@ -947,7 +748,6 @@ mod u128_tests_arithmetic {
                 Some(q),
                 DEFAULT_BOOL,
                 r,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -967,7 +767,6 @@ mod u128_tests_arithmetic {
                 b,
                 Some(DEFAULT_EXPECTED),
                 DEFAULT_BOOL,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::AssertFailed,
@@ -992,7 +791,6 @@ mod u128_tests_arithmetic {
                 Some(q),
                 DEFAULT_BOOL,
                 r,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -1016,7 +814,6 @@ mod u128_tests_arithmetic {
                 Some(q),
                 DEFAULT_BOOL,
                 r,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -1045,7 +842,6 @@ mod u128_tests_arithmetic {
                 Some(q),
                 DEFAULT_BOOL,
                 r,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -1069,7 +865,6 @@ mod u128_tests_arithmetic {
                 Some(q),
                 DEFAULT_BOOL,
                 r,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -1096,7 +891,6 @@ mod u128_tests_arithmetic {
                 Some(q),
                 DEFAULT_BOOL,
                 r,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -1116,7 +910,6 @@ mod u128_tests_arithmetic {
                 Some(1u128),
                 DEFAULT_BOOL,
                 0u128,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -1141,7 +934,6 @@ mod u128_tests_arithmetic {
                 Some(1u128),
                 DEFAULT_BOOL,
                 u64::MAX as u128,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -1166,7 +958,6 @@ mod u128_tests_arithmetic {
                 Some(0u128),
                 DEFAULT_BOOL,
                 a,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -1188,7 +979,6 @@ mod u128_tests_arithmetic {
                 Some(result),
                 DEFAULT_BOOL,
                 DEFAULT_EXPECTED,
-                DEFAULT_EXPECTED,
             ),
             Expect::Ok,
         )
@@ -1208,7 +998,6 @@ mod u128_tests_arithmetic {
                 b,
                 Some(DEFAULT_EXPECTED),
                 DEFAULT_BOOL,
-                DEFAULT_EXPECTED,
                 DEFAULT_EXPECTED,
             ),
             Expect::AssertFailed,
