@@ -1,0 +1,138 @@
+use crate::lib::u1::convert::u1_to_u256;
+use crate::lib::u8::convert::u8_to_u256;
+use crate::lib::u16::convert::u16_to_u256;
+use crate::lib::u32::convert::u32_to_u256;
+use crate::lib::u64::convert::u64_to_u256;
+use crate::lib::u256::comparison::le_256;
+
+/// Splitting uint conversions
+
+/// Splits u256 into thirty two u8
+pub fn split_u256_into_u8(
+    a: u256
+) -> (
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8,
+    u8
+) {
+    <u256>::into(a)
+}
+
+/// Splits u256 into sixteen u16
+pub fn split_u256_into_u16(
+    a: u256
+) -> (u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16) {
+    <u256>::into(a)
+}
+
+/// Splits u256 into eight u32
+pub fn split_u256_into_u32(a: u256) -> (u32, u32, u32, u32, u32, u32, u32, u32) {
+    <u256>::into(a)
+}
+
+/// Splits u256 into four u64
+pub fn split_u256_into_u64(a: u256) -> (u64, u64, u64, u64) {
+    <u256>::into(a)
+}
+
+/// Splits u256 into two u128
+pub fn split_u256_into_u128(a: u256) -> (u128, u128) {
+    <u256>::into(a)
+}
+
+/// Narrowing uint conversions
+
+/// Converts u256 into u1.
+/// Panics if the value does not fit in u1
+pub fn safe_u256_to_u1(a: u256) -> u1 {
+    let u1_max: u256 = u1_to_u256(jet::high_1());
+    let (_, _, _, a_64): (u64, u64, u64, u64) = split_u256_into_u64(a);
+
+    assert!(le_256(a, u1_max));
+
+    jet::rightmost_64_1(a_64)
+}
+
+/// Converts u256 into u8.
+/// Panics if the value does not fit in u8
+pub fn safe_u256_to_u8(a: u256) -> u8 {
+    let u8_max: u256 = u8_to_u256(jet::high_8());
+    let (_, _, _, a_64): (u64, u64, u64, u64) = split_u256_into_u64(a);
+
+    assert!(le_256(a, u8_max));
+
+    jet::rightmost_64_8(a_64)
+}
+
+/// Converts u256 into u16.
+/// Panics if the value does not fit in u16
+pub fn safe_u256_to_u16(a: u256) -> u16 {
+    let u16_max: u256 = u16_to_u256(jet::high_16());
+    let (_, _, _, a_64): (u64, u64, u64, u64) = split_u256_into_u64(a);
+
+    assert!(le_256(a, u16_max));
+
+    jet::rightmost_64_16(a_64)
+}
+
+/// Converts u256 into u32.
+/// Panics if the value does not fit in u32
+pub fn safe_u256_to_u32(a: u256) -> u32 {
+    let u32_max: u256 = u32_to_u256(jet::high_32());
+    let (_, _, _, a_64): (u64, u64, u64, u64) = split_u256_into_u64(a);
+
+    assert!(le_256(a, u32_max));
+
+    jet::rightmost_64_32(a_64)
+}
+
+/// Converts u256 into u64.
+/// Panics if the value does not fit in u64
+pub fn safe_u256_to_u64(a: u256) -> u64 {
+    let u64_max: u256 = u64_to_u256(jet::high_64());
+    let (_, _, _, a_64): (u64, u64, u64, u64) = split_u256_into_u64(a);
+
+    assert!(le_256(a, u64_max));
+
+    a_64
+}
+
+/// Converts u256 into u128.
+/// Panics if the value does not fit in u128
+pub fn safe_u256_to_u128(a: u256) -> u128 {
+    let u128_max: u256 = 0x00000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+    let (_, a_128): (u128, u128) = split_u256_into_u128(a);
+
+    assert!(le_256(a, u128_max));
+
+    a_128
+}

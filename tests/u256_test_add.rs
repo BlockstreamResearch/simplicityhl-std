@@ -2,16 +2,15 @@ mod common;
 
 use primitive_types::U256;
 
-use crate::common::helper::{DEFAULT_BOOL, generate_u256};
+use crate::common::helper::generate_u256;
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_test_split_add::U256TestSplitAddProgram;
-use simplicityhl_std::artifacts::u256_test_split_add::derived_u256_test_split_add::{
-    U256TestSplitAddArguments, U256TestSplitAddWitness,
+use simplicityhl_std::artifacts::u256_test_add::U256TestAddProgram;
+use simplicityhl_std::artifacts::u256_test_add::derived_u256_test_add::{
+    U256TestAddArguments, U256TestAddWitness,
 };
 
 enum FunctionToTest {
-    Split256Into64,
     Add256,
     Add256_128,
 }
@@ -21,10 +20,8 @@ fn op(o: FunctionToTest) -> u8 {
     o as u8
 }
 
-const DEFAULT_EXPECTED: [u8; 32] = [0; 32];
-
-fn program() -> U256TestSplitAddProgram {
-    U256TestSplitAddProgram::new(U256TestSplitAddArguments {})
+fn program() -> U256TestAddProgram {
+    U256TestAddProgram::new(U256TestAddArguments {})
 }
 
 fn build_witness(
@@ -33,8 +30,8 @@ fn build_witness(
     b: [u8; 32],
     expected: Option<[u8; 32]>,
     expected_bool: bool,
-) -> U256TestSplitAddWitness {
-    U256TestSplitAddWitness {
+) -> U256TestAddWitness {
+    U256TestAddWitness {
         function_index: function,
         first_arg: a,
         second_arg: b,
@@ -45,24 +42,6 @@ fn build_witness(
 
 mod u256_tests_arithmetic {
     use super::*;
-
-    #[simplex::test]
-    fn u256_test_split_256_into_64(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = generate_u256(U256::one(), U256::MAX).to_big_endian();
-
-        run(
-            &context,
-            program(),
-            build_witness(
-                op(FunctionToTest::Split256Into64),
-                a,
-                DEFAULT_EXPECTED,
-                Some(a),
-                DEFAULT_BOOL,
-            ),
-            Expect::Ok,
-        )
-    }
 
     #[simplex::test]
     fn u256_test_add_256_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {

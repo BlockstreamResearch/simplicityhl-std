@@ -1,4 +1,4 @@
-use crate::lib::u256::{is_zero_256, lt_256, le_256};
+use crate::lib::u256::comparison::{is_zero_256, lt_256, le_256};
 use crate::helper::{if_test_this_function, assert_bool};
 
 fn main() {
@@ -8,7 +8,7 @@ fn main() {
     let b: u256 = witness::SECOND_ARG;
     let expected_bool: bool = witness::EXPECTED_BOOL;
 
-    /// Arithmetic
+    /// Comparison operations
 
     match if_test_this_function(0, fn_idx) { true => { assert_bool(is_zero_256(a), expected_bool); }, false => (), };
     match if_test_this_function(1, fn_idx) { true => { assert_bool(lt_256(a, b), expected_bool); }, false => (), };

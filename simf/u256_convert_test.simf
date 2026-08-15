@@ -1,0 +1,406 @@
+use crate::lib::u256::convert::{
+    split_u256_into_u8,
+    split_u256_into_u16,
+    split_u256_into_u32,
+    split_u256_into_u64,
+    split_u256_into_u128,
+    safe_u256_to_u1,
+    safe_u256_to_u8,
+    safe_u256_to_u16,
+    safe_u256_to_u32,
+    safe_u256_to_u64,
+    safe_u256_to_u128
+};
+use crate::lib::asserts::{
+    assert_eq_1,
+    assert_eq_8,
+    assert_eq_16,
+    assert_eq_32,
+    assert_eq_64,
+    assert_eq_128
+};
+use crate::helper::if_test_this_function;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u256 = witness::FIRST_ARG;
+
+    let expected: u256 = witness::EXPECTED;
+
+    match if_test_this_function(0, fn_idx) {
+        true => {
+            let (
+                a31,
+                a30,
+                a29,
+                a28,
+                a27,
+                a26,
+                a25,
+                a24,
+                a23,
+                a22,
+                a21,
+                a20,
+                a19,
+                a18,
+                a17,
+                a16,
+                a15,
+                a14,
+                a13,
+                a12,
+                a11,
+                a10,
+                a9,
+                a8,
+                a7,
+                a6,
+                a5,
+                a4,
+                a3,
+                a2,
+                a1,
+                a0
+            ): (
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8,
+                u8
+            ) = split_u256_into_u8(a);
+
+            let (
+                expected3,
+                expected2,
+                expected1,
+                expected0
+            ): (u64, u64, u64, u64) = <u256>::into(expected);
+
+            let (
+                expected31,
+                expected30,
+                expected29,
+                expected28,
+                expected27,
+                expected26,
+                expected25,
+                expected24
+            ): (u8, u8, u8, u8, u8, u8, u8, u8) = <u64>::into(expected3);
+
+            let (
+                expected23,
+                expected22,
+                expected21,
+                expected20,
+                expected19,
+                expected18,
+                expected17,
+                expected16
+            ): (u8, u8, u8, u8, u8, u8, u8, u8) = <u64>::into(expected2);
+
+            let (
+                expected15,
+                expected14,
+                expected13,
+                expected12,
+                expected11,
+                expected10,
+                expected9,
+                expected8
+            ): (u8, u8, u8, u8, u8, u8, u8, u8) = <u64>::into(expected1);
+
+            let (
+                expected7,
+                expected6,
+                expected5,
+                expected4,
+                expected3,
+                expected2,
+                expected1,
+                expected0
+            ): (u8, u8, u8, u8, u8, u8, u8, u8) = <u64>::into(expected0);
+
+            assert_eq_8(a31, expected31);
+            assert_eq_8(a30, expected30);
+            assert_eq_8(a29, expected29);
+            assert_eq_8(a28, expected28);
+            assert_eq_8(a27, expected27);
+            assert_eq_8(a26, expected26);
+            assert_eq_8(a25, expected25);
+            assert_eq_8(a24, expected24);
+            assert_eq_8(a23, expected23);
+            assert_eq_8(a22, expected22);
+            assert_eq_8(a21, expected21);
+            assert_eq_8(a20, expected20);
+            assert_eq_8(a19, expected19);
+            assert_eq_8(a18, expected18);
+            assert_eq_8(a17, expected17);
+            assert_eq_8(a16, expected16);
+            assert_eq_8(a15, expected15);
+            assert_eq_8(a14, expected14);
+            assert_eq_8(a13, expected13);
+            assert_eq_8(a12, expected12);
+            assert_eq_8(a11, expected11);
+            assert_eq_8(a10, expected10);
+            assert_eq_8(a9, expected9);
+            assert_eq_8(a8, expected8);
+            assert_eq_8(a7, expected7);
+            assert_eq_8(a6, expected6);
+            assert_eq_8(a5, expected5);
+            assert_eq_8(a4, expected4);
+            assert_eq_8(a3, expected3);
+            assert_eq_8(a2, expected2);
+            assert_eq_8(a1, expected1);
+            assert_eq_8(a0, expected0);
+        },
+        false => {},
+    };
+
+    match if_test_this_function(1, fn_idx) {
+        true => {
+            let (
+                a15,
+                a14,
+                a13,
+                a12,
+                a11,
+                a10,
+                a9,
+                a8,
+                a7,
+                a6,
+                a5,
+                a4,
+                a3,
+                a2,
+                a1,
+                a0
+            ): (
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16,
+                u16
+            ) = split_u256_into_u16(a);
+
+            let (
+                expected3,
+                expected2,
+                expected1,
+                expected0
+            ): (u64, u64, u64, u64) = <u256>::into(expected);
+
+            let (
+                expected15,
+                expected14,
+                expected13,
+                expected12
+            ): (u16, u16, u16, u16) = <u64>::into(expected3);
+            let (
+                expected11,
+                expected10,
+                expected9,
+                expected8
+            ): (u16, u16, u16, u16) = <u64>::into(expected2);
+            let (
+                expected7,
+                expected6,
+                expected5,
+                expected4
+            ): (u16, u16, u16, u16) = <u64>::into(expected1);
+            let (
+                expected3,
+                expected2,
+                expected1,
+                expected0
+            ): (u16, u16, u16, u16) = <u64>::into(expected0);
+
+            assert_eq_16(a15, expected15);
+            assert_eq_16(a14, expected14);
+            assert_eq_16(a13, expected13);
+            assert_eq_16(a12, expected12);
+            assert_eq_16(a11, expected11);
+            assert_eq_16(a10, expected10);
+            assert_eq_16(a9, expected9);
+            assert_eq_16(a8, expected8);
+            assert_eq_16(a7, expected7);
+            assert_eq_16(a6, expected6);
+            assert_eq_16(a5, expected5);
+            assert_eq_16(a4, expected4);
+            assert_eq_16(a3, expected3);
+            assert_eq_16(a2, expected2);
+            assert_eq_16(a1, expected1);
+            assert_eq_16(a0, expected0);
+        },
+        false => {},
+    };
+
+    match if_test_this_function(2, fn_idx) {
+        true => {
+            let (
+                a7,
+                a6,
+                a5,
+                a4,
+                a3,
+                a2,
+                a1,
+                a0
+            ): (u32, u32, u32, u32, u32, u32, u32, u32) = split_u256_into_u32(a);
+
+            let (expected1, expected0): (u128, u128) = <u256>::into(expected);
+
+            let (
+                expected7,
+                expected6,
+                expected5,
+                expected4
+            ): (u32, u32, u32, u32) = <u128>::into(expected1);
+            let (
+                expected3,
+                expected2,
+                expected1,
+                expected0
+            ): (u32, u32, u32, u32) = <u128>::into(expected0);
+
+            assert_eq_32(a7, expected7);
+            assert_eq_32(a6, expected6);
+            assert_eq_32(a5, expected5);
+            assert_eq_32(a4, expected4);
+            assert_eq_32(a3, expected3);
+            assert_eq_32(a2, expected2);
+            assert_eq_32(a1, expected1);
+            assert_eq_32(a0, expected0);
+        },
+        false => {},
+    };
+
+    match if_test_this_function(3, fn_idx) {
+        true => {
+            let (a3, a2, a1, a0): (u64, u64, u64, u64) = split_u256_into_u64(a);
+
+            let (
+                expected3,
+                expected2,
+                expected1,
+                expected0
+            ): (u64, u64, u64, u64) = <u256>::into(expected);
+
+            assert_eq_64(a3, expected3);
+            assert_eq_64(a2, expected2);
+            assert_eq_64(a1, expected1);
+            assert_eq_64(a0, expected0);
+        },
+        false => {},
+    };
+
+    match if_test_this_function(4, fn_idx) {
+        true => {
+            let (a1, a0): (u128, u128) = split_u256_into_u128(a);
+
+            let (expected1, expected0): (u128, u128) = <u256>::into(expected);
+
+            assert_eq_128(a1, expected1);
+            assert_eq_128(a0, expected0);
+        },
+        false => {},
+    };
+
+    match if_test_this_function(5, fn_idx) {
+        true => {
+            let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
+            let expected: u1 = jet::rightmost_64_1(expected);
+
+            assert_eq_1(safe_u256_to_u1(a), expected);
+        },
+        false => {},
+    };
+
+    match if_test_this_function(6, fn_idx) {
+        true => {
+            let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
+            let expected: u8 = jet::rightmost_64_8(expected);
+
+            assert_eq_8(safe_u256_to_u8(a), expected);
+        },
+        false => {},
+    };
+
+    match if_test_this_function(7, fn_idx) {
+        true => {
+            let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
+            let expected: u16 = jet::rightmost_64_16(expected);
+
+            assert_eq_16(safe_u256_to_u16(a), expected);
+        },
+        false => {},
+    };
+
+    match if_test_this_function(8, fn_idx) {
+        true => {
+            let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
+            let expected: u32 = jet::rightmost_64_32(expected);
+
+            assert_eq_32(safe_u256_to_u32(a), expected);
+        },
+        false => {},
+    };
+
+    match if_test_this_function(9, fn_idx) {
+        true => {
+            let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
+
+            assert_eq_64(safe_u256_to_u64(a), expected);
+        },
+        false => {},
+    };
+
+    match if_test_this_function(10, fn_idx) {
+        true => {
+            let (_, expected): (u128, u128) = <u256>::into(expected);
+
+            assert_eq_128(safe_u256_to_u128(a), expected);
+        },
+        false => {},
+    };
+}

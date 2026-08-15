@@ -41,7 +41,7 @@ fn build_witness(
     }
 }
 
-mod u256_tests_arithmetic {
+mod u256_tests_compare {
     use super::*;
 
     #[simplex::test]
