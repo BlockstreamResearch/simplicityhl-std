@@ -7,8 +7,16 @@ use crate::lib::u1::convert::{
     u1_to_u256,
     u1_to_bool
 };
-use crate::lib::u128::eq_128;
-use crate::lib::asserts::assert_eq_bool;
+use crate::lib::u128::bit::eq_128;
+use crate::lib::asserts::{
+    assert_eq_bool,
+    assert_eq_8,
+    assert_eq_16,
+    assert_eq_32,
+    assert_eq_64,
+    assert_eq_128,
+    assert_eq_256
+};
 use crate::helper::if_test_this_function;
 
 fn main() {
@@ -24,7 +32,7 @@ fn main() {
             let (_, _, _, expected): (u16, u16, u16, u16) = <u64>::into(expected);
             let (_, expected): (u8, u8) = <u16>::into(expected);
 
-            assert!(jet::eq_8(u1_to_u8(a), expected));
+            assert_eq_8(u1_to_u8(a), expected);
         },
         false => (),
     };
@@ -34,7 +42,7 @@ fn main() {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let (_, _, _, expected): (u16, u16, u16, u16) = <u64>::into(expected);
 
-            assert!(jet::eq_16(u1_to_u16(a), expected));
+            assert_eq_16(u1_to_u16(a), expected);
         },
         false => (),
     };
@@ -44,7 +52,7 @@ fn main() {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let (_, expected): (u32, u32) = <u64>::into(expected);
 
-            assert!(jet::eq_32(u1_to_u32(a), expected));
+            assert_eq_32(u1_to_u32(a), expected);
         },
         false => (),
     };
@@ -53,7 +61,7 @@ fn main() {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
 
-            assert!(jet::eq_64(u1_to_u64(a), expected));
+            assert_eq_64(u1_to_u64(a), expected);
         },
         false => (),
     };
@@ -62,14 +70,14 @@ fn main() {
         true => {
             let (_, expected): (u128, u128) = <u256>::into(expected);
 
-            assert!(eq_128(u1_to_u128(a), expected));
+            assert_eq_128(u1_to_u128(a), expected);
         },
         false => (),
     };
 
     match if_test_this_function(5, fn_idx) {
         true => {
-            assert!(jet::eq_256(u1_to_u256(a), expected));
+            assert_eq_256(u1_to_u256(a), expected);
         },
         false => (),
     };

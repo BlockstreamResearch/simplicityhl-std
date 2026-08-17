@@ -1,4 +1,4 @@
-use crate::lib::u128::{and_128, or_128, eq_128, left_shift_128, right_shift_128};
+use crate::lib::u128::bit::{and_128, or_128, eq_128, left_shift_128, right_shift_128};
 use crate::helper::{if_test_this_function, assert_bool};
 
 fn main() {

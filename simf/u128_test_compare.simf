@@ -1,0 +1,20 @@
+use crate::lib::u128::comparison::{
+    is_zero_128,
+    lt_128,
+    le_128,
+};
+use crate::helper::{if_test_this_function, assert_bool};
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u128 = witness::FIRST_ARG;
+    let b: u128 = witness::SECOND_ARG;
+    let expected_bool: bool = witness::EXPECTED_BOOL;
+
+    /// Comparison operations
+
+    match if_test_this_function(0, fn_idx) { true => { assert_bool(is_zero_128(a), expected_bool); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => { assert_bool(lt_128(a, b), expected_bool); }, false => (), };
+    match if_test_this_function(2, fn_idx) { true => { assert_bool(le_128(a, b), expected_bool); }, false => (), };
+}
