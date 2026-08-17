@@ -14,8 +14,8 @@ enum FunctionToTest {
     U32ToU64,
     U32ToU128,
     U32ToU256,
-    SplitU32ToU8,
-    SplitU32ToU16,
+    SplitU32IntoU8,
+    SplitU32IntoU16,
     SafeU32ToU1,
     SafeU32ToU8,
     SafeU32ToU16,
@@ -90,14 +90,14 @@ mod u32_convert_test {
     }
 
     #[simplex::test]
-    fn u32_convert_test_split_u32_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u32_convert_test_split_u32_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::SplitU32ToU8),
+                op(FunctionToTest::SplitU32IntoU8),
                 a,
                 U256::from(a).to_big_endian(),
             ),
@@ -106,14 +106,14 @@ mod u32_convert_test {
     }
 
     #[simplex::test]
-    fn u32_convert_test_split_u32_to_u16(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u32_convert_test_split_u32_into_u16(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
         run(
             &context,
             program(),
             build_witness(
-                op(FunctionToTest::SplitU32ToU16),
+                op(FunctionToTest::SplitU32IntoU16),
                 a,
                 U256::from(a).to_big_endian(),
             ),

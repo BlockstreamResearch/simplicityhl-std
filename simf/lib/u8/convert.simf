@@ -32,7 +32,7 @@ pub fn u8_to_u256(a: u8) -> u256 {
 /// Splitting uint conversions
 
 /// Splits u8 into eight u1
-pub fn split_u8_to_u1(a: u8) -> (u1, u1, u1, u1, u1, u1, u1, u1) {
+pub fn split_u8_into_u1(a: u8) -> (u1, u1, u1, u1, u1, u1, u1, u1) {
     <u8>::into(a)
 }
 
