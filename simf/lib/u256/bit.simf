@@ -1,0 +1,71 @@
+use crate::lib::u128::bit::{and_128, or_128, left_shift_128, right_shift_128};
+
+/// Bit logic
+
+/// Bitwise AND of two 256-bit values
+pub fn and_256(a: u256, b: u256) -> u256 {
+    let (a_high, a_low): (u128, u128) = <u256>::into(a);
+    let (b_high, b_low): (u128, u128) = <u256>::into(b);
+
+    <(u128, u128)>::into((and_128(a_high, b_high), and_128(a_low, b_low)))
+}
+
+/// Bitwise OR of two 256-bit values
+pub fn or_256(a: u256, b: u256) -> u256 {
+    let (a_high, a_low): (u128, u128) = <u256>::into(a);
+    let (b_high, b_low): (u128, u128) = <u256>::into(b);
+
+    <(u128, u128)>::into((or_128(a_high, b_high), or_128(a_low, b_low)))
+}
+
+/// Left-shift a 256-bit value by the given amount. Bits are filled with zeroes
+pub fn left_shift_256(shift: u8, a: u256) -> u256 {
+    match jet::is_zero_8(shift) {
+        true => a,
+        false => {
+            let (a_high, a_low): (u128, u128) = <u256>::into(a);
+
+            match jet::lt_8(shift, 128) {
+                true => {
+                    let (_, low_to_high_amount): (bool, u8) = jet::subtract_8(128, shift); // shift < 128
+                    let shifted_bits: u128 = right_shift_128(low_to_high_amount, a_low);
+
+                    let res_high: u128 = or_128(left_shift_128(shift, a_high), shifted_bits);
+
+                    <(u128, u128)>::into((res_high, left_shift_128(shift, a_low)))
+                },
+                false => {
+                    let (_, shift): (bool, u8) = jet::subtract_8(shift, 128); // shift >= 128
+
+                    <(u128, u128)>::into((left_shift_128(shift, a_low), 0))
+                }
+            }
+        }
+    }
+}
+
+/// Right-shift a 256-bit value by the given amount. Bits are filled with zeroes
+pub fn right_shift_256(shift: u8, a: u256) -> u256 {
+    match jet::is_zero_8(shift) {
+        true => a,
+        false => {
+            let (a_high, a_low): (u128, u128) = <u256>::into(a);
+
+            match jet::lt_8(shift, 128) {
+                true => {
+                    let (_, high_to_low_amount): (bool, u8) = jet::subtract_8(128, shift); // shift < 128
+                    let shifted_bits: u128 = left_shift_128(high_to_low_amount, a_high);
+
+                    let res_low: u128 = or_128(right_shift_128(shift, a_low), shifted_bits);
+
+                    <(u128, u128)>::into((right_shift_128(shift, a_high), res_low))
+                },
+                false => {
+                    let (_, shift): (bool, u8) = jet::subtract_8(shift, 128); // shift >= 128
+
+                    <(u128, u128)>::into((0, right_shift_128(shift, a_high)))
+                }
+            }
+        }
+    }
+}

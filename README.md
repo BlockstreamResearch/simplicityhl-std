@@ -15,20 +15,44 @@ simf/lib
 │       ├── Subtraction for `Fe`, `Scalar`, `Gej`.
 │       ├── Equality predicates and their `assert_*` counterparts.
 │       └── Safe Jacobian-to-affine normalization.
+├── u1
+│   └── convert.simf
+├── u8
+│   ├── convert.simf
+│   └── math.simf
+├── u16
+│   ├── convert.simf
+│   └── math.simf
+├── u32
+│   ├── convert.simf
+│   └── math.simf
+├── u64
+│   ├── convert.simf
+│   └── math.simf
+├── u128
+│   ├── bit.simf
+│   │   └── Basic bit operations that are available as jets for `u8`–`u64` but are missing for `u128`.
+│   ├── comparison.simf
+│   │   └── Basic comparison operations that are available as jets for `u8`–`u64` but are missing for `u128`.
+│   ├── convert.simf
+│   │   └── Conversions between `u128` and other uint types.
+│   └── math.simf
+│       └── Overflow-checked arithmetic operations.
+├── u256
+│   ├── bit.simf
+│   │   └── Basic bit operations that are available as jets for `u8`–`u64` but are missing for `u256`.
+│   ├── comparison.simf
+│   │   └── Basic comparison operations that are available as jets for `u8`–`u64` but are missing for `u256`.
+│   ├── convert.simf
+│   │   └── Conversions between `u256` and other uint types.
+│   └── math.simf
+│       └── Overflow-checked arithmetic operations.
 ├── asserts.simf
 │   └── Generic assertion helpers with equality checks between uint values.
 ├── binary.simf
 │   └── Basic binary logic operations: `and`, `or`, `not`, `xor`.
 ├── op_return.simf
-│   └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
-├── u8.simf
-├── u16.simf
-├── u32.simf
-├── u64.simf
-└── u128.simf
-    ├── Overflow-checked arithmetic operations.
-    ├── Comparison helpers.
-    └── Basic operations that are available as jets for `u8`-`u64` but are missing for `u128`.
+    └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
 ```
 
 ## Installation

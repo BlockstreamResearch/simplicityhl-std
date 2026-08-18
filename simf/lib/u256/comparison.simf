@@ -1,0 +1,50 @@
+use crate::lib::binary::and;
+use crate::lib::u128::bit::eq_128;
+use crate::lib::u128::comparison::{is_zero_128, lt_128, le_128};
+
+/// Comparison operations
+
+/// Checks if an integer is zero
+pub fn is_zero_256(a: u256) -> bool {
+    let (a_high, a_low): (u128, u128) = <u256>::into(a);
+
+    and(is_zero_128(a_high), is_zero_128(a_low))
+}
+
+/// Checks if an integer is less than another integer
+pub fn lt_256(a: u256, b: u256) -> bool {
+    let (a_high, a_low): (u128, u128) = <u256>::into(a);
+    let (b_high, b_low): (u128, u128) = <u256>::into(b);
+
+    match lt_128(a_high, b_high) {
+        true => true,
+        false => match eq_128(a_high, b_high) {
+            true => lt_128(a_low, b_low),
+            false => false,
+        },
+    }
+}
+
+/// Checks if an integer is less than or equal to another integer
+pub fn le_256(a: u256, b: u256) -> bool {
+    let (a_high, a_low): (u128, u128) = <u256>::into(a);
+    let (b_high, b_low): (u128, u128) = <u256>::into(b);
+
+    match lt_128(a_high, b_high) {
+        true => true,
+        false => match eq_128(a_high, b_high) {
+            true => le_128(a_low, b_low),
+            false => false,
+        },
+    }
+}
+
+/// Check if an integer is greater than another integer
+pub fn gt_256(a: u256, b: u256) -> bool {
+    lt_256(b, a)
+}
+
+/// Check if an integer is greater than or equal to another integer
+pub fn ge_256(a: u256, b: u256) -> bool {
+    le_256(b, a)
+}

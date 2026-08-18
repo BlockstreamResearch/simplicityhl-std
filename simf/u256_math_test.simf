@@ -1,4 +1,4 @@
-use crate::lib::u256::{
+use crate::lib::u256::math::{
     checked_add_256,
     safe_add_256,
     checked_sub_256,
@@ -6,10 +6,9 @@ use crate::lib::u256::{
     checked_mul_256,
     safe_mul_256,
     checked_div_256,
-    safe_div_256,
-    gt_256,
-    ge_256
+    safe_div_256
 };
+use crate::lib::u256::comparison::{gt_256, ge_256};
 use crate::lib::asserts::{assert_none_256, assert_eq_256};
 use crate::lib::binary::not;
 use crate::helper::if_test_this_function;
