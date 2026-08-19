@@ -19,7 +19,7 @@ impl TestUint for u128 {
     const MUL_BOUND: u128 = 1 << 64; // 2^(128/2)
 
     fn program() -> U128MathTestProgram {
-        U128MathTestProgram::new(U128MathTestArguments {})
+        U128MathTestProgram::new(&U128MathTestArguments {})
     }
 
     fn witness(op: u8, a: u128, b: u128, expected: Option<u128>) -> U128MathTestWitness {

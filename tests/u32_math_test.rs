@@ -19,7 +19,7 @@ impl TestUint for u32 {
     const MUL_BOUND: u32 = 1 << 16; // 2^(32/2)
 
     fn program() -> U32MathTestProgram {
-        U32MathTestProgram::new(U32MathTestArguments {})
+        U32MathTestProgram::new(&U32MathTestArguments {})
     }
 
     fn witness(op: u8, a: u32, b: u32, expected: Option<u32>) -> U32MathTestWitness {

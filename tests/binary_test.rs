@@ -12,7 +12,7 @@ mod binary_tests {
 
     #[simplex::test]
     fn binary_test(context: simplex::TestContext) -> anyhow::Result<()> {
-        let program = BinaryTestProgram::new(BinaryTestArguments {});
+        let program = BinaryTestProgram::new(&BinaryTestArguments {});
         run(&context, program, BinaryTestWitness {}, Expect::Ok)
     }
 }

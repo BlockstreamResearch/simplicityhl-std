@@ -25,7 +25,7 @@ fn op(o: FunctionToTest) -> u8 {
 const DEFAULT_EXPECTED: [u8; 32] = [0; 32];
 
 fn program() -> U256TestDivProgram {
-    U256TestDivProgram::new(U256TestDivArguments {})
+    U256TestDivProgram::new(&U256TestDivArguments {})
 }
 
 fn build_witness(

@@ -19,7 +19,7 @@ impl TestUint for u8 {
     const MUL_BOUND: u8 = 1 << 4; // 2^(8/2)
 
     fn program() -> U8MathTestProgram {
-        U8MathTestProgram::new(U8MathTestArguments {})
+        U8MathTestProgram::new(&U8MathTestArguments {})
     }
 
     fn witness(op: u8, a: u8, b: u8, expected: Option<u8>) -> U8MathTestWitness {

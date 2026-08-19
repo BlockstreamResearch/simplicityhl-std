@@ -22,7 +22,7 @@ impl TestUint for U256Wrapper {
     const MUL_BOUND: U256Wrapper = U256Wrapper(U256([0, 0, 1, 0])); // 2^(256/2)
 
     fn program() -> U256MathTestProgram {
-        U256MathTestProgram::new(U256MathTestArguments {})
+        U256MathTestProgram::new(&U256MathTestArguments {})
     }
 
     fn witness(

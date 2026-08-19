@@ -26,7 +26,7 @@ fn op(o: FunctionToTest) -> u8 {
 }
 
 fn program() -> U8ConvertTestProgram {
-    U8ConvertTestProgram::new(U8ConvertTestArguments {})
+    U8ConvertTestProgram::new(&U8ConvertTestArguments {})
 }
 
 fn build_witness(function: u8, a: u8, expected: [u8; 32]) -> U8ConvertTestWitness {

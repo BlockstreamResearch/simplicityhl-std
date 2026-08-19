@@ -19,7 +19,7 @@ impl TestUint for u16 {
     const MUL_BOUND: u16 = 1 << 8; // 2^(16/2)
 
     fn program() -> U16MathTestProgram {
-        U16MathTestProgram::new(U16MathTestArguments {})
+        U16MathTestProgram::new(&U16MathTestArguments {})
     }
 
     fn witness(op: u8, a: u16, b: u16, expected: Option<u16>) -> U16MathTestWitness {

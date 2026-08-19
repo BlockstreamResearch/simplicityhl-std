@@ -21,7 +21,7 @@ fn op(o: FunctionToTest) -> u8 {
 }
 
 fn program() -> U256TestAddProgram {
-    U256TestAddProgram::new(U256TestAddArguments {})
+    U256TestAddProgram::new(&U256TestAddArguments {})
 }
 
 fn build_witness(

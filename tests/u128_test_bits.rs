@@ -26,7 +26,7 @@ fn op(o: FunctionToTest) -> u8 {
 const DEFAULT_EXPECTED: u128 = 0;
 
 fn program() -> U128TestBitsProgram {
-    U128TestBitsProgram::new(U128TestBitsArguments {})
+    U128TestBitsProgram::new(&U128TestBitsArguments {})
 }
 
 fn build_witness(
