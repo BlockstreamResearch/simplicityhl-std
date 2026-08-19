@@ -34,7 +34,7 @@ fn op(o: FunctionToTest) -> u8 {
 const DEFAULT_EXPECTED: u128 = 0;
 
 fn program() -> U128BasicMathTestProgram {
-    U128BasicMathTestProgram::new(U128BasicMathTestArguments {})
+    U128BasicMathTestProgram::new(&U128BasicMathTestArguments {})
 }
 
 fn build_witness(

@@ -38,7 +38,7 @@ const DEFAULT_SOME_U128: Option<u128> = Some(0);
 const DEFAULT_SOME_U256: Option<[u8; 32]> = Some([0; 32]);
 
 fn program() -> AssertsTestProgram {
-    AssertsTestProgram::new(AssertsTestArguments {})
+    AssertsTestProgram::new(&AssertsTestArguments {})
 }
 
 /// Returns two values in `[min, max]` that are equal when `same`, distinct otherwise.

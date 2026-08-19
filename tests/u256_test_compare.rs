@@ -24,7 +24,7 @@ fn op(o: FunctionToTest) -> u8 {
 const DEFAULT_EXPECTED: [u8; 32] = [0; 32];
 
 fn program() -> U256TestCompareProgram {
-    U256TestCompareProgram::new(U256TestCompareArguments {})
+    U256TestCompareProgram::new(&U256TestCompareArguments {})
 }
 
 fn build_witness(

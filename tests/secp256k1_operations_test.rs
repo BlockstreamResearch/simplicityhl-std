@@ -48,7 +48,7 @@ const SECP_N: [u8; 32] = [
 ];
 
 fn program() -> Secp256k1OperationsTestProgram {
-    Secp256k1OperationsTestProgram::new(Secp256k1OperationsTestArguments {})
+    Secp256k1OperationsTestProgram::new(&Secp256k1OperationsTestArguments {})
 }
 
 #[allow(clippy::too_many_arguments)]

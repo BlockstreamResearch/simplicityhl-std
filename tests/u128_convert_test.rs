@@ -29,7 +29,7 @@ fn op(o: FunctionToTest) -> u8 {
 }
 
 fn program() -> U128ConvertTestProgram {
-    U128ConvertTestProgram::new(U128ConvertTestArguments {})
+    U128ConvertTestProgram::new(&U128ConvertTestArguments {})
 }
 
 fn build_witness(function: u8, a: u128, expected: [u8; 32]) -> U128ConvertTestWitness {

@@ -19,7 +19,7 @@ impl TestUint for u64 {
     const MUL_BOUND: u64 = 1 << 32; // 2^(64/2)
 
     fn program() -> U64MathTestProgram {
-        U64MathTestProgram::new(U64MathTestArguments {})
+        U64MathTestProgram::new(&U64MathTestArguments {})
     }
 
     fn witness(op: u8, a: u64, b: u64, expected: Option<u64>) -> U64MathTestWitness {

@@ -24,7 +24,7 @@ fn op(o: FunctionToTest) -> u8 {
 const DEFAULT_DATA: &[u8; 1] = &[1];
 
 fn program() -> OpReturnTestProgram {
-    OpReturnTestProgram::new(OpReturnTestArguments {})
+    OpReturnTestProgram::new(&OpReturnTestArguments {})
 }
 
 fn build_witness(function: u8, index: u32, expected: bool) -> OpReturnTestWitness {

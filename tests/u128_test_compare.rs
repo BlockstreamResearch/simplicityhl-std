@@ -23,7 +23,7 @@ fn op(o: FunctionToTest) -> u8 {
 const DEFAULT_EXPECTED: u128 = 0;
 
 fn program() -> U128TestCompareProgram {
-    U128TestCompareProgram::new(U128TestCompareArguments {})
+    U128TestCompareProgram::new(&U128TestCompareArguments {})
 }
 
 fn build_witness(function: u8, a: u128, b: u128, expected_bool: bool) -> U128TestCompareWitness {
