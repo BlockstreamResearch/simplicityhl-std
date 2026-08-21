@@ -19,48 +19,28 @@ simf/lib
 │   └── convert.simf
 │       └── Conversions from `u1` to other uint types and `bool`.
 ├── u8
-│   ├── convert.simf
-│   │   └── Conversions between `u8` and other uint types.
-│   └── math.simf
-│       └── Overflow-checked arithmetic and `gt` / `ge`.
 ├── u16
-│   ├── convert.simf
-│   │   └── Conversions between `u16` and other uint types.
-│   └── math.simf
-│       └── Overflow-checked arithmetic and `gt` / `ge`.
 ├── u32
-│   ├── convert.simf
-│   │   └── Conversions between `u32` and other uint types.
-│   └── math.simf
-│       └── Overflow-checked arithmetic and `gt` / `ge`.
 ├── u64
 │   ├── convert.simf
-│   │   └── Conversions between `u64` and other uint types.
+│   │   └── Conversions between `u8`, `u16`, `u32`, `u64` and other uint types.
 │   └── math.simf
-│       └── Overflow-checked arithmetic and `gt` / `ge`.
+│       └── Overflow-checked arithmetic and `gt`/`ge` functions.
 ├── u128
-│   ├── bit.simf
-│   │   └── Basic bit operations that are available as jets for `u8`–`u64` but are missing for `u128`.
-│   ├── comparison.simf
-│   │   └── Basic comparison operations that are available as jets for `u8`–`u64` but are missing for `u128`.
-│   ├── convert.simf
-│   │   └── Conversions between `u128` and other uint types.
-│   └── math.simf
-│       └── Carry/borrow arithmetic, multiplication, division, and overflow-checked wrappers.
 ├── u256
 │   ├── bit.simf
-│   │   └── Basic bit operations that are available as jets for `u8`–`u64` but are missing for `u256`.
+│   │   └── Basic bit operations available as jets for `u8`-`u64` but missing for `u128` and `u256`.
 │   ├── comparison.simf
-│   │   └── Basic comparison operations that are available as jets for `u8`–`u64` but are missing for `u256`.
+│   │   └── Basic comparison operations available as jets for `u8`-`u64` but missing for `u128` and `u256`.
 │   ├── convert.simf
-│   │   └── Conversions between `u256` and other uint types.
+│   │   └── Conversions between `u128`, `u256` and other uint types.
 │   └── math.simf
 │       └── Carry/borrow arithmetic, multiplication, division, and overflow-checked wrappers.
 ├── asserts.simf
 │   └── Assertion helpers: `assert_eq_*` for uints and `bool`, plus `assert_none_*` for `Option`.
 ├── binary.simf
 │   └── Basic binary logic operations: `and`, `or`, `not`, `xor`.
-├── op_return.simf
+└── op_return.simf
     └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
 ```
 
@@ -86,7 +66,7 @@ simplex install https://github.com/BlockstreamResearch/simplicityhl-std
 
 After installing the library, import modules from `std::lib`:
 
-```simf
+```rust
 use std::lib::u32::math::checked_add_32;
 use std::lib::asserts::assert_eq_32;
 
