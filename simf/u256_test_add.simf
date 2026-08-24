@@ -1,0 +1,27 @@
+use crate::lib::u256::math::{add_256, add_256_128};
+use crate::lib::asserts::assert_eq_256;
+use crate::helper::{if_test_this_function, assert_bool};
+
+/// Asserts a result equals expected u256 and bool values. 
+/// Used for functions that return carry or borrow bool value.
+fn assert_eq_uint_bool(result: (bool, u256), expected: u256, expected_bool: bool) {
+    let (bool_res, uint_res): (bool, u256) = result;
+
+    assert_bool(bool_res, expected_bool);
+
+    assert_eq_256(uint_res, expected);
+}
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u256 = witness::FIRST_ARG;
+    let b: u256 = witness::SECOND_ARG;
+    let expected: Option<u256> = witness::EXPECTED;
+    let expected_bool: bool = witness::EXPECTED_BOOL;
+
+    /// Arithmetic
+
+    match if_test_this_function(0, fn_idx) { true => { assert_eq_uint_bool(add_256(a, b), unwrap(expected), expected_bool); }, false => (), };
+    match if_test_this_function(1, fn_idx) { true => {  let (_, b): (u128, u128) = <u256>::into(b); assert_eq_uint_bool(add_256_128(a, b), unwrap(expected), expected_bool); }, false => (), };
+}

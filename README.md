@@ -10,25 +10,38 @@ The standard library implementation for [SimplicityHL](https://github.com/Blocks
 ```md
 simf/lib
 ├── secp256k1
-│   └── operations.simf    
+│   └── operations.simf
 │       ├── Conversions between `Ge`, `Gej`, and compressed `Point`.
 │       ├── Subtraction for `Fe`, `Scalar`, `Gej`.
 │       ├── Equality predicates and their `assert_*` counterparts.
 │       └── Safe Jacobian-to-affine normalization.
+├── u1
+│   └── convert.simf
+│       └── Conversions from `u1` to other uint types and `bool`.
+├── u8
+├── u16
+├── u32
+├── u64
+│   ├── convert.simf
+│   │   └── Conversions between `u8`, `u16`, `u32`, `u64` and other uint types.
+│   └── math.simf
+│       └── Overflow-checked arithmetic and `gt`/`ge` functions.
+├── u128
+├── u256
+│   ├── bit.simf
+│   │   └── Basic bit operations available as jets for `u8`-`u64` but missing for `u128` and `u256`.
+│   ├── comparison.simf
+│   │   └── Basic comparison operations available as jets for `u8`-`u64` but missing for `u128` and `u256`.
+│   ├── convert.simf
+│   │   └── Conversions between `u128`, `u256` and other uint types.
+│   └── math.simf
+│       └── Carry/borrow arithmetic, multiplication, division, and overflow-checked wrappers.
 ├── asserts.simf
-│   └── Generic assertion helpers with equality checks between uint values.
+│   └── Assertion helpers: `assert_eq_*` for uints and `bool`, plus `assert_none_*` for `Option`.
 ├── binary.simf
 │   └── Basic binary logic operations: `and`, `or`, `not`, `xor`.
-├── op_return.simf
-│   └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
-├── u8.simf
-├── u16.simf
-├── u32.simf
-├── u64.simf
-└── u128.simf
-    ├── Overflow-checked arithmetic operations.
-    ├── Comparison helpers.
-    └── Basic operations that are available as jets for `u8`-`u64` but are missing for `u128`.
+└── op_return.simf
+    └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
 ```
 
 ## Installation
@@ -48,6 +61,19 @@ simplex install https://github.com/BlockstreamResearch/simplicityhl-std
 
 > [!NOTE]
 > The library works with Simplex version 0.0.7 or higher.
+
+## Usage
+
+After installing the library, import modules from `std::lib`:
+
+```rust
+use std::lib::u32::math::checked_add_32;
+use std::lib::asserts::assert_eq_32;
+
+fn main() {
+    assert_eq_32(unwrap(checked_add_32(1, 2)), 3);
+}
+```
 
 ## Contributing
 

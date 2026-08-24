@@ -19,6 +19,7 @@ enum FunctionToTest {
     AssertEq64,
     AssertEq128,
     AssertEq256,
+    AssertEqBool,
 
     AssertNone1,
     AssertNone8,
@@ -37,7 +38,7 @@ const DEFAULT_SOME_U128: Option<u128> = Some(0);
 const DEFAULT_SOME_U256: Option<[u8; 32]> = Some([0; 32]);
 
 fn program() -> AssertsTestProgram {
-    AssertsTestProgram::new(AssertsTestArguments {})
+    AssertsTestProgram::new(&AssertsTestArguments {})
 }
 
 /// Returns two values in `[min, max]` that are equal when `same`, distinct otherwise.
@@ -112,6 +113,10 @@ fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTes
             let (a, b) = generate_uints_in_one_range(same, 0, u8::MAX as u128);
             (witness.first_arg_u256, witness.second_arg_u256) =
                 (Some([a as u8; 32]), Some([b as u8; 32]));
+        }
+        FunctionToTest::AssertEqBool => {
+            let (a, b) = generate_uints_in_one_range(same, 0, 1u128);
+            (witness.first_arg_u1, witness.second_arg_u1) = (Some(a as u8), Some(b as u8));
         }
         FunctionToTest::AssertNone1 => {
             if none {
@@ -309,6 +314,28 @@ mod asserts_test {
         run_assert(
             &context,
             FunctionToTest::AssertEq256,
+            false,
+            false,
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_bool_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEqBool,
+            true,
+            false,
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn assert_eq_bool_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
+        run_assert(
+            &context,
+            FunctionToTest::AssertEqBool,
             false,
             false,
             Expect::AssertFailed,

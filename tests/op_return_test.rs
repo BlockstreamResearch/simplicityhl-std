@@ -3,6 +3,7 @@ mod common;
 use rand::Rng;
 
 use crate::common::core::{run, run_with_op_return};
+use crate::common::helper::DEFAULT_BOOL;
 use common::core::Expect;
 
 use simplicityhl_std::artifacts::op_return_test::OpReturnTestProgram;
@@ -20,11 +21,10 @@ fn op(o: FunctionToTest) -> u8 {
     o as u8
 }
 
-const DEFAULT_BOOL: bool = false;
 const DEFAULT_DATA: &[u8; 1] = &[1];
 
 fn program() -> OpReturnTestProgram {
-    OpReturnTestProgram::new(OpReturnTestArguments {})
+    OpReturnTestProgram::new(&OpReturnTestArguments {})
 }
 
 fn build_witness(function: u8, index: u32, expected: bool) -> OpReturnTestWitness {

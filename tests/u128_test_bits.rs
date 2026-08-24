@@ -2,6 +2,7 @@ mod common;
 
 use rand::Rng;
 
+use crate::common::helper::DEFAULT_BOOL;
 use common::core::{Expect, run};
 
 use simplicityhl_std::artifacts::u128_test_bits::U128TestBitsProgram;
@@ -22,11 +23,10 @@ fn op(o: FunctionToTest) -> u8 {
     o as u8
 }
 
-const DEFAULT_BOOL: bool = false;
 const DEFAULT_EXPECTED: u128 = 0;
 
 fn program() -> U128TestBitsProgram {
-    U128TestBitsProgram::new(U128TestBitsArguments {})
+    U128TestBitsProgram::new(&U128TestBitsArguments {})
 }
 
 fn build_witness(
