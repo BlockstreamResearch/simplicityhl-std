@@ -11,7 +11,7 @@ keywords = ["simplicity", "liquid", "elements", "smart-contracts"]
 categories = ["cryptography::cryptocurrencies"]
 
 [dependencies]
-smplx-std = { git = "https://github.com/BlockstreamResearch/smplx.git", rev = "c9cae5da3ace3e502fc19bda9cf5bd3fb909e49b" }
+smplx-std = { version = "0.0.10" }
 
 [dev-dependencies]
 anyhow = { version = "1.0.101" }
