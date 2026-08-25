@@ -1,0 +1,1367 @@
+[
+  {
+    "simplicityhl_name": "assert_eq_1",
+    "section": "Asserts",
+    "input_type": "u1, u1",
+    "output_type": "()",
+    "description": "Assert that two `u1` values are equal.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_eq_8",
+    "section": "Asserts",
+    "input_type": "u8, u8",
+    "output_type": "()",
+    "description": "Assert that two `u8` values are equal.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_eq_16",
+    "section": "Asserts",
+    "input_type": "u16, u16",
+    "output_type": "()",
+    "description": "Assert that two `u16` values are equal.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_eq_32",
+    "section": "Asserts",
+    "input_type": "u32, u32",
+    "output_type": "()",
+    "description": "Assert that two `u32` values are equal.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_eq_64",
+    "section": "Asserts",
+    "input_type": "u64, u64",
+    "output_type": "()",
+    "description": "Assert that two `u64` values are equal.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_eq_128",
+    "section": "Asserts",
+    "input_type": "u128, u128",
+    "output_type": "()",
+    "description": "Assert that two `u128` values are equal.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_eq_256",
+    "section": "Asserts",
+    "input_type": "u256, u256",
+    "output_type": "()",
+    "description": "Assert that two `u256` values are equal.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_none_1",
+    "section": "Asserts",
+    "input_type": "Option<u1>",
+    "output_type": "()",
+    "description": "Assert that the given `Option<u1>` is `None`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_none_8",
+    "section": "Asserts",
+    "input_type": "Option<u8>",
+    "output_type": "()",
+    "description": "Assert that the given `Option<u8>` is `None`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_none_16",
+    "section": "Asserts",
+    "input_type": "Option<u16>",
+    "output_type": "()",
+    "description": "Assert that the given `Option<u16>` is `None`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_none_32",
+    "section": "Asserts",
+    "input_type": "Option<u32>",
+    "output_type": "()",
+    "description": "Assert that the given `Option<u32>` is `None`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_none_64",
+    "section": "Asserts",
+    "input_type": "Option<u64>",
+    "output_type": "()",
+    "description": "Assert that the given `Option<u64>` is `None`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_none_128",
+    "section": "Asserts",
+    "input_type": "Option<u128>",
+    "output_type": "()",
+    "description": "Assert that the given `Option<u128>` is `None`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_none_256",
+    "section": "Asserts",
+    "input_type": "Option<u256>",
+    "output_type": "()",
+    "description": "Assert that the given `Option<u256>` is `None`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_eq_bool",
+    "section": "Asserts",
+    "input_type": "bool, bool",
+    "output_type": "()",
+    "description": "Assert that two `bool` values are equal.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "not",
+    "section": "Binary logic",
+    "input_type": "bool",
+    "output_type": "bool",
+    "description": "Return the logical NOT of the given value."
+  },
+  {
+    "simplicityhl_name": "or",
+    "section": "Binary logic",
+    "input_type": "bool, bool",
+    "output_type": "bool",
+    "description": "Return the logical OR of the two given values."
+  },
+  {
+    "simplicityhl_name": "and",
+    "section": "Binary logic",
+    "input_type": "bool, bool",
+    "output_type": "bool",
+    "description": "Return the logical AND of the two given values."
+  },
+  {
+    "simplicityhl_name": "xor",
+    "section": "Binary logic",
+    "input_type": "bool, bool",
+    "output_type": "bool",
+    "description": "Return the logical XOR of the two given values."
+  },
+  {
+    "simplicityhl_name": "is_output_op_return",
+    "section": "OP_RETURN",
+    "input_type": "u32",
+    "output_type": "bool",
+    "description": "Return `true` if the output at the given index is an OP_RETURN (null data) output, `false` otherwise (including if the output does not exist)."
+  },
+  {
+    "simplicityhl_name": "assert_output_is_op_return",
+    "section": "OP_RETURN",
+    "input_type": "u32",
+    "output_type": "()",
+    "description": "Assert that the output at the given index is an OP_RETURN (null data) output.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "ge_to_point",
+    "section": "secp256k1 operations",
+    "input_type": "Ge",
+    "output_type": "Point",
+    "description": "Compress an affine point to `(parity, x)`, where `parity = 1` if and only if `y` is odd."
+  },
+  {
+    "simplicityhl_name": "point_to_gej",
+    "section": "secp256k1 operations",
+    "input_type": "Point",
+    "output_type": "Gej",
+    "description": "Decompress a compressed `Point` into a Jacobian point with `z = 1`.\n\n## Panics\nPanics if the compressed point does not decode to a valid curve point."
+  },
+  {
+    "simplicityhl_name": "safe_gej_normalize",
+    "section": "secp256k1 operations",
+    "input_type": "Gej",
+    "output_type": "Ge",
+    "description": "Convert a Jacobian point into affine coordinates.\n\n## Panics\nPanics if the point is the point at infinity, which has no affine representation."
+  },
+  {
+    "simplicityhl_name": "fe_sub",
+    "section": "secp256k1 operations",
+    "input_type": "Fe, Fe",
+    "output_type": "Fe",
+    "description": "Subtract two field elements."
+  },
+  {
+    "simplicityhl_name": "scalar_sub",
+    "section": "secp256k1 operations",
+    "input_type": "Scalar, Scalar",
+    "output_type": "Scalar",
+    "description": "Subtract two scalars."
+  },
+  {
+    "simplicityhl_name": "gej_sub",
+    "section": "secp256k1 operations",
+    "input_type": "Gej, Gej",
+    "output_type": "Gej",
+    "description": "Subtract two Jacobian points."
+  },
+  {
+    "simplicityhl_name": "fe_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Fe, Fe",
+    "output_type": "bool",
+    "description": "Check field-element equality modulo `p`."
+  },
+  {
+    "simplicityhl_name": "scalar_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Scalar, Scalar",
+    "output_type": "bool",
+    "description": "Check scalar equality modulo the curve order `n`."
+  },
+  {
+    "simplicityhl_name": "ge_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Ge, Ge",
+    "output_type": "bool",
+    "description": "Check whether two affine points are equal."
+  },
+  {
+    "simplicityhl_name": "point_point_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Point, Point",
+    "output_type": "bool",
+    "description": "Check whether two compressed `Point` values are equal (same parity and same x-coordinate)."
+  },
+  {
+    "simplicityhl_name": "gej_point_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Gej, Point",
+    "output_type": "bool",
+    "description": "Check whether a Jacobian point and a compressed `Point` represent the same curve point.\n\n## Panics\nPanics if the compressed point does not decode to a valid curve point."
+  },
+  {
+    "simplicityhl_name": "assert_fe_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Fe, Fe",
+    "output_type": "()",
+    "description": "Assert field-element equality modulo `p`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_scalar_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Scalar, Scalar",
+    "output_type": "()",
+    "description": "Assert scalar equality modulo the curve order `n`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_ge_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Ge, Ge",
+    "output_type": "()",
+    "description": "Assert that two affine points are equal.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_point_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Point, Point",
+    "output_type": "()",
+    "description": "Assert that two compressed `Point` values are equal (same parity and same x-coordinate).\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_gej_point_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Gej, Point",
+    "output_type": "()",
+    "description": "Assert that a Jacobian point equals the point encoded by a compressed `Point`.\n\n## Panics\nThe assertion fails, or the compressed point does not decode to a valid curve point."
+  },
+  {
+    "simplicityhl_name": "assert_gej_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Gej, Gej",
+    "output_type": "()",
+    "description": "Assert that two Jacobian points represent the same curve point, without normalizing either one first.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_gej_ge_eq",
+    "section": "secp256k1 operations",
+    "input_type": "Gej, Ge",
+    "output_type": "()",
+    "description": "Assert that a Jacobian point equals an affine point, without normalizing the Jacobian point first.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "u1_to_u8",
+    "section": "`u1` conversions",
+    "input_type": "u1",
+    "output_type": "u8",
+    "description": "Widen a `u1` value to a `u8` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u1_to_u16",
+    "section": "`u1` conversions",
+    "input_type": "u1",
+    "output_type": "u16",
+    "description": "Widen a `u1` value to a `u16` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u1_to_u32",
+    "section": "`u1` conversions",
+    "input_type": "u1",
+    "output_type": "u32",
+    "description": "Widen a `u1` value to a `u32` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u1_to_u64",
+    "section": "`u1` conversions",
+    "input_type": "u1",
+    "output_type": "u64",
+    "description": "Widen a `u1` value to a `u64` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u1_to_u128",
+    "section": "`u1` conversions",
+    "input_type": "u1",
+    "output_type": "u128",
+    "description": "Widen a `u1` value to a `u128` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u1_to_u256",
+    "section": "`u1` conversions",
+    "input_type": "u1",
+    "output_type": "u256",
+    "description": "Widen a `u1` value to a `u256` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u1_to_bool",
+    "section": "`u1` conversions",
+    "input_type": "u1",
+    "output_type": "bool",
+    "description": "Convert a `u1` value to `bool`."
+  },
+  {
+    "simplicityhl_name": "checked_add_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8",
+    "output_type": "Option<u8>",
+    "description": "Add two `u8` values. Return `Some` of the sum, or `None` if the result overflows `u8`."
+  },
+  {
+    "simplicityhl_name": "safe_add_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8",
+    "output_type": "u8",
+    "description": "Add two `u8` values.\n\n## Panics\nPanics if the result overflows `u8`."
+  },
+  {
+    "simplicityhl_name": "checked_sub_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8",
+    "output_type": "Option<u8>",
+    "description": "Subtract the second `u8` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u8`."
+  },
+  {
+    "simplicityhl_name": "safe_sub_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8",
+    "output_type": "u8",
+    "description": "Subtract the second `u8` value from the first.\n\n## Panics\nPanics if the result would underflow `u8`."
+  },
+  {
+    "simplicityhl_name": "checked_mul_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8",
+    "output_type": "Option<u8>",
+    "description": "Multiply two `u8` values. Return `Some` of the product, or `None` if the result overflows `u8`."
+  },
+  {
+    "simplicityhl_name": "safe_mul_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8",
+    "output_type": "u8",
+    "description": "Multiply two `u8` values.\n\n## Panics\nPanics if the result overflows `u8`."
+  },
+  {
+    "simplicityhl_name": "checked_div_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8",
+    "output_type": "Option<u8>",
+    "description": "Divide the first `u8` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "safe_div_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8",
+    "output_type": "u8",
+    "description": "Divide the first `u8` value by the second.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "gt_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8",
+    "output_type": "bool",
+    "description": "Check if the first `u8` value is greater than the second."
+  },
+  {
+    "simplicityhl_name": "ge_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8",
+    "output_type": "bool",
+    "description": "Check if the first `u8` value is greater than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "u8_to_u16",
+    "section": "`u8` conversions",
+    "input_type": "u8",
+    "output_type": "u16",
+    "description": "Widen a `u8` value to a `u16` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u8_to_u32",
+    "section": "`u8` conversions",
+    "input_type": "u8",
+    "output_type": "u32",
+    "description": "Widen a `u8` value to a `u32` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u8_to_u64",
+    "section": "`u8` conversions",
+    "input_type": "u8",
+    "output_type": "u64",
+    "description": "Widen a `u8` value to a `u64` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u8_to_u128",
+    "section": "`u8` conversions",
+    "input_type": "u8",
+    "output_type": "u128",
+    "description": "Widen a `u8` value to a `u128` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u8_to_u256",
+    "section": "`u8` conversions",
+    "input_type": "u8",
+    "output_type": "u256",
+    "description": "Widen a `u8` value to a `u256` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "split_u8_into_u1",
+    "section": "`u8` conversions",
+    "input_type": "u8",
+    "output_type": "(u1, u1, u1, u1, u1, u1, u1, u1)",
+    "description": "Split a `u8` value into eight `u1` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "safe_u8_to_u1",
+    "section": "`u8` conversions",
+    "input_type": "u8",
+    "output_type": "u1",
+    "description": "Narrow a `u8` value to `u1`.\n\n## Panics\nPanics if the value does not fit in `u1`."
+  },
+  {
+    "simplicityhl_name": "checked_add_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16",
+    "output_type": "Option<u16>",
+    "description": "Add two `u16` values. Return `Some` of the sum, or `None` if the result overflows `u16`."
+  },
+  {
+    "simplicityhl_name": "safe_add_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16",
+    "output_type": "u16",
+    "description": "Add two `u16` values.\n\n## Panics\nPanics if the result overflows `u16`."
+  },
+  {
+    "simplicityhl_name": "checked_sub_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16",
+    "output_type": "Option<u16>",
+    "description": "Subtract the second `u16` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u16`."
+  },
+  {
+    "simplicityhl_name": "safe_sub_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16",
+    "output_type": "u16",
+    "description": "Subtract the second `u16` value from the first.\n\n## Panics\nPanics if the result would underflow `u16`."
+  },
+  {
+    "simplicityhl_name": "checked_mul_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16",
+    "output_type": "Option<u16>",
+    "description": "Multiply two `u16` values. Return `Some` of the product, or `None` if the result overflows `u16`."
+  },
+  {
+    "simplicityhl_name": "safe_mul_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16",
+    "output_type": "u16",
+    "description": "Multiply two `u16` values.\n\n## Panics\nPanics if the result overflows `u16`."
+  },
+  {
+    "simplicityhl_name": "checked_div_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16",
+    "output_type": "Option<u16>",
+    "description": "Divide the first `u16` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "safe_div_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16",
+    "output_type": "u16",
+    "description": "Divide the first `u16` value by the second.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "gt_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16",
+    "output_type": "bool",
+    "description": "Check if the first `u16` value is greater than the second."
+  },
+  {
+    "simplicityhl_name": "ge_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16",
+    "output_type": "bool",
+    "description": "Check if the first `u16` value is greater than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "u16_to_u32",
+    "section": "`u16` conversions",
+    "input_type": "u16",
+    "output_type": "u32",
+    "description": "Widen a `u16` value to a `u32` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u16_to_u64",
+    "section": "`u16` conversions",
+    "input_type": "u16",
+    "output_type": "u64",
+    "description": "Widen a `u16` value to a `u64` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u16_to_u128",
+    "section": "`u16` conversions",
+    "input_type": "u16",
+    "output_type": "u128",
+    "description": "Widen a `u16` value to a `u128` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u16_to_u256",
+    "section": "`u16` conversions",
+    "input_type": "u16",
+    "output_type": "u256",
+    "description": "Widen a `u16` value to a `u256` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "split_u16_into_u8",
+    "section": "`u16` conversions",
+    "input_type": "u16",
+    "output_type": "(u8, u8)",
+    "description": "Split a `u16` value into two `u8` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "safe_u16_to_u1",
+    "section": "`u16` conversions",
+    "input_type": "u16",
+    "output_type": "u1",
+    "description": "Narrow a `u16` value to `u1`.\n\n## Panics\nPanics if the value does not fit in `u1`."
+  },
+  {
+    "simplicityhl_name": "safe_u16_to_u8",
+    "section": "`u16` conversions",
+    "input_type": "u16",
+    "output_type": "u8",
+    "description": "Narrow a `u16` value to `u8`.\n\n## Panics\nPanics if the value does not fit in `u8`."
+  },
+  {
+    "simplicityhl_name": "checked_add_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32",
+    "output_type": "Option<u32>",
+    "description": "Add two `u32` values. Return `Some` of the sum, or `None` if the result overflows `u32`."
+  },
+  {
+    "simplicityhl_name": "safe_add_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32",
+    "output_type": "u32",
+    "description": "Add two `u32` values.\n\n## Panics\nPanics if the result overflows `u32`."
+  },
+  {
+    "simplicityhl_name": "checked_sub_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32",
+    "output_type": "Option<u32>",
+    "description": "Subtract the second `u32` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u32`."
+  },
+  {
+    "simplicityhl_name": "safe_sub_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32",
+    "output_type": "u32",
+    "description": "Subtract the second `u32` value from the first.\n\n## Panics\nPanics if the result would underflow `u32`."
+  },
+  {
+    "simplicityhl_name": "checked_mul_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32",
+    "output_type": "Option<u32>",
+    "description": "Multiply two `u32` values. Return `Some` of the product, or `None` if the result overflows `u32`."
+  },
+  {
+    "simplicityhl_name": "safe_mul_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32",
+    "output_type": "u32",
+    "description": "Multiply two `u32` values.\n\n## Panics\nPanics if the result overflows `u32`."
+  },
+  {
+    "simplicityhl_name": "checked_div_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32",
+    "output_type": "Option<u32>",
+    "description": "Divide the first `u32` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "safe_div_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32",
+    "output_type": "u32",
+    "description": "Divide the first `u32` value by the second.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "gt_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32",
+    "output_type": "bool",
+    "description": "Check if the first `u32` value is greater than the second."
+  },
+  {
+    "simplicityhl_name": "ge_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32",
+    "output_type": "bool",
+    "description": "Check if the first `u32` value is greater than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "u32_to_u64",
+    "section": "`u32` conversions",
+    "input_type": "u32",
+    "output_type": "u64",
+    "description": "Widen a `u32` value to a `u64` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u32_to_u128",
+    "section": "`u32` conversions",
+    "input_type": "u32",
+    "output_type": "u128",
+    "description": "Widen a `u32` value to a `u128` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u32_to_u256",
+    "section": "`u32` conversions",
+    "input_type": "u32",
+    "output_type": "u256",
+    "description": "Widen a `u32` value to a `u256` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "split_u32_into_u8",
+    "section": "`u32` conversions",
+    "input_type": "u32",
+    "output_type": "(u8, u8, u8, u8)",
+    "description": "Split a `u32` value into four `u8` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "split_u32_into_u16",
+    "section": "`u32` conversions",
+    "input_type": "u32",
+    "output_type": "(u16, u16)",
+    "description": "Split a `u32` value into two `u16` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "safe_u32_to_u1",
+    "section": "`u32` conversions",
+    "input_type": "u32",
+    "output_type": "u1",
+    "description": "Narrow a `u32` value to `u1`.\n\n## Panics\nPanics if the value does not fit in `u1`."
+  },
+  {
+    "simplicityhl_name": "safe_u32_to_u8",
+    "section": "`u32` conversions",
+    "input_type": "u32",
+    "output_type": "u8",
+    "description": "Narrow a `u32` value to `u8`.\n\n## Panics\nPanics if the value does not fit in `u8`."
+  },
+  {
+    "simplicityhl_name": "safe_u32_to_u16",
+    "section": "`u32` conversions",
+    "input_type": "u32",
+    "output_type": "u16",
+    "description": "Narrow a `u32` value to `u16`.\n\n## Panics\nPanics if the value does not fit in `u16`."
+  },
+  {
+    "simplicityhl_name": "checked_add_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64",
+    "output_type": "Option<u64>",
+    "description": "Add two `u64` values. Return `Some` of the sum, or `None` if the result overflows `u64`."
+  },
+  {
+    "simplicityhl_name": "safe_add_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64",
+    "output_type": "u64",
+    "description": "Add two `u64` values.\n\n## Panics\nPanics if the result overflows `u64`."
+  },
+  {
+    "simplicityhl_name": "checked_sub_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64",
+    "output_type": "Option<u64>",
+    "description": "Subtract the second `u64` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u64`."
+  },
+  {
+    "simplicityhl_name": "safe_sub_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64",
+    "output_type": "u64",
+    "description": "Subtract the second `u64` value from the first.\n\n## Panics\nPanics if the result would underflow `u64`."
+  },
+  {
+    "simplicityhl_name": "checked_mul_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64",
+    "output_type": "Option<u64>",
+    "description": "Multiply two `u64` values. Return `Some` of the product, or `None` if the result overflows `u64`."
+  },
+  {
+    "simplicityhl_name": "safe_mul_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64",
+    "output_type": "u64",
+    "description": "Multiply two `u64` values.\n\n## Panics\nPanics if the result overflows `u64`."
+  },
+  {
+    "simplicityhl_name": "checked_div_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64",
+    "output_type": "Option<u64>",
+    "description": "Divide the first `u64` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "safe_div_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64",
+    "output_type": "u64",
+    "description": "Divide the first `u64` value by the second.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "gt_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64",
+    "output_type": "bool",
+    "description": "Check if the first `u64` value is greater than the second."
+  },
+  {
+    "simplicityhl_name": "ge_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64",
+    "output_type": "bool",
+    "description": "Check if the first `u64` value is greater than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "u64_to_u128",
+    "section": "`u64` conversions",
+    "input_type": "u64",
+    "output_type": "u128",
+    "description": "Widen a `u64` value to a `u128` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u64_to_u256",
+    "section": "`u64` conversions",
+    "input_type": "u64",
+    "output_type": "u256",
+    "description": "Widen a `u64` value to a `u256` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "split_u64_into_u8",
+    "section": "`u64` conversions",
+    "input_type": "u64",
+    "output_type": "(u8, u8, u8, u8, u8, u8, u8, u8)",
+    "description": "Split a `u64` value into eight `u8` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "split_u64_into_u16",
+    "section": "`u64` conversions",
+    "input_type": "u64",
+    "output_type": "(u16, u16, u16, u16)",
+    "description": "Split a `u64` value into four `u16` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "split_u64_into_u32",
+    "section": "`u64` conversions",
+    "input_type": "u64",
+    "output_type": "(u32, u32)",
+    "description": "Split a `u64` value into two `u32` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "safe_u64_to_u1",
+    "section": "`u64` conversions",
+    "input_type": "u64",
+    "output_type": "u1",
+    "description": "Narrow a `u64` value to `u1`.\n\n## Panics\nPanics if the value does not fit in `u1`."
+  },
+  {
+    "simplicityhl_name": "safe_u64_to_u8",
+    "section": "`u64` conversions",
+    "input_type": "u64",
+    "output_type": "u8",
+    "description": "Narrow a `u64` value to `u8`.\n\n## Panics\nPanics if the value does not fit in `u8`."
+  },
+  {
+    "simplicityhl_name": "safe_u64_to_u16",
+    "section": "`u64` conversions",
+    "input_type": "u64",
+    "output_type": "u16",
+    "description": "Narrow a `u64` value to `u16`.\n\n## Panics\nPanics if the value does not fit in `u16`."
+  },
+  {
+    "simplicityhl_name": "safe_u64_to_u32",
+    "section": "`u64` conversions",
+    "input_type": "u64",
+    "output_type": "u32",
+    "description": "Narrow a `u64` value to `u32`.\n\n## Panics\nPanics if the value does not fit in `u32`."
+  },
+  {
+    "simplicityhl_name": "and_128",
+    "section": "`u128` bit logic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Bitwise AND of two `u128` values."
+  },
+  {
+    "simplicityhl_name": "or_128",
+    "section": "`u128` bit logic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Bitwise OR of two `u128` values."
+  },
+  {
+    "simplicityhl_name": "eq_128",
+    "section": "`u128` bit logic",
+    "input_type": "u128, u128",
+    "output_type": "bool",
+    "description": "Check if two `u128` values are equal."
+  },
+  {
+    "simplicityhl_name": "left_shift_128",
+    "section": "`u128` bit logic",
+    "input_type": "u8, u128",
+    "output_type": "u128",
+    "description": "Left-shift a `u128` value by the given amount. Bits shifted out are discarded; vacated low bits are filled with zeroes."
+  },
+  {
+    "simplicityhl_name": "right_shift_128",
+    "section": "`u128` bit logic",
+    "input_type": "u8, u128",
+    "output_type": "u128",
+    "description": "Right-shift a `u128` value by the given amount. Bits shifted out are discarded; vacated high bits are filled with zeroes."
+  },
+  {
+    "simplicityhl_name": "is_zero_128",
+    "section": "`u128` comparisons",
+    "input_type": "u128",
+    "output_type": "bool",
+    "description": "Check if a `u128` value is zero."
+  },
+  {
+    "simplicityhl_name": "lt_128",
+    "section": "`u128` comparisons",
+    "input_type": "u128, u128",
+    "output_type": "bool",
+    "description": "Check if the first `u128` value is strictly less than the second."
+  },
+  {
+    "simplicityhl_name": "le_128",
+    "section": "`u128` comparisons",
+    "input_type": "u128, u128",
+    "output_type": "bool",
+    "description": "Check if the first `u128` value is less than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "gt_128",
+    "section": "`u128` comparisons",
+    "input_type": "u128, u128",
+    "output_type": "bool",
+    "description": "Check if the first `u128` value is strictly greater than the second."
+  },
+  {
+    "simplicityhl_name": "ge_128",
+    "section": "`u128` comparisons",
+    "input_type": "u128, u128",
+    "output_type": "bool",
+    "description": "Check if the first `u128` value is greater than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "u128_to_u256",
+    "section": "`u128` conversions",
+    "input_type": "u128",
+    "output_type": "u256",
+    "description": "Widen a `u128` value to a `u256` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "split_u128_into_u8",
+    "section": "`u128` conversions",
+    "input_type": "u128",
+    "output_type": "(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8)",
+    "description": "Split a `u128` value into sixteen `u8` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "split_u128_into_u16",
+    "section": "`u128` conversions",
+    "input_type": "u128",
+    "output_type": "(u16, u16, u16, u16, u16, u16, u16, u16)",
+    "description": "Split a `u128` value into eight `u16` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "split_u128_into_u32",
+    "section": "`u128` conversions",
+    "input_type": "u128",
+    "output_type": "(u32, u32, u32, u32)",
+    "description": "Split a `u128` value into four `u32` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "split_u128_into_u64",
+    "section": "`u128` conversions",
+    "input_type": "u128",
+    "output_type": "(u64, u64)",
+    "description": "Split a `u128` value into two `u64` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "safe_u128_to_u1",
+    "section": "`u128` conversions",
+    "input_type": "u128",
+    "output_type": "u1",
+    "description": "Narrow a `u128` value to `u1`.\n\n## Panics\nPanics if the value does not fit in `u1`."
+  },
+  {
+    "simplicityhl_name": "safe_u128_to_u8",
+    "section": "`u128` conversions",
+    "input_type": "u128",
+    "output_type": "u8",
+    "description": "Narrow a `u128` value to `u8`.\n\n## Panics\nPanics if the value does not fit in `u8`."
+  },
+  {
+    "simplicityhl_name": "safe_u128_to_u16",
+    "section": "`u128` conversions",
+    "input_type": "u128",
+    "output_type": "u16",
+    "description": "Narrow a `u128` value to `u16`.\n\n## Panics\nPanics if the value does not fit in `u16`."
+  },
+  {
+    "simplicityhl_name": "safe_u128_to_u32",
+    "section": "`u128` conversions",
+    "input_type": "u128",
+    "output_type": "u32",
+    "description": "Narrow a `u128` value to `u32`.\n\n## Panics\nPanics if the value does not fit in `u32`."
+  },
+  {
+    "simplicityhl_name": "safe_u128_to_u64",
+    "section": "`u128` conversions",
+    "input_type": "u128",
+    "output_type": "u64",
+    "description": "Narrow a `u128` value to `u64`.\n\n## Panics\nPanics if the value does not fit in `u64`."
+  },
+  {
+    "simplicityhl_name": "add_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "(bool, u128)",
+    "description": "Add two `u128` values. Return the carry bit and the sum."
+  },
+  {
+    "simplicityhl_name": "add_128_64",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u64",
+    "output_type": "(bool, u128)",
+    "description": "Add a `u64` value to a `u128` value. Return the carry bit and the sum."
+  },
+  {
+    "simplicityhl_name": "checked_add_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "Option<u128>",
+    "description": "Add two `u128` values. Return `Some` of the sum, or `None` if the result overflows `u128`."
+  },
+  {
+    "simplicityhl_name": "safe_add_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Add two `u128` values.\n\n## Panics\nPanics if the result overflows `u128`."
+  },
+  {
+    "simplicityhl_name": "sub_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "(bool, u128)",
+    "description": "Subtract the second `u128` value from the first. Return the borrow bit and the difference."
+  },
+  {
+    "simplicityhl_name": "checked_sub_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "Option<u128>",
+    "description": "Subtract the second `u128` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u128`."
+  },
+  {
+    "simplicityhl_name": "safe_sub_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Subtract the second `u128` value from the first.\n\n## Panics\nPanics if the result would underflow `u128`."
+  },
+  {
+    "simplicityhl_name": "mul_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u256",
+    "description": "Multiply two `u128` values. The full, non-truncated product is returned as a `u256`, so this operation can never overflow."
+  },
+  {
+    "simplicityhl_name": "checked_mul_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "Option<u128>",
+    "description": "Multiply two `u128` values. Return `Some` of the product, or `None` if the result overflows `u128`."
+  },
+  {
+    "simplicityhl_name": "safe_mul_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Multiply two `u128` values.\n\n## Panics\nPanics if the result overflows `u128`."
+  },
+  {
+    "simplicityhl_name": "div_mod_128_64",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u64",
+    "output_type": "(u128, u64)",
+    "description": "Divide a `u128` value by a `u64` value, returning the `u128` quotient and the `u64` remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "div_mod_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "(u128, u128)",
+    "description": "Divide the first `u128` value by the second, returning the quotient and the remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "div_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Divide the first `u128` value by the second, returning the quotient.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "checked_div_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "Option<u128>",
+    "description": "Divide the first `u128` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "safe_div_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Divide the first `u128` value by the second.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "full_add_128",
+    "section": "`u128` arithmetic",
+    "input_type": "bool, u128, u128",
+    "output_type": "(bool, u128)",
+    "description": "Add two `u128` values, taking an incoming carry bit. Return the outgoing carry bit and the sum."
+  },
+  {
+    "simplicityhl_name": "full_sub_128",
+    "section": "`u128` arithmetic",
+    "input_type": "bool, u128, u128",
+    "output_type": "(bool, u128)",
+    "description": "Subtract the second `u128` value from the first, taking an incoming borrow bit. Return the outgoing borrow bit and the difference."
+  },
+  {
+    "simplicityhl_name": "mul_128_64",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u64",
+    "output_type": "u256",
+    "description": "Multiply a `u128` value by a `u64` value. The full, non-truncated product is returned as a `u256`, so this operation can never overflow."
+  },
+  {
+    "simplicityhl_name": "calculate_normalizer_base_64",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, bool",
+    "output_type": "u64",
+    "description": "Helper for `jet::div_mod_128_64`-based division algorithms. Returns the factor by which `b` should be multiplied so that its most-significant non-zero word is at least `2^63`, as required by those algorithms (which operate in base `2^64`). Set `is_b_u128` to `true` if `b`'s upper 64 bits may be non-zero, or `false` if `b` is known to fit in `u64` (in which case its upper 64 bits must already be zero).\n\n## Panics\nThe assertion fails if `is_b_u128` is `false` but `b`'s upper 64 bits are non-zero, or if `b` is zero."
+  },
+  {
+    "simplicityhl_name": "estimate_quotient_digit_base_64",
+    "section": "`u128` arithmetic",
+    "input_type": "u64, u64, u64, u64, u64",
+    "output_type": "u64",
+    "description": "Helper for Algorithm D division. Estimates and corrects the next base-`2^64` quotient digit from the three most-significant dividend words (`u2`, `u1`, `u0`) and the two most-significant divisor words (`v1`, `v0`)."
+  },
+  {
+    "simplicityhl_name": "and_256",
+    "section": "`u256` bit logic",
+    "input_type": "u256, u256",
+    "output_type": "u256",
+    "description": "Bitwise AND of two `u256` values."
+  },
+  {
+    "simplicityhl_name": "or_256",
+    "section": "`u256` bit logic",
+    "input_type": "u256, u256",
+    "output_type": "u256",
+    "description": "Bitwise OR of two `u256` values."
+  },
+  {
+    "simplicityhl_name": "left_shift_256",
+    "section": "`u256` bit logic",
+    "input_type": "u8, u256",
+    "output_type": "u256",
+    "description": "Left-shift a `u256` value by the given amount. Bits shifted out are discarded; vacated low bits are filled with zeroes."
+  },
+  {
+    "simplicityhl_name": "right_shift_256",
+    "section": "`u256` bit logic",
+    "input_type": "u8, u256",
+    "output_type": "u256",
+    "description": "Right-shift a `u256` value by the given amount. Bits shifted out are discarded; vacated high bits are filled with zeroes."
+  },
+  {
+    "simplicityhl_name": "is_zero_256",
+    "section": "`u256` comparisons",
+    "input_type": "u256",
+    "output_type": "bool",
+    "description": "Check if a `u256` value is zero."
+  },
+  {
+    "simplicityhl_name": "lt_256",
+    "section": "`u256` comparisons",
+    "input_type": "u256, u256",
+    "output_type": "bool",
+    "description": "Check if the first `u256` value is strictly less than the second."
+  },
+  {
+    "simplicityhl_name": "le_256",
+    "section": "`u256` comparisons",
+    "input_type": "u256, u256",
+    "output_type": "bool",
+    "description": "Check if the first `u256` value is less than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "gt_256",
+    "section": "`u256` comparisons",
+    "input_type": "u256, u256",
+    "output_type": "bool",
+    "description": "Check if the first `u256` value is strictly greater than the second."
+  },
+  {
+    "simplicityhl_name": "ge_256",
+    "section": "`u256` comparisons",
+    "input_type": "u256, u256",
+    "output_type": "bool",
+    "description": "Check if the first `u256` value is greater than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "split_u256_into_u8",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8)",
+    "description": "Split a `u256` value into thirty-two `u8` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "split_u256_into_u16",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "(u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16)",
+    "description": "Split a `u256` value into sixteen `u16` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "split_u256_into_u32",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "(u32, u32, u32, u32, u32, u32, u32, u32)",
+    "description": "Split a `u256` value into eight `u32` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "split_u256_into_u64",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "(u64, u64, u64, u64)",
+    "description": "Split a `u256` value into four `u64` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "split_u256_into_u128",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "(u128, u128)",
+    "description": "Split a `u256` value into two `u128` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "safe_u256_to_u1",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "u1",
+    "description": "Narrow a `u256` value to `u1`.\n\n## Panics\nPanics if the value does not fit in `u1`."
+  },
+  {
+    "simplicityhl_name": "safe_u256_to_u8",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "u8",
+    "description": "Narrow a `u256` value to `u8`.\n\n## Panics\nPanics if the value does not fit in `u8`."
+  },
+  {
+    "simplicityhl_name": "safe_u256_to_u16",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "u16",
+    "description": "Narrow a `u256` value to `u16`.\n\n## Panics\nPanics if the value does not fit in `u16`."
+  },
+  {
+    "simplicityhl_name": "safe_u256_to_u32",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "u32",
+    "description": "Narrow a `u256` value to `u32`.\n\n## Panics\nPanics if the value does not fit in `u32`."
+  },
+  {
+    "simplicityhl_name": "safe_u256_to_u64",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "u64",
+    "description": "Narrow a `u256` value to `u64`.\n\n## Panics\nPanics if the value does not fit in `u64`."
+  },
+  {
+    "simplicityhl_name": "safe_u256_to_u128",
+    "section": "`u256` conversions",
+    "input_type": "u256",
+    "output_type": "u128",
+    "description": "Narrow a `u256` value to `u128`.\n\n## Panics\nPanics if the value does not fit in `u128`."
+  },
+  {
+    "simplicityhl_name": "add_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "(bool, u256)",
+    "description": "Add two `u256` values. Return the carry bit and the sum."
+  },
+  {
+    "simplicityhl_name": "add_256_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u128",
+    "output_type": "(bool, u256)",
+    "description": "Add a `u128` value to a `u256` value. Return the carry bit and the sum."
+  },
+  {
+    "simplicityhl_name": "checked_add_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "Option<u256>",
+    "description": "Add two `u256` values. Return `Some` of the sum, or `None` if the result overflows `u256`."
+  },
+  {
+    "simplicityhl_name": "safe_add_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "u256",
+    "description": "Add two `u256` values.\n\n## Panics\nPanics if the result overflows `u256`."
+  },
+  {
+    "simplicityhl_name": "sub_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "(bool, u256)",
+    "description": "Subtract the second `u256` value from the first. Return the borrow bit and the difference."
+  },
+  {
+    "simplicityhl_name": "checked_sub_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "Option<u256>",
+    "description": "Subtract the second `u256` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u256`."
+  },
+  {
+    "simplicityhl_name": "safe_sub_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "u256",
+    "description": "Subtract the second `u256` value from the first.\n\n## Panics\nPanics if the result would underflow `u256`."
+  },
+  {
+    "simplicityhl_name": "mul_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "(u256, u256)",
+    "description": "Multiply two `u256` values. The full, non-truncated product is returned as a pair of `u256` values, most-significant first, so this operation can never overflow."
+  },
+  {
+    "simplicityhl_name": "mul_256_64",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u64",
+    "output_type": "(u64, u256)",
+    "description": "Multiply a `u256` value by a `u64` value. The full, non-truncated product is returned as a `u64`/`u256` pair, most-significant first, so this operation can never overflow."
+  },
+  {
+    "simplicityhl_name": "mul_256_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u128",
+    "output_type": "(u128, u256)",
+    "description": "Multiply a `u256` value by a `u128` value. The full, non-truncated product is returned as a `u128`/`u256` pair, most-significant first, so this operation can never overflow."
+  },
+  {
+    "simplicityhl_name": "checked_mul_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "Option<u256>",
+    "description": "Multiply two `u256` values. Return `Some` of the product, or `None` if the result overflows `u256`."
+  },
+  {
+    "simplicityhl_name": "safe_mul_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "u256",
+    "description": "Multiply two `u256` values.\n\n## Panics\nPanics if the result overflows `u256`."
+  },
+  {
+    "simplicityhl_name": "div_mod_256_64",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u64",
+    "output_type": "(u256, u64)",
+    "description": "Divide a `u256` value by a `u64` value, returning the `u256` quotient and the `u64` remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "div_mod_256_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u128",
+    "output_type": "(u256, u128)",
+    "description": "Divide a `u256` value by a `u128` value, returning the `u256` quotient and the `u128` remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "div_mod_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "(u256, u256)",
+    "description": "Divide the first `u256` value by the second, returning the quotient and the remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "div_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "u256",
+    "description": "Divide the first `u256` value by the second, returning the quotient.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "checked_div_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "Option<u256>",
+    "description": "Divide the first `u256` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "safe_div_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "u256",
+    "description": "Divide the first `u256` value by the second.\n\n## Panics\nPanics if the divisor is zero."
+  }
+]
