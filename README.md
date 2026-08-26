@@ -62,6 +62,12 @@ simplex install https://github.com/BlockstreamResearch/simplicityhl-std
 > [!NOTE]
 > The library works with Simplex version 0.0.7 or higher.
 
+## Documentation
+
+Documentation for the standard library functions is maintained in this repository at `docs/stdlib.json`.
+
+You can find [a rendered standard library reference](https://docs.simplicity-lang.org/documentation/stdlib/) on our developer documentation site.
+
 ## Usage
 
 After installing the library, import modules from `std::lib`:

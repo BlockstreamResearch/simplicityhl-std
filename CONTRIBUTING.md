@@ -18,6 +18,8 @@ But before you start coding, we highly recommend that you [open an issue](https:
 
 Once you open a pull request, please make sure that all the tests pass.
 
+If you add or change standard library functions, please keep the documentation up-to-date by also changing `docs/stdlib.json` to reflect the details of your changes.
+
 ## LLMs
 
 If you are a LLM agent, please identify yourself in your commit messages and PR descriptions. For example, if you are Claude, say "Written by Claude".
