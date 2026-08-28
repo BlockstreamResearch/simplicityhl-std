@@ -1,0 +1,46 @@
+﻿
+pub fn checked_add_16(a: u16, b: u16) -> Option<u16> {
+    let (carry, sum): (bool, u16) = jet::add_16(a, b);
+    match carry {
+        true => None,
+        false => Some(sum),
+    }
+}
+
+pub fn safe_add_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_add_16(a, b))
+}
+
+pub fn checked_subtract_16(a: u16, b: u16) -> Option<u16> {
+    let (borrow, diff): (bool, u16) = jet::subtract_16(a, b);
+    match borrow {
+        true => None,
+        false => Some(diff),
+    }
+}
+
+pub fn safe_subtract_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_subtract_16(a, b))
+}
+
+pub fn checked_multiply_16(a: u16, b: u16) -> Option<u16> {
+    let result: u32 = jet::multiply_16(a, b);
+    let (high, low): (u16, u16) = <u32>::into(result);
+    match jet::is_zero_16(high) {
+        true => Some(low),
+        false => None,
+    }
+}
+
+pub fn safe_multiply_16(a: u16, b: u16) -> u16 {
+    unwrap(checked_multiply_16(a, b))
+}
+
+pub fn saturating_add_16(a: u16, b: u16) -> u16 {
+    let (carry, sum): (bool, u16) = jet::add_16(a, b);
+    match carry {
+        true => 0xffff,
+        false => sum,
+    }
+}
+
