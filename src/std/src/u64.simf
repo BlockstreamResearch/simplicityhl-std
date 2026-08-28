@@ -1,0 +1,46 @@
+﻿
+pub fn checked_add_64(a: u64, b: u64) -> Option<u64> {
+    let (carry, sum): (bool, u64) = jet::add_64(a, b);
+    match carry {
+        true => None,
+        false => Some(sum),
+    }
+}
+
+pub fn safe_add_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_add_64(a, b))
+}
+
+pub fn checked_subtract_64(a: u64, b: u64) -> Option<u64> {
+    let (borrow, diff): (bool, u64) = jet::subtract_64(a, b);
+    match borrow {
+        true => None,
+        false => Some(diff),
+    }
+}
+
+pub fn safe_subtract_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_subtract_64(a, b))
+}
+
+pub fn checked_multiply_64(a: u64, b: u64) -> Option<u64> {
+    let result: u128 = jet::multiply_64(a, b);
+    let (high, low): (u64, u64) = <u128>::into(result);
+    match jet::is_zero_64(high) {
+        true => Some(low),
+        false => None,
+    }
+}
+
+pub fn safe_multiply_64(a: u64, b: u64) -> u64 {
+    unwrap(checked_multiply_64(a, b))
+}
+
+pub fn saturating_add_64(a: u64, b: u64) -> u64 {
+    let (carry, sum): (bool, u64) = jet::add_64(a, b);
+    match carry {
+        true => 0xffffffffffffffff,
+        false => sum,
+    }
+}
+

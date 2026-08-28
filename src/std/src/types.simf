@@ -1,0 +1,402 @@
+﻿
+pub fn eq_confidential1(a: Confidential1, b: Confidential1) -> bool {
+    let a_i: (u1, u256) = <(u1, u256)>::into(a);
+    let b_i: (u1, u256) = <(u1, u256)>::into(b);
+    let (a_i_fst, a_i_snd): (u1, u256) = <(u1, u256)>::into(a_i);
+    let (b_i_fst, b_i_snd): (u1, u256) = <(u1, u256)>::into(b_i);
+    match jet::eq_1(a_i_fst, b_i_fst) {
+        true => eq_256(a_i_snd, b_i_snd),
+        false => false,
+    }
+}
+
+pub fn eq_point(a: Point, b: Point) -> bool {
+    let a_i: (u1, u256) = <(u1, u256)>::into(a);
+    let b_i: (u1, u256) = <(u1, u256)>::into(b);
+    let (a_i_fst, a_i_snd): (u1, u256) = <(u1, u256)>::into(a_i);
+    let (b_i_fst, b_i_snd): (u1, u256) = <(u1, u256)>::into(b_i);
+    match jet::eq_1(a_i_fst, b_i_fst) {
+        true => eq_256(a_i_snd, b_i_snd),
+        false => false,
+    }
+}
+
+pub fn eq_ge(a: Ge, b: Ge) -> bool {
+    let a_i: (u256, u256) = <(u256, u256)>::into(a);
+    let b_i: (u256, u256) = <(u256, u256)>::into(b);
+    let (a_i_fst, a_i_snd): (u256, u256) = <(u256, u256)>::into(a_i);
+    let (b_i_fst, b_i_snd): (u256, u256) = <(u256, u256)>::into(b_i);
+    match eq_256(a_i_fst, b_i_fst) {
+        true => eq_256(a_i_snd, b_i_snd),
+        false => false,
+    }
+}
+
+pub fn eq_outpoint(a: Outpoint, b: Outpoint) -> bool {
+    let a_i: (u256, u32) = <(u256, u32)>::into(a);
+    let b_i: (u256, u32) = <(u256, u32)>::into(b);
+    let (a_i_fst, a_i_snd): (u256, u32) = <(u256, u32)>::into(a_i);
+    let (b_i_fst, b_i_snd): (u256, u32) = <(u256, u32)>::into(b_i);
+    match eq_256(a_i_fst, b_i_fst) {
+        true => eq_32(a_i_snd, b_i_snd),
+        false => false,
+    }
+}
+
+pub fn eq_gej(a: Gej, b: Gej) -> bool {
+    let a_i: (Ge, u256) = <(Ge, u256)>::into(a);
+    let b_i: (Ge, u256) = <(Ge, u256)>::into(b);
+    let (a_i_fst, a_i_snd): (Ge, u256) = <(Ge, u256)>::into(a_i);
+    let (b_i_fst, b_i_snd): (Ge, u256) = <(Ge, u256)>::into(b_i);
+    match eq_Ge(a_i_fst, b_i_fst) {
+        true => eq_256(a_i_snd, b_i_snd),
+        false => false,
+    }
+}
+
+pub fn eq_amount1(a: Amount1, b: Amount1) -> bool {
+    let a_i: Either<Point, u64> = <Either<Point, u64>>::into(a);
+    let b_i: Either<Point, u64> = <Either<Point, u64>>::into(b);
+    match a_i {
+        Left(a_i_i: Point) => match b_i {
+            Left(b_i_i: Point) => eq_Point(a_i_i, b_i_i),
+            Right(_: u64) => false,
+        },
+        Right(a_i_i: u64) => match b_i {
+            Right(b_i_i: u64) => eq_64(a_i_i, b_i_i),
+            Left(_: Point) => false,
+        },
+    }
+}
+
+pub fn eq_asset1(a: Asset1, b: Asset1) -> bool {
+    let a_i: Either<Point, u256> = <Either<Point, u256>>::into(a);
+    let b_i: Either<Point, u256> = <Either<Point, u256>>::into(b);
+    match a_i {
+        Left(a_i_i: Point) => match b_i {
+            Left(b_i_i: Point) => eq_Point(a_i_i, b_i_i),
+            Right(_: u256) => false,
+        },
+        Right(a_i_i: u256) => match b_i {
+            Right(b_i_i: u256) => eq_256(a_i_i, b_i_i),
+            Left(_: Point) => false,
+        },
+    }
+}
+
+pub fn eq_nonce(a: Nonce, b: Nonce) -> bool {
+    let a_i: Either<Point, u256> = <Either<Point, u256>>::into(a);
+    let b_i: Either<Point, u256> = <Either<Point, u256>>::into(b);
+    match a_i {
+        Left(a_i_i: Point) => match b_i {
+            Left(b_i_i: Point) => eq_Point(a_i_i, b_i_i),
+            Right(_: u256) => false,
+        },
+        Right(a_i_i: u256) => match b_i {
+            Right(b_i_i: u256) => eq_256(a_i_i, b_i_i),
+            Left(_: Point) => false,
+        },
+    }
+}
+
+pub fn eq_token_amount1(a: TokenAmount1, b: TokenAmount1) -> bool {
+    let a_i: Either<Point, u64> = <Either<Point, u64>>::into(a);
+    let b_i: Either<Point, u64> = <Either<Point, u64>>::into(b);
+    match a_i {
+        Left(a_i_i: Point) => match b_i {
+            Left(b_i_i: Point) => eq_Point(a_i_i, b_i_i),
+            Right(_: u64) => false,
+        },
+        Right(a_i_i: u64) => match b_i {
+            Right(b_i_i: u64) => eq_64(a_i_i, b_i_i),
+            Left(_: Point) => false,
+        },
+    }
+}
+
+pub fn eq_distance(a: Distance, b: Distance) -> bool {
+    let a_i: u16 = <u16>::into(a);
+    let b_i: u16 = <u16>::into(b);
+    eq_16(a_i, b_i)
+}
+
+pub fn eq_duration(a: Duration, b: Duration) -> bool {
+    let a_i: u16 = <u16>::into(a);
+    let b_i: u16 = <u16>::into(b);
+    eq_16(a_i, b_i)
+}
+
+pub fn eq_explicit_amount(a: ExplicitAmount, b: ExplicitAmount) -> bool {
+    let a_i: u64 = <u64>::into(a);
+    let b_i: u64 = <u64>::into(b);
+    eq_64(a_i, b_i)
+}
+
+pub fn eq_explicit_asset(a: ExplicitAsset, b: ExplicitAsset) -> bool {
+    let a_i: u256 = <u256>::into(a);
+    let b_i: u256 = <u256>::into(b);
+    eq_256(a_i, b_i)
+}
+
+pub fn eq_explicit_nonce(a: ExplicitNonce, b: ExplicitNonce) -> bool {
+    let a_i: u256 = <u256>::into(a);
+    let b_i: u256 = <u256>::into(b);
+    eq_256(a_i, b_i)
+}
+
+pub fn eq_fe(a: Fe, b: Fe) -> bool {
+    let a_i: u256 = <u256>::into(a);
+    let b_i: u256 = <u256>::into(b);
+    eq_256(a_i, b_i)
+}
+
+pub fn eq_height(a: Height, b: Height) -> bool {
+    let a_i: u32 = <u32>::into(a);
+    let b_i: u32 = <u32>::into(b);
+    eq_32(a_i, b_i)
+}
+
+pub fn eq_lock(a: Lock, b: Lock) -> bool {
+    let a_i: u32 = <u32>::into(a);
+    let b_i: u32 = <u32>::into(b);
+    eq_32(a_i, b_i)
+}
+
+pub fn eq_message(a: Message, b: Message) -> bool {
+    let a_i: u256 = <u256>::into(a);
+    let b_i: u256 = <u256>::into(b);
+    eq_256(a_i, b_i)
+}
+
+pub fn eq_message64(a: Message64, b: Message64) -> bool {
+    let a_i: [u8; 64] = <[u8; 64]>::into(a);
+    let b_i: [u8; 64] = <[u8; 64]>::into(b);
+    let (a_i_hi, a_i_lo): (u256, u256) = <[u8; 64]>::into(a_i);
+    let (b_i_hi, b_i_lo): (u256, u256) = <[u8; 64]>::into(b_i);
+    match eq_256(a_i_hi, b_i_hi) {
+        true => eq_256(a_i_lo, b_i_lo),
+        false => false,
+    }
+}
+
+pub fn eq_pubkey(a: Pubkey, b: Pubkey) -> bool {
+    let a_i: u256 = <u256>::into(a);
+    let b_i: u256 = <u256>::into(b);
+    eq_256(a_i, b_i)
+}
+
+pub fn eq_scalar(a: Scalar, b: Scalar) -> bool {
+    let a_i: u256 = <u256>::into(a);
+    let b_i: u256 = <u256>::into(b);
+    eq_256(a_i, b_i)
+}
+
+pub fn eq_signature(a: Signature, b: Signature) -> bool {
+    let a_i: [u8; 64] = <[u8; 64]>::into(a);
+    let b_i: [u8; 64] = <[u8; 64]>::into(b);
+    let (a_i_hi, a_i_lo): (u256, u256) = <[u8; 64]>::into(a_i);
+    let (b_i_hi, b_i_lo): (u256, u256) = <[u8; 64]>::into(b_i);
+    match eq_256(a_i_hi, b_i_hi) {
+        true => eq_256(a_i_lo, b_i_lo),
+        false => false,
+    }
+}
+
+pub fn eq_time(a: Time, b: Time) -> bool {
+    let a_i: u32 = <u32>::into(a);
+    let b_i: u32 = <u32>::into(b);
+    eq_32(a_i, b_i)
+}
+
+
+pub fn assert_eq_confidential1(a: Confidential1, b: Confidential1) {
+    assert!(eq_confidential1(a, b));
+}
+
+pub fn assert_eq_point(a: Point, b: Point) {
+    assert!(eq_point(a, b));
+}
+
+pub fn assert_eq_ge(a: Ge, b: Ge) {
+    assert!(eq_ge(a, b));
+}
+
+pub fn assert_eq_outpoint(a: Outpoint, b: Outpoint) {
+    assert!(eq_outpoint(a, b));
+}
+
+pub fn assert_eq_gej(a: Gej, b: Gej) {
+    assert!(eq_gej(a, b));
+}
+
+pub fn assert_eq_amount1(a: Amount1, b: Amount1) {
+    assert!(eq_amount1(a, b));
+}
+
+pub fn assert_eq_asset1(a: Asset1, b: Asset1) {
+    assert!(eq_asset1(a, b));
+}
+
+pub fn assert_eq_nonce(a: Nonce, b: Nonce) {
+    assert!(eq_nonce(a, b));
+}
+
+pub fn assert_eq_token_amount1(a: TokenAmount1, b: TokenAmount1) {
+    assert!(eq_token_amount1(a, b));
+}
+
+pub fn assert_eq_distance(a: Distance, b: Distance) {
+    assert!(eq_distance(a, b));
+}
+
+pub fn assert_eq_duration(a: Duration, b: Duration) {
+    assert!(eq_duration(a, b));
+}
+
+pub fn assert_eq_explicit_amount(a: ExplicitAmount, b: ExplicitAmount) {
+    assert!(eq_explicit_amount(a, b));
+}
+
+pub fn assert_eq_explicit_asset(a: ExplicitAsset, b: ExplicitAsset) {
+    assert!(eq_explicit_asset(a, b));
+}
+
+pub fn assert_eq_explicit_nonce(a: ExplicitNonce, b: ExplicitNonce) {
+    assert!(eq_explicit_nonce(a, b));
+}
+
+pub fn assert_eq_fe(a: Fe, b: Fe) {
+    assert!(eq_fe(a, b));
+}
+
+pub fn assert_eq_height(a: Height, b: Height) {
+    assert!(eq_height(a, b));
+}
+
+pub fn assert_eq_lock(a: Lock, b: Lock) {
+    assert!(eq_lock(a, b));
+}
+
+pub fn assert_eq_message(a: Message, b: Message) {
+    assert!(eq_message(a, b));
+}
+
+pub fn assert_eq_message64(a: Message64, b: Message64) {
+    assert!(eq_message64(a, b));
+}
+
+pub fn assert_eq_pubkey(a: Pubkey, b: Pubkey) {
+    assert!(eq_pubkey(a, b));
+}
+
+pub fn assert_eq_scalar(a: Scalar, b: Scalar) {
+    assert!(eq_scalar(a, b));
+}
+
+pub fn assert_eq_signature(a: Signature, b: Signature) {
+    assert!(eq_signature(a, b));
+}
+
+pub fn assert_eq_time(a: Time, b: Time) {
+    assert!(eq_time(a, b));
+}
+
+pub fn assert_eq_ctx8(a: Ctx8, b: Ctx8) {
+    assert!(eq_ctx8(a, b));
+}
+
+pub fn assert_none_confidential1(val: Option<Confidential1>) {
+    assert!(is_none::<Confidential1>(val));
+}
+
+pub fn assert_none_point(val: Option<Point>) {
+    assert!(is_none::<Point>(val));
+}
+
+pub fn assert_none_ge(val: Option<Ge>) {
+    assert!(is_none::<Ge>(val));
+}
+
+pub fn assert_none_outpoint(val: Option<Outpoint>) {
+    assert!(is_none::<Outpoint>(val));
+}
+
+pub fn assert_none_gej(val: Option<Gej>) {
+    assert!(is_none::<Gej>(val));
+}
+
+pub fn assert_none_amount1(val: Option<Amount1>) {
+    assert!(is_none::<Amount1>(val));
+}
+
+pub fn assert_none_asset1(val: Option<Asset1>) {
+    assert!(is_none::<Asset1>(val));
+}
+
+pub fn assert_none_nonce(val: Option<Nonce>) {
+    assert!(is_none::<Nonce>(val));
+}
+
+pub fn assert_none_token_amount1(val: Option<TokenAmount1>) {
+    assert!(is_none::<TokenAmount1>(val));
+}
+
+pub fn assert_none_distance(val: Option<Distance>) {
+    assert!(is_none::<Distance>(val));
+}
+
+pub fn assert_none_duration(val: Option<Duration>) {
+    assert!(is_none::<Duration>(val));
+}
+
+pub fn assert_none_explicit_amount(val: Option<ExplicitAmount>) {
+    assert!(is_none::<ExplicitAmount>(val));
+}
+
+pub fn assert_none_explicit_asset(val: Option<ExplicitAsset>) {
+    assert!(is_none::<ExplicitAsset>(val));
+}
+
+pub fn assert_none_explicit_nonce(val: Option<ExplicitNonce>) {
+    assert!(is_none::<ExplicitNonce>(val));
+}
+
+pub fn assert_none_fe(val: Option<Fe>) {
+    assert!(is_none::<Fe>(val));
+}
+
+pub fn assert_none_height(val: Option<Height>) {
+    assert!(is_none::<Height>(val));
+}
+
+pub fn assert_none_lock(val: Option<Lock>) {
+    assert!(is_none::<Lock>(val));
+}
+
+pub fn assert_none_message(val: Option<Message>) {
+    assert!(is_none::<Message>(val));
+}
+
+pub fn assert_none_message64(val: Option<Message64>) {
+    assert!(is_none::<Message64>(val));
+}
+
+pub fn assert_none_pubkey(val: Option<Pubkey>) {
+    assert!(is_none::<Pubkey>(val));
+}
+
+pub fn assert_none_scalar(val: Option<Scalar>) {
+    assert!(is_none::<Scalar>(val));
+}
+
+pub fn assert_none_signature(val: Option<Signature>) {
+    assert!(is_none::<Signature>(val));
+}
+
+pub fn assert_none_time(val: Option<Time>) {
+    assert!(is_none::<Time>(val));
+}
+
+pub fn assert_none_ctx8(val: Option<Ctx8>) {
+    assert!(is_none::<Ctx8>(val));
+}

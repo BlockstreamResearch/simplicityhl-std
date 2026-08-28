@@ -1,0 +1,43 @@
+pub fn assert_eq8(a: u8, b: u8) {
+    assert!(jet::eq_8(a, b));
+}
+
+pub fn assert_eq16(a: u16, b: u16) {
+    assert!(jet::eq_16(a, b));
+}
+
+pub fn assert_eq32(a: u32, b: u32) {
+    assert!(jet::eq_32(a, b));
+}
+
+pub fn assert_eq64(a: u64, b: u64) {
+    assert!(jet::eq_64(a, b));
+}
+
+pub fn assert_eq256(a: u256, b: u256) {
+    assert!(jet::eq_256(a, b));
+}
+
+pub fn assert_none8(val: Option<u8>) {
+    assert!(is_none::<u8>(val));
+}
+
+pub fn assert_none16(val: Option<u16>) {
+    assert!(is_none::<u16>(val));
+}
+
+pub fn assert_none32(val: Option<u32>) {
+    assert!(is_none::<u32>(val));
+}
+
+pub fn assert_none64(val: Option<u64>) {
+    assert!(is_none::<u64>(val));
+}
+
+pub fn assert_none128(val: Option<u128>) {
+    assert!(is_none::<u128>(val));
+}
+
+pub fn assert_none256(val: Option<u256>) {
+    assert!(is_none::<u256>(val));
+}
