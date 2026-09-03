@@ -1,0 +1,13 @@
+use crate::lib::u64::convert::u64_to_u128;
+use crate::lib::u128::convert::safe_u128_to_u64;
+use crate::lib::u128::math::div_128;
+
+/// Calculates `floor(a * b / denominator)` with full precision.
+/// Panics if the result overflows a u64
+pub fn mul_div_64(a: u64, b: u64, denominator: u64) -> u64 {
+    let denominator_128: u128 = u64_to_u128(denominator);
+
+    let result_128: u128 = div_128(jet::multiply_64(a, b), denominator_128);
+
+    safe_u128_to_u64(result_128)
+}
