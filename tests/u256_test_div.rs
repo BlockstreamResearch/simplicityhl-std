@@ -381,7 +381,7 @@ mod u256_tests_arithmetic {
     }
 
     #[simplex::test]
-    fn u256_test_div_256_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u256_test_div_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = generate_u256(U256::zero(), U256::MAX);
         let b = [0; 32];
 
@@ -392,10 +392,10 @@ mod u256_tests_arithmetic {
                 op(FunctionToTest::Div256),
                 a.to_big_endian(),
                 b,
-                Some(DEFAULT_EXPECTED),
+                Some([0; 32]),
                 DEFAULT_EXPECTED,
             ),
-            Expect::AssertFailed,
+            Expect::Ok,
         )
     }
 }

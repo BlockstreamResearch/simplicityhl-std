@@ -171,7 +171,7 @@ pub fn safe_mul_128(a: u128, b: u128) -> u128 {
 /// Helper function that can be used with jet::div_mod_128_64 or Algorithm D.
 /// Returns the normalization factor by which `b` should be multiplied so that
 /// its most significant non-zero word is greater than or equal to 2^63
-pub fn calculate_normalizer_base_64(b: u128, is_b_u128: bool) -> u64 { 
+pub fn calculate_normalizer_base_64(b: u128, is_b_u128: bool) -> u64 {
     // Compile-time constant: 2^63. Avoids a runtime jet::left_shift_64 call
     let threshold: u64 = 0x8000000000000000;
     let (b_high, b_low): (u64, u64) = <u128>::into(b);
@@ -181,7 +181,7 @@ pub fn calculate_normalizer_base_64(b: u128, is_b_u128: bool) -> u64 {
         false => {
             assert!(jet::is_zero_64(b_high));
             b_low
-        }
+        },
     };
     assert!(not(jet::is_zero_64(b_highest_word)));
 
@@ -220,7 +220,7 @@ fn normalize_to_threshold_128_63(a: u128, b: u128, is_b_u128: bool) -> (u256, u1
 pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u64) -> u64 {
     let (q_hat, r_hat, carry): (u64, u64, bool) = match jet::lt_64(u2, v1) {
         true => {
-            let (q_hat, r_hat) : (u64, u64) =jet::div_mod_128_64(<(u64, u64)>::into((u2, u1)), v1);
+            let (q_hat, r_hat): (u64, u64) = jet::div_mod_128_64(<(u64, u64)>::into((u2, u1)), v1);
             (q_hat, r_hat, false)
         },
         false => {
@@ -230,7 +230,7 @@ pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u
             let (carry, r_hat): (bool, u64) = jet::add_64(u1, v1);
 
             (jet::high_64(), r_hat, carry)
-        }
+        },
     };
 
     match carry {
@@ -242,7 +242,7 @@ pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u
             match lt_128(r_hat_u0, jet::multiply_64(q_hat, v0)) {
                 true => {
                     // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
-                    let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1); 
+                    let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1);
                     let (carry, r_hat): (bool, u64) = jet::add_64(r_hat, v1);
 
                     match carry {
@@ -253,18 +253,18 @@ pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u
                             match lt_128(r_hat_u0, jet::multiply_64(q_hat, v0)) {
                                 true => {
                                     // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
-                                    let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1); 
+                                    let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1);
 
                                     q_hat
-                                }
+                                },
                                 false => q_hat,
                             }
-                        }
+                        },
                     }
                 },
                 false => q_hat,
             }
-        }
+        },
     }
 }
 
@@ -286,7 +286,8 @@ fn algorithm_d_128_128(dividend: u128, divisor: u128) -> (u64, u128) {
 }
 
 /// Divides the 128-bit integer by the 64-bit integer,
-/// returns a tuple of the u128 quotient and the u64 remainder
+/// returns a tuple of the u128 quotient and the u64 remainder.
+/// Panics if divisor is equal to zero
 pub fn div_mod_128_64(a: u128, b: u64) -> (u128, u64) {
     let (a_high, a_low): (u64, u64) = <u128>::into(a);
 
@@ -297,7 +298,15 @@ pub fn div_mod_128_64(a: u128, b: u64) -> (u128, u64) {
     let a_prime: u128 = <(u64, u64)>::into((remainder, a_low));
 
     // we need to normalize here, because jet::div_mod_128_64 only accepts b >= 2^63
-    let (a_normalized, b_normalized, norm): (u256, u128, u64) = normalize_to_threshold_128_63(a_prime, <(u64, u64)>::into((0, b)), false);
+    let (
+        a_normalized,
+        b_normalized,
+        norm
+    ): (u256, u128, u64) = normalize_to_threshold_128_63(
+        a_prime,
+        <(u64, u64)>::into((0, b)),
+        false
+    );
 
     // a_normalized fits into u128, because remainder < b and b_normalized fits into u64
     let (_, a_normalized): (u128, u128) = <u256>::into(a_normalized);
@@ -313,42 +322,45 @@ pub fn div_mod_128_64(a: u128, b: u64) -> (u128, u64) {
 /// Divides the first integer by the second integer,
 /// returns the quotient and the remainder
 pub fn div_mod_128(a: u128, b: u128) -> (u128, u128) {
-    let (a_high, a_low): (u64, u64) = <u128>::into(a);
-    let (b_high, b_low): (u64, u64) = <u128>::into(b);
-
-    match lt_128(a, b) {
+    match is_zero_128(b) {
         true => (0, a),
         false => {
-            match and(jet::is_zero_64(a_high), jet::is_zero_64(b_high)) { 
-                true => { 
-                    // if both a_high and b_high are zero, this narrows down to 64-bit division
-                    let (q, r): (u64, u64) = jet::div_mod_64(a_low, b_low);
-                    (<(u64, u64)>::into((0, q)), <(u64, u64)>::into((0, r)))
-                },
+            let (a_high, a_low): (u64, u64) = <u128>::into(a);
+            let (b_high, b_low): (u64, u64) = <u128>::into(b);
+
+            match lt_128(a, b) {
+                true => (0, a),
                 false => {
-                    match jet::eq_64(a_high, b_high) {
+                    match and(jet::is_zero_64(a_high), jet::is_zero_64(b_high)) {
                         true => {
-                            // safe: !lt_128(a, b) and a_high == b_high, so a_low >= b_low,
-                            // and the subtraction can not underflow
-                            let (_, diff): (bool, u64) = jet::subtract_64(a_low, b_low);
-                            (1, <(u64, u64)>::into((0, diff)))
+                            // if both a_high and b_high are zero, this narrows down to 64-bit division
+                            let (q, r): (u64, u64) = jet::div_mod_64(a_low, b_low);
+                            (<(u64, u64)>::into((0, q)), <(u64, u64)>::into((0, r)))
                         },
                         false => {
-                            match jet::is_zero_64(b_high) { 
+                            match jet::eq_64(a_high, b_high) {
                                 true => {
-                                    let (q, r): (u128, u64) = div_mod_128_64(a, b_low);
-                                    (q, <(u64, u64)>::into((0, r)))
+                                    // safe: !lt_128(a, b) and a_high == b_high, so a_low >= b_low,
+                                    // and the subtraction can not underflow
+                                    let (_, diff): (bool, u64) = jet::subtract_64(a_low, b_low);
+                                    (1, <(u64, u64)>::into((0, diff)))
                                 },
-                                false => {
-                                    let (q, r): (u64, u128) = algorithm_d_128_128(a, b);
-                                    (<(u64, u64)>::into((0, q)), r)
-                                }
-                            } 
-                        }
+                                false => match jet::is_zero_64(b_high) {
+                                    true => {
+                                        let (q, r): (u128, u64) = div_mod_128_64(a, b_low);
+                                        (q, <(u64, u64)>::into((0, r)))
+                                    },
+                                    false => {
+                                        let (q, r): (u64, u128) = algorithm_d_128_128(a, b);
+                                        (<(u64, u64)>::into((0, q)), r)
+                                    },
+                                },
+                            }
+                        },
                     }
-                }
+                },
             }
-        }
+        },
     }
 }
 
