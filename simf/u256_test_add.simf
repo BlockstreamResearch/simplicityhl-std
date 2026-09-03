@@ -1,4 +1,4 @@
-use crate::lib::u256::math::{add_256, add_256_128};
+use crate::lib::u256::math::{add_256, add_256_128, full_add_256};
 use crate::lib::asserts::assert_eq_256;
 use crate::helper::{if_test_this_function, assert_bool};
 
@@ -17,11 +17,31 @@ fn main() {
 
     let a: u256 = witness::FIRST_ARG;
     let b: u256 = witness::SECOND_ARG;
+    let carry_in: bool = witness::THIRD_ARG;
     let expected: Option<u256> = witness::EXPECTED;
     let expected_bool: bool = witness::EXPECTED_BOOL;
 
     /// Arithmetic
 
-    match if_test_this_function(0, fn_idx) { true => { assert_eq_uint_bool(add_256(a, b), unwrap(expected), expected_bool); }, false => (), };
-    match if_test_this_function(1, fn_idx) { true => {  let (_, b): (u128, u128) = <u256>::into(b); assert_eq_uint_bool(add_256_128(a, b), unwrap(expected), expected_bool); }, false => (), };
+    match if_test_this_function(0, fn_idx) {
+        true => {
+            assert_eq_uint_bool(add_256(a, b), unwrap(expected), expected_bool);
+        },
+        false => (),
+    };
+
+    match if_test_this_function(1, fn_idx) {
+        true => {
+            let (_, b): (u128, u128) = <u256>::into(b);
+            assert_eq_uint_bool(add_256_128(a, b), unwrap(expected), expected_bool);
+        },
+        false => (),
+    };
+
+    match if_test_this_function(2, fn_idx) {
+        true => {
+            assert_eq_uint_bool(full_add_256(carry_in, a, b), unwrap(expected), expected_bool);
+        },
+        false => (),
+    };
 }
