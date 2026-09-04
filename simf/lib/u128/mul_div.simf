@@ -1,0 +1,15 @@
+use crate::lib::u128::math::mul_128;
+use crate::lib::u128::convert::u128_to_u256;
+
+use crate::lib::u256::math::div_256;
+use crate::lib::u256::convert::safe_u256_to_u128;
+
+/// Calculates `floor(a * b / denominator)` with full precision.
+/// Panics if the result overflows a u128
+pub fn mul_div_128(a: u128, b: u128, denominator: u128) -> u128 {
+    let denominator_256: u256 = u128_to_u256(denominator);
+
+    let result_256: u256 = div_256(mul_128(a, b), denominator_256);
+
+    safe_u256_to_u128(result_256)
+}

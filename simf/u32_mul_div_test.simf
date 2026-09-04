@@ -1,0 +1,21 @@
+use crate::lib::u32::mul_div::mul_div_32;
+
+use crate::lib::asserts::assert_eq_32;
+use crate::helper::if_test_this_function;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u32 = witness::FIRST_ARG;
+    let b: u32 = witness::SECOND_ARG;
+    let c: u32 = witness::THIRD_ARG;
+
+    let expected: Option<u32> = witness::EXPECTED;
+
+    match if_test_this_function(0, fn_idx) {
+        true => {
+            assert_eq_32(mul_div_32(a, b, c), unwrap(expected));
+        },
+        false => (),
+    };
+}

@@ -1,0 +1,12 @@
+use crate::lib::u32::convert::u32_to_u64;
+use crate::lib::u64::convert::safe_u64_to_u32;
+
+/// Calculates `floor(a * b / denominator)` with full precision.
+/// Panics if the result overflows a u32
+pub fn mul_div_32(a: u32, b: u32, denominator: u32) -> u32 {
+    let denominator_64: u64 = u32_to_u64(denominator);
+
+    let result_64: u64 = jet::divide_64(jet::multiply_32(a, b), denominator_64);
+
+    safe_u64_to_u32(result_64)
+}

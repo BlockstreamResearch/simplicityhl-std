@@ -11,7 +11,9 @@ use simplicityhl_std::artifacts::u256_test_div::derived_u256_test_div::{
 };
 
 enum FunctionToTest {
+    CalculateNormalizerBase128,
     DivMod256_64,
+    AlgorithmD256_128,
     DivMod256_128,
     DivMod256,
     Div256,
@@ -46,6 +48,75 @@ fn build_witness(
 
 mod u256_tests_arithmetic {
     use super::*;
+
+    #[simplex::test]
+    fn u256_test_calculate_normalizer_base_128(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let threshold = 1u128 << 127;
+
+        let a = generate_u256(U256::from(u128::MAX) + 1, U256::MAX);
+        let a_high = (a >> 128).as_u128();
+
+        let norm = threshold.div_ceil(a_high);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::CalculateNormalizerBase128),
+                a.to_big_endian(),
+                DEFAULT_EXPECTED,
+                Some(U256::from(norm).to_big_endian()),
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u256_test_calculate_normalizer_base_128_a_is_u128_fail(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let threshold = 1u128 << 127;
+
+        let a = generate_u256(U256::one(), U256::from(threshold) - 1);
+
+        let norm: u128 = threshold.div_ceil(a.low_u128());
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::CalculateNormalizerBase128),
+                a.to_big_endian(),
+                DEFAULT_EXPECTED,
+                Some(U256::from(norm).to_big_endian()),
+                DEFAULT_EXPECTED,
+            ),
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn u256_test_calculate_normalizer_base_128_b_is_zero_fail(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = [0; 32];
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::CalculateNormalizerBase128),
+                a,
+                DEFAULT_EXPECTED,
+                Some(DEFAULT_EXPECTED),
+                DEFAULT_EXPECTED,
+            ),
+            Expect::AssertFailed,
+        )
+    }
 
     #[simplex::test]
     fn test_div_mod_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
@@ -85,6 +156,86 @@ mod u256_tests_arithmetic {
                 DEFAULT_EXPECTED,
             ),
             Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn test_algorithm_d_256_128(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = generate_u256(U256::zero(), U256::MAX);
+        let b = generate_u256(U256::from(u64::MAX) + 1, U256::from(u128::MAX));
+
+        let q = (a / b).to_big_endian();
+        let r = (a % b).to_big_endian();
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::AlgorithmD256_128),
+                a.to_big_endian(),
+                b.to_big_endian(),
+                Some(q),
+                r,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn test_algorithm_d_256_128_fail_b_fits_into_u64(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let a = generate_u256(U256::zero(), U256::MAX);
+        let b = generate_u256(U256::one(), U256::from(u64::MAX));
+
+        let q = (a / b).to_big_endian();
+        let r = (a % b).to_big_endian();
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::AlgorithmD256_128),
+                a.to_big_endian(),
+                b.to_big_endian(),
+                Some(q),
+                r,
+            ),
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn test_algorithm_d_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = generate_u256(U256::zero(), U256::MAX);
+        let b = [0; 32];
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::AlgorithmD256_128),
+                a.to_big_endian(),
+                b,
+                Some(DEFAULT_EXPECTED),
+                DEFAULT_EXPECTED,
+            ),
+            Expect::AssertFailed,
+        )
+    }
+
+    #[simplex::test]
+    fn test_algorithm_d_256_128_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
+        let a = (generate_u256(U256::one(), U256::from(u128::MAX))).to_big_endian();
+
+        let q = U256::one().to_big_endian();
+        let r = U256::zero().to_big_endian();
+
+        run(
+            &context,
+            program(),
+            build_witness(op(FunctionToTest::AlgorithmD256_128), a, a, Some(q), r),
+            Expect::Ok,
         )
     }
 
@@ -381,7 +532,7 @@ mod u256_tests_arithmetic {
     }
 
     #[simplex::test]
-    fn u256_test_div_256_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u256_test_div_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = generate_u256(U256::zero(), U256::MAX);
         let b = [0; 32];
 
@@ -392,10 +543,10 @@ mod u256_tests_arithmetic {
                 op(FunctionToTest::Div256),
                 a.to_big_endian(),
                 b,
-                Some(DEFAULT_EXPECTED),
+                Some([0; 32]),
                 DEFAULT_EXPECTED,
             ),
-            Expect::AssertFailed,
+            Expect::Ok,
         )
     }
 }
