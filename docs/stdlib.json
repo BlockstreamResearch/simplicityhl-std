@@ -1148,6 +1148,13 @@
     "description": "Add a `u128` value to a `u256` value. Return the carry bit and the sum."
   },
   {
+    "simplicityhl_name": "full_add_256",
+    "section": "`u256` arithmetic",
+    "input_type": "bool, u256, u256",
+    "output_type": "(bool, u256)",
+    "description": "Add two u256 values, taking an incoming carry bit. Return the outgoing carry bit and the sum."
+  },
+  {
     "simplicityhl_name": "checked_add_256",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
@@ -1204,6 +1211,13 @@
     "description": "Multiply a `u256` value by a `u128` value. The full, non-truncated product is returned as a `u128`/`u256` pair, most-significant first, so this operation can never overflow."
   },
   {
+    "simplicityhl_name": "mul_512_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256, u128",
+    "output_type": "(u128, u256, u256)",
+    "description": "Multiply a `u512` value by a `u128` value. The full, non-truncated product is returned as a (`u128`, `u256`, `u256`) tuple, most-significant first, so this operation can never overflow."
+  },
+  {
     "simplicityhl_name": "checked_mul_256",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
@@ -1218,11 +1232,32 @@
     "description": "Multiply two `u256` values.\n\n## Panics\nPanics if the result overflows `u256`."
   },
   {
+    "simplicityhl_name": "safe_mul_256_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u128",
+    "output_type": "u256",
+    "description": "Multiply a `u256` value by a `u128` value.\n\n## Panics\nPanics if the result overflows `u256`."
+  },
+  {
+    "simplicityhl_name": "calculate_normalizer_base_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256",
+    "output_type": "u128",
+    "description": "Helper for algorithm D division algorithms. Returns the factor by which `b` should be multiplied so that its upper 128 bits are at least `2^127`, as required by those algorithms (which operate in base `2^128`).\n\n## Panics\nThe assertion fails if `b`'s upper 128 bits are zero"
+  },
+  {
     "simplicityhl_name": "div_mod_256_64",
     "section": "`u256` arithmetic",
     "input_type": "u256, u64",
     "output_type": "(u256, u64)",
     "description": "Divide a `u256` value by a `u64` value, returning the `u256` quotient and the `u64` remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "algorithm_d_256_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u128",
+    "output_type": "(u256, u128)",
+    "description": "Divide a `u256` value by a `u128` value, returning the `u256` quotient and the `u128` remainder.\n\n## Panics\nPanics if the divisor is zero or if divisor's upper 64 bits are zero."
   },
   {
     "simplicityhl_name": "div_mod_256_128",
