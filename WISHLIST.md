@@ -84,7 +84,7 @@ Q. Isn't the first one directly implemented by a jet? Do we just need to `unwrap
 
 # Storage (state management)
 
-* Store and load single uninterpreted `u256` value
+√ Store and load single uninterpreted `u256` value
 * Merkle tree tools (maybe also codegen for Merkle tree manipulation based on a separate schema?)
 
 # Covenants (high-level)

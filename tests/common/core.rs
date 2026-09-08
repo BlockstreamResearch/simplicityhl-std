@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 
 use simplex::program::{Program, WitnessTrait};
-use simplex::simplicityhl::elements::Script;
+use simplex::simplicityhl::elements::{Script, Sequence};
 use simplex::transaction::{
     FinalTransaction, PartialInput, PartialOutput, ProgramInput, RequiredSignature,
 };
@@ -43,13 +43,17 @@ pub fn fund(
     Ok(script)
 }
 
-/// Construct the funded UTXO with `witness`.
+
+/// Construct the funded UTXO with `witness`, under a caller-chosen `sequence` (nSequence)
+/// and with any additional `outputs` appended (in order, before any auto-generated
+/// change/fee outputs -- so the Nth entry lands at output index N).
 pub fn construct_final_tx<W>(
     context: &simplex::TestContext,
     program: &impl AsRef<Program>,
     script: &Script,
     witness: W,
-    data: Option<&[u8]>,
+    sequence: Sequence,
+    outputs: Vec<PartialOutput>,
 ) -> anyhow::Result<FinalTransaction>
 where
     W: WitnessTrait + 'static,
@@ -60,30 +64,32 @@ where
 
     let mut ft = FinalTransaction::new();
     ft.add_program_input(
-        PartialInput::new(utxos[0].clone()),
+        PartialInput::new(utxos[0].clone()).with_sequence(sequence),
         ProgramInput::new(Box::new(program.as_ref().clone()), Box::new(witness)),
         RequiredSignature::None,
     );
 
-    if let Some(data) = data {
-        ft.add_output(PartialOutput::new_metadata(data))
-    };
+    for output in outputs {
+        ft.add_output(output);
+    }
 
     Ok(ft)
 }
 
-/// Spend the funded UTXO with `witness`. Return the broadcast result.
+/// Spend the funded UTXO with `witness`, `sequence`, and `outputs`. Return the broadcast
+/// result.
 pub fn spend<W>(
     context: &simplex::TestContext,
     program: &impl AsRef<Program>,
     script: &Script,
     witness: W,
-    data: Option<&[u8]>,
+    sequence: Sequence,
+    outputs: Vec<PartialOutput>,
 ) -> anyhow::Result<String>
 where
     W: WitnessTrait + 'static,
 {
-    let ft = construct_final_tx(context, program, script, witness, data)?;
+    let ft = construct_final_tx(context, program, script, witness, sequence, outputs)?;
 
     Ok(context.get_default_signer().broadcast(&ft)?.to_string())
 }
@@ -119,7 +125,7 @@ where
     W: WitnessTrait + 'static,
 {
     let script = fund(context, &program)?;
-    let result = spend(context, &program, &script, witness, None);
+    let result = spend(context, &program, &script, witness, Sequence::default(), vec![]);
 
     assert_error_msg(result, expect)
 }
@@ -137,7 +143,45 @@ where
     W: WitnessTrait + 'static,
 {
     let script = fund(context, &program)?;
-    let result = spend(context, &program, &script, witness, Some(data));
+    let result = spend(
+        context,
+        &program,
+        &script,
+        witness,
+        Sequence::default(),
+        vec![PartialOutput::new_metadata(data)],
+    );
+
+    assert_error_msg(result, expect)
+}
+
+/// Fund + spend + assert the outcome, with a list of extra `(script, amount)` outputs
+/// added to the transaction.
+pub fn run_with_outputs<W>(
+    context: &simplex::TestContext,
+    program: impl AsRef<Program>,
+    witness: W,
+    outputs: Vec<(Script, u64)>,
+    expect: Expect,
+) -> anyhow::Result<()>
+where
+    W: WitnessTrait + 'static,
+{
+    let script = fund(context, &program)?;
+    let outputs = outputs
+        .into_iter()
+        .map(|(output_script, amount)| {
+            PartialOutput::new(output_script, amount, context.get_network().policy_asset())
+        })
+        .collect();
+    let result = spend(
+        context,
+        &program,
+        &script,
+        witness,
+        Sequence::default(),
+        outputs,
+    );
 
     assert_error_msg(result, expect)
 }

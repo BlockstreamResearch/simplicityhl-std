@@ -1,0 +1,53 @@
+fn own_script_hash_with_state(state_data: u256) -> u256 {
+    // This is the bulk of our "compute state commitment" logic.
+    let tap_leaf: u256 = jet::tapleaf_hash();
+    let state_ctx1: Ctx8 = jet::tapdata_init();
+    let state_ctx2: Ctx8 = jet::sha_256_ctx_8_add_32(state_ctx1, state_data);
+    let state_leaf: u256 = jet::sha_256_ctx_8_finalize(state_ctx2);
+    let tap_node: u256 = jet::build_tapbranch(tap_leaf, state_leaf);
+
+    // Compute a taptweak using this.
+    let bip0341_key: u256 = 0x50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0;
+    let tweaked_key: u256 = jet::build_taptweak(bip0341_key, tap_node);
+
+    // Turn the taptweak into a script hash.
+    let hash_ctx1: Ctx8 = jet::sha_256_ctx_8_init();
+    let hash_ctx2: Ctx8 = jet::sha_256_ctx_8_add_2(hash_ctx1, 0x5120); // Segwit v1, length 32
+    let hash_ctx3: Ctx8 = jet::sha_256_ctx_8_add_32(hash_ctx2, tweaked_key);
+    jet::sha_256_ctx_8_finalize(hash_ctx3)
+}
+
+pub fn load(state_data: u256) {
+    // Assert that the input state is correct, i.e. "load".
+    //
+    // Enforce that the state commitment hash in the Taptree alongside
+    // the current input is equal to state_data. (This must be a result
+    // of the transaction builder's having constructed the prior
+    // transaction so that this is true.)
+    // Panics otherwise.
+    assert!(jet::eq_256(
+        own_script_hash_with_state(state_data),
+        unwrap(jet::input_script_hash(jet::current_index()))
+    ));
+}
+
+pub fn store(new_state: u256, index: u32) {
+    // Assert that the output state is correct, i.e. "store".
+    //
+    // The index parameter specifies the output index where the
+    // new copy of this covenant is located. Depending on the
+    // covenant convention, that could be jet::current_index()
+    // (same index as input), some other hard-coded index
+    // demanded by convention, or could even be flexible and
+    // determined by a witness parameter.
+    //
+    // Enforce that the state commitment hash in the Taptree alongside
+    // the specified output is equal to new_state. (This must be a
+    // result of the transaction builder constructing the transaction
+    // so that this is true.)
+    // Panics otherwise.
+    assert!(jet::eq_256(
+        own_script_hash_with_state(new_state),
+        unwrap(jet::output_script_hash(index))
+    ));
+}
