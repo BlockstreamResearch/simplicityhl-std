@@ -290,7 +290,7 @@ mod u256_tests_arithmetic {
         let a_1 = generate_u256(U256::one(), U256::MAX);
         let a_0 = generate_u256(U256::one(), U256::MAX);
         let b = rand::thread_rng().gen_range(1..=u128::MAX);
-       
+
         let result_low = U512::from(a_0) * U512::from(b);
         let result_high = U512::from(a_1) * U512::from(b);
 

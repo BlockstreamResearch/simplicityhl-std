@@ -162,7 +162,7 @@ mod u256_tests_arithmetic {
     ) -> anyhow::Result<()> {
         let a = U256::MAX;
         let b = generate_u256(U256::one(), U256::MAX);
-        
+
         let result = (b - 1).to_big_endian();
         let result_carry = true;
         let carry_low = false;
