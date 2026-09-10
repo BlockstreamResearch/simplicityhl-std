@@ -11,7 +11,7 @@ keywords = ["simplicity", "liquid", "elements", "smart-contracts"]
 categories = ["cryptography::cryptocurrencies"]
 
 [dependencies]
-smplx-std = { version = "0.0.10" }
+smplx-std = { version = "0.0.11" }
 
 [dev-dependencies]
 anyhow = { version = "1.0.101" }
