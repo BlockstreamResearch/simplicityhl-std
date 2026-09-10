@@ -212,7 +212,7 @@ fn normalize_to_threshold_128_63(a: u128, b: u128, is_b_u128: bool) -> (u256, u1
     let norm_128: u128 = u64_to_u128(norm);
 
     match jet::eq_64(norm, 1) {
-        true => ( u128_to_u256(a), b, norm),
+        true => (u128_to_u256(a), b, norm),
         false => (mul_128(a, norm_128), safe_mul_128(b, norm_128), norm),
     }
 }

@@ -87,12 +87,12 @@ fn normalize_to_threshold_512_127(a_high: u256, a_low: u256, b: u256) -> (u128, 
     let norm: u128 = calculate_normalizer_base_128(b);
 
     match eq_128(norm, 1) {
-        true => {
+        true => (0, a_high, a_low, b),
+        false => {
             let (a_2, a_1, a_0): (u128, u256, u256) = mul_512_128(a_high, a_low, norm);
 
             (a_2, a_1, a_0, safe_mul_256_128(b, norm))
         },
-        false => (0, a_high, a_low, b),
     }
 }
 
@@ -123,11 +123,7 @@ fn algorithm_d_512_256(dividend_high: u256, dividend_low: u256, divisor: u256) -
         norm_dividend_high,
         norm_dividend_low,
         norm_divisor
-    ): (u128, u256, u256, u256) = normalize_to_threshold_512_127(
-        dividend_high,
-        dividend_low,
-        divisor
-    );
+    ): (u128, u256, u256, u256) = (normalize_to_threshold_512_127(dividend_high, dividend_low, divisor));
 
     let (u3, u2): (u128, u128) = split_u256_into_u128(norm_dividend_high);
     let (u1, u0): (u128, u128) = split_u256_into_u128(norm_dividend_low);

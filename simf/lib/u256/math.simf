@@ -275,12 +275,12 @@ fn normalize_to_threshold_256_127(a: u256, b: u256) -> (u128, u256, u256) {
     let norm: u128 = calculate_normalizer_base_128(b);
 
     match eq_128(norm, 1) {
-        true => {
+        true => (0, a, b),
+        false => {
             let (high, low): (u128, u256) = mul_256_128(a, norm);
 
             (high, low, safe_mul_256_128(b, norm))
         },
-        false => (0, a, b),
     }
 }
 
