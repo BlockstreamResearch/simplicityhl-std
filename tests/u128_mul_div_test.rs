@@ -45,7 +45,7 @@ mod u128_mul_div_test {
     use super::*;
 
     #[simplex::test]
-    fn u128_test_mul_div_3_product_is_u128(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u128_test_mul_div_128_product_is_u128(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u16::MAX) as u128;
         let b = rand::thread_rng().gen_range(0..=u16::MAX) as u128;
         let c = rand::thread_rng().gen_range(1..=u128::MAX);

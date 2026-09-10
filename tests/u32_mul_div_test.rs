@@ -37,7 +37,7 @@ mod u32_mul_div_test {
     use super::*;
 
     #[simplex::test]
-    fn u32_test_mul_div_3_product_is_u32(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u32_test_mul_div_32_product_is_u32(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u16::MAX) as u32;
         let b = rand::thread_rng().gen_range(0..=u16::MAX) as u32;
         let c = rand::thread_rng().gen_range(1..=u32::MAX);
