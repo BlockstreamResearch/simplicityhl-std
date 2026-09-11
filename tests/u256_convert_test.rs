@@ -55,7 +55,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SplitU256IntoU8),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -71,7 +71,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SplitU256IntoU16),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -87,7 +87,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SplitU256IntoU32),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -103,7 +103,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SplitU256IntoU64),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -119,7 +119,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SplitU256IntoU128),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -135,7 +135,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU1),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -153,7 +153,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU1),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::AssertFailed,
         )
@@ -169,7 +169,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU8),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -187,7 +187,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU8),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::AssertFailed,
         )
@@ -203,7 +203,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU16),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -221,7 +221,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU16),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::AssertFailed,
         )
@@ -237,7 +237,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU32),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -255,7 +255,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU32),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::AssertFailed,
         )
@@ -271,7 +271,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU64),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -289,7 +289,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU64),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::AssertFailed,
         )
@@ -305,7 +305,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU128),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::Ok,
         )
@@ -323,7 +323,7 @@ mod u256_convert_test {
             build_witness(
                 op(FunctionToTest::SafeU256ToU128),
                 a.to_big_endian(),
-                U256::from(a).to_big_endian(),
+                a.to_big_endian(),
             ),
             Expect::AssertFailed,
         )

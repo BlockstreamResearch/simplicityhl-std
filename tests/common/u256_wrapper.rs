@@ -7,7 +7,7 @@ use std::ops::{Add, Deref, DerefMut, Div, Mul, Sub};
 pub struct U256Wrapper(pub U256);
 
 impl U256Wrapper {
-    pub fn to_be_bytes(&self) -> [u8; 32] {
+    pub fn to_be_bytes(self) -> [u8; 32] {
         self.0.to_big_endian()
     }
 }

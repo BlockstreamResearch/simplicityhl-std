@@ -41,6 +41,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.toolchain }}
+          components: rustfmt, clippy
 
       - name: Use Rust cache
         uses: Swatinem/rust-cache@v2
@@ -54,6 +55,14 @@ jobs:
         shell: bash
         run: |
           simplex build
+
+      - name: Check formatting
+        run: |
+          cargo fmt --all --check
+
+      - name: Run clippy
+        run: |
+          cargo clippy --workspace --all-targets --all-features -- -D warnings
 
       - name: Build
         run: |

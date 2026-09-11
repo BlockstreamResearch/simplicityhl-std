@@ -33,6 +33,7 @@ fn program() -> U256TestSubMulProgram {
     U256TestSubMulProgram::new(&U256TestSubMulArguments {})
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_witness(
     function: u8,
     a: [u8; 32],
