@@ -8,7 +8,7 @@ use crate::lib::u256::math::{
 };
 use crate::lib::u256::convert::split_u256_into_u64;
 use crate::lib::asserts::{assert_eq_128, assert_eq_256};
-use crate::tests::support::helper::if_test_this_function;
+use crate::tests::support::dispatch::is_selected;
 
 fn main() {
     let fn_idx: u8 = witness::FUNCTION_INDEX;
@@ -21,7 +21,7 @@ fn main() {
 
     /// Arithmetic
 
-    match if_test_this_function(0, fn_idx) {
+    match is_selected(0, fn_idx) {
         true => {
             let result: u128 = calculate_normalizer_base_128(a);
 
@@ -32,7 +32,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(1, fn_idx) {
+    match is_selected(1, fn_idx) {
         true => {
             let (_, _, _, b): (u64, u64, u64, u64) = split_u256_into_u64(b);
             let (_, _, _, expected_r): (u64, u64, u64, u64) = split_u256_into_u64(second_expected);
@@ -45,7 +45,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(2, fn_idx) {
+    match is_selected(2, fn_idx) {
         true => {
             let (_, b): (u128, u128) = <u256>::into(b);
             let (_, expected_r): (u128, u128) = <u256>::into(second_expected);
@@ -58,7 +58,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(3, fn_idx) {
+    match is_selected(3, fn_idx) {
         true => {
             let (_, b): (u128, u128) = <u256>::into(b);
             let (_, expected_r): (u128, u128) = <u256>::into(second_expected);
@@ -71,7 +71,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(4, fn_idx) {
+    match is_selected(4, fn_idx) {
         true => {
             let (q, r): (u256, u256) = div_mod_256(a, b);
 
@@ -81,7 +81,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(5, fn_idx) {
+    match is_selected(5, fn_idx) {
         true => {
             assert_eq_256(div_256(a, b), unwrap(expected));
         },

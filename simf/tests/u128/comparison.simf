@@ -1,5 +1,6 @@
 use crate::lib::u128::comparison::{is_zero_128, lt_128, le_128};
-use crate::tests::support::helper::{if_test_this_function, assert_bool};
+use crate::tests::support::dispatch::is_selected;
+use crate::tests::support::expect::assert_bool;
 
 fn main() {
     let fn_idx: u8 = witness::FUNCTION_INDEX;
@@ -10,19 +11,19 @@ fn main() {
 
     /// Comparison operations
 
-    match if_test_this_function(0, fn_idx) {
+    match is_selected(0, fn_idx) {
         true => {
             assert_bool(is_zero_128(a), expected_bool);
         },
         false => (),
     };
-    match if_test_this_function(1, fn_idx) {
+    match is_selected(1, fn_idx) {
         true => {
             assert_bool(lt_128(a, b), expected_bool);
         },
         false => (),
     };
-    match if_test_this_function(2, fn_idx) {
+    match is_selected(2, fn_idx) {
         true => {
             assert_bool(le_128(a, b), expected_bool);
         },

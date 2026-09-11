@@ -18,7 +18,7 @@ use crate::lib::asserts::{
     assert_eq_64,
     assert_eq_256
 };
-use crate::tests::support::helper::if_test_this_function;
+use crate::tests::support::dispatch::is_selected;
 
 fn main() {
     let fn_idx: u8 = witness::FUNCTION_INDEX;
@@ -27,14 +27,14 @@ fn main() {
 
     let expected: u256 = witness::EXPECTED;
 
-    match if_test_this_function(0, fn_idx) {
+    match is_selected(0, fn_idx) {
         true => {
             assert_eq_256(u128_to_u256(a), expected);
         },
         false => {},
     };
 
-    match if_test_this_function(1, fn_idx) {
+    match is_selected(1, fn_idx) {
         true => {
             let (
                 a15,
@@ -121,7 +121,7 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(2, fn_idx) {
+    match is_selected(2, fn_idx) {
         true => {
             let (
                 a7,
@@ -161,7 +161,7 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(3, fn_idx) {
+    match is_selected(3, fn_idx) {
         true => {
             let (a3, a2, a1, a0): (u32, u32, u32, u32) = split_u128_into_u32(a);
 
@@ -177,7 +177,7 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(4, fn_idx) {
+    match is_selected(4, fn_idx) {
         true => {
             let (a1, a0): (u64, u64) = split_u128_into_u64(a);
 
@@ -189,7 +189,7 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(5, fn_idx) {
+    match is_selected(5, fn_idx) {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let expected: u1 = jet::rightmost_64_1(expected);
@@ -199,7 +199,7 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(6, fn_idx) {
+    match is_selected(6, fn_idx) {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let expected: u8 = jet::rightmost_64_8(expected);
@@ -209,7 +209,7 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(7, fn_idx) {
+    match is_selected(7, fn_idx) {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let expected: u16 = jet::rightmost_64_16(expected);
@@ -219,7 +219,7 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(8, fn_idx) {
+    match is_selected(8, fn_idx) {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let expected: u32 = jet::rightmost_64_32(expected);
@@ -229,7 +229,7 @@ fn main() {
         false => {},
     };
 
-    match if_test_this_function(9, fn_idx) {
+    match is_selected(9, fn_idx) {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
 

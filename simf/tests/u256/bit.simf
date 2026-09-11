@@ -1,7 +1,7 @@
 use crate::lib::u256::bit::{and_256, or_256, left_shift_256, right_shift_256};
 use crate::lib::u256::convert::split_u256_into_u64;
 use crate::lib::asserts::assert_eq_256;
-use crate::tests::support::helper::if_test_this_function;
+use crate::tests::support::dispatch::is_selected;
 
 fn main() {
     let fn_idx: u8 = witness::FUNCTION_INDEX;
@@ -12,20 +12,20 @@ fn main() {
 
     /// Bit logic
 
-    match if_test_this_function(0, fn_idx) {
+    match is_selected(0, fn_idx) {
         true => {
             assert_eq_256(and_256(a, b), unwrap(expected));
         },
         false => (),
     };
-    match if_test_this_function(1, fn_idx) {
+    match is_selected(1, fn_idx) {
         true => {
             assert_eq_256(or_256(a, b), unwrap(expected));
         },
         false => (),
     };
 
-    match if_test_this_function(2, fn_idx) {
+    match is_selected(2, fn_idx) {
         true => {
             let (_, _, _, a): (u64, u64, u64, u64) = split_u256_into_u64(a);
             let shift: u8 = jet::rightmost_64_8(a);
@@ -35,7 +35,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(3, fn_idx) {
+    match is_selected(3, fn_idx) {
         true => {
             let (_, _, _, a): (u64, u64, u64, u64) = split_u256_into_u64(a);
             let shift: u8 = jet::rightmost_64_8(a);
