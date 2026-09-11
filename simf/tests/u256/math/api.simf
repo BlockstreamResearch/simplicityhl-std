@@ -1,0 +1,94 @@
+use crate::lib::u256::math::{
+    checked_add_256,
+    safe_add_256,
+    checked_sub_256,
+    safe_sub_256,
+    checked_mul_256,
+    safe_mul_256,
+    checked_div_256,
+    safe_div_256
+};
+use crate::lib::u256::comparison::{gt_256, ge_256};
+use crate::lib::asserts::assert_eq_256;
+use crate::tests::support::expect::{assert_bool_by_opt_256, assert_eq_opt_256};
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u256 = witness::FIRST_ARG;
+    let b: u256 = witness::SECOND_ARG;
+    let expected: Option<u256> = witness::EXPECTED;
+
+    /// Safe functions
+
+    // add
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_eq_opt_256(checked_add_256(a, b), expected);
+        },
+        false => (),
+    };
+    match is_selected(1, fn_idx) {
+        true => {
+            assert_eq_256(safe_add_256(a, b), unwrap(expected));
+        },
+        false => (),
+    };
+
+    // sub
+    match is_selected(2, fn_idx) {
+        true => {
+            assert_eq_opt_256(checked_sub_256(a, b), expected);
+        },
+        false => (),
+    };
+    match is_selected(3, fn_idx) {
+        true => {
+            assert_eq_256(safe_sub_256(a, b), unwrap(expected));
+        },
+        false => (),
+    };
+
+    // mul
+    match is_selected(4, fn_idx) {
+        true => {
+            assert_eq_opt_256(checked_mul_256(a, b), expected);
+        },
+        false => (),
+    };
+    match is_selected(5, fn_idx) {
+        true => {
+            assert_eq_256(safe_mul_256(a, b), unwrap(expected));
+        },
+        false => (),
+    };
+
+    // div
+    match is_selected(6, fn_idx) {
+        true => {
+            assert_eq_opt_256(checked_div_256(a, b), expected);
+        },
+        false => (),
+    };
+    match is_selected(7, fn_idx) {
+        true => {
+            assert_eq_256(safe_div_256(a, b), unwrap(expected));
+        },
+        false => (),
+    };
+
+    // gt, ge
+    match is_selected(8, fn_idx) {
+        true => {
+            assert_bool_by_opt_256(gt_256(a, b), expected);
+        },
+        false => (),
+    };
+    match is_selected(9, fn_idx) {
+        true => {
+            assert_bool_by_opt_256(ge_256(a, b), expected);
+        },
+        false => (),
+    };
+}

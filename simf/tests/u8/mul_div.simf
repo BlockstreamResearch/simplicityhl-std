@@ -1,0 +1,21 @@
+use crate::lib::u8::mul_div::mul_div_8;
+
+use crate::lib::asserts::assert_eq_8;
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u8 = witness::FIRST_ARG;
+    let b: u8 = witness::SECOND_ARG;
+    let c: u8 = witness::THIRD_ARG;
+
+    let expected: Option<u8> = witness::EXPECTED;
+
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_eq_8(mul_div_8(a, b, c), unwrap(expected));
+        },
+        false => (),
+    };
+}

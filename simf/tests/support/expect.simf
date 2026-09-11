@@ -1,0 +1,136 @@
+//! Assertions shared by the test programs.
+//!
+//! SimplicityHL has no generics, so each family is written once per width and
+//! named with that width's suffix, exactly like `crate::lib::asserts`.
+
+use crate::lib::asserts::{
+    assert_eq_8,
+    assert_eq_16,
+    assert_eq_32,
+    assert_eq_64,
+    assert_eq_128,
+    assert_eq_256,
+    assert_none_8,
+    assert_none_16,
+    assert_none_32,
+    assert_none_64,
+    assert_none_128,
+    assert_none_256
+};
+use crate::lib::binary::not;
+use crate::lib::u128::bit::eq_128;
+
+/// Asserts a result equals the expected bool value.
+pub fn assert_bool(result: bool, expected_bool: bool) {
+    match expected_bool {
+        true => assert!(result),
+        false => assert!(not(result)),
+    }
+}
+
+/// Asserts a `checked_*` result equals the expected Option.
+/// `None` encodes the overflow case, `Some(e)` the fitting case, so a single
+/// witness value carries both, removing the need for a separate overflow flag.
+pub fn assert_eq_opt_8(result: Option<u8>, expected: Option<u8>) {
+    match expected {
+        Some(e: u8) => assert_eq_8(unwrap(result), e),
+        None => assert_none_8(result),
+    }
+}
+
+pub fn assert_eq_opt_16(result: Option<u16>, expected: Option<u16>) {
+    match expected {
+        Some(e: u16) => assert_eq_16(unwrap(result), e),
+        None => assert_none_16(result),
+    }
+}
+
+pub fn assert_eq_opt_32(result: Option<u32>, expected: Option<u32>) {
+    match expected {
+        Some(e: u32) => assert_eq_32(unwrap(result), e),
+        None => assert_none_32(result),
+    }
+}
+
+pub fn assert_eq_opt_64(result: Option<u64>, expected: Option<u64>) {
+    match expected {
+        Some(e: u64) => assert_eq_64(unwrap(result), e),
+        None => assert_none_64(result),
+    }
+}
+
+pub fn assert_eq_opt_128(result: Option<u128>, expected: Option<u128>) {
+    match expected {
+        Some(e: u128) => assert_eq_128(unwrap(result), e),
+        None => assert_none_128(result),
+    }
+}
+
+pub fn assert_eq_opt_256(result: Option<u256>, expected: Option<u256>) {
+    match expected {
+        Some(e: u256) => assert_eq_256(unwrap(result), e),
+        None => assert_none_256(result),
+    }
+}
+
+/// Asserts a result equals the expected bool value.
+/// `None` encodes `false`, and `Some(_)` encodes `true`.
+pub fn assert_bool_by_opt_8(result: bool, expected: Option<u8>) {
+    match expected {
+        Some(_: u8) => assert!(result),
+        None => assert!(not(result)),
+    }
+}
+
+pub fn assert_bool_by_opt_16(result: bool, expected: Option<u16>) {
+    match expected {
+        Some(_: u16) => assert!(result),
+        None => assert!(not(result)),
+    }
+}
+
+pub fn assert_bool_by_opt_32(result: bool, expected: Option<u32>) {
+    match expected {
+        Some(_: u32) => assert!(result),
+        None => assert!(not(result)),
+    }
+}
+
+pub fn assert_bool_by_opt_64(result: bool, expected: Option<u64>) {
+    match expected {
+        Some(_: u64) => assert!(result),
+        None => assert!(not(result)),
+    }
+}
+
+pub fn assert_bool_by_opt_128(result: bool, expected: Option<u128>) {
+    match expected {
+        Some(_: u128) => assert!(result),
+        None => assert!(not(result)),
+    }
+}
+
+pub fn assert_bool_by_opt_256(result: bool, expected: Option<u256>) {
+    match expected {
+        Some(_: u256) => assert!(result),
+        None => assert!(not(result)),
+    }
+}
+
+/// Asserts a `(carry, value)` result equals the expected pair. Used by the
+/// primitives that return an out-of-band carry or borrow alongside the result.
+pub fn assert_eq_uint_bool_128(result: (bool, u128), expected: u128, expected_bool: bool) {
+    let (bool_res, uint_res): (bool, u128) = result;
+
+    assert_bool(bool_res, expected_bool);
+
+    assert!(eq_128(uint_res, expected));
+}
+
+pub fn assert_eq_uint_bool_256(result: (bool, u256), expected: u256, expected_bool: bool) {
+    let (bool_res, uint_res): (bool, u256) = result;
+
+    assert_bool(bool_res, expected_bool);
+
+    assert_eq_256(uint_res, expected);
+}

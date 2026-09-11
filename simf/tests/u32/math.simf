@@ -1,0 +1,92 @@
+use crate::lib::u32::math::{
+    checked_add_32,
+    safe_add_32,
+    checked_sub_32,
+    safe_sub_32,
+    checked_mul_32,
+    safe_mul_32,
+    checked_div_32,
+    safe_div_32,
+    gt_32,
+    ge_32
+};
+use crate::tests::support::expect::{assert_bool_by_opt_32, assert_eq_opt_32};
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u32 = witness::FIRST_ARG;
+    let b: u32 = witness::SECOND_ARG;
+    let expected: Option<u32> = witness::EXPECTED;
+
+    // add
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_eq_opt_32(checked_add_32(a, b), expected);
+        },
+        false => (),
+    };
+    match is_selected(1, fn_idx) {
+        true => {
+            assert!(jet::eq_32(safe_add_32(a, b), unwrap(expected)));
+        },
+        false => (),
+    };
+
+    // sub
+    match is_selected(2, fn_idx) {
+        true => {
+            assert_eq_opt_32(checked_sub_32(a, b), expected);
+        },
+        false => (),
+    };
+    match is_selected(3, fn_idx) {
+        true => {
+            assert!(jet::eq_32(safe_sub_32(a, b), unwrap(expected)));
+        },
+        false => (),
+    };
+
+    // mul
+    match is_selected(4, fn_idx) {
+        true => {
+            assert_eq_opt_32(checked_mul_32(a, b), expected);
+        },
+        false => (),
+    };
+    match is_selected(5, fn_idx) {
+        true => {
+            assert!(jet::eq_32(safe_mul_32(a, b), unwrap(expected)));
+        },
+        false => (),
+    };
+
+    // div
+    match is_selected(6, fn_idx) {
+        true => {
+            assert_eq_opt_32(checked_div_32(a, b), expected);
+        },
+        false => (),
+    };
+    match is_selected(7, fn_idx) {
+        true => {
+            assert!(jet::eq_32(safe_div_32(a, b), unwrap(expected)));
+        },
+        false => (),
+    };
+
+    // gt, ge
+    match is_selected(8, fn_idx) {
+        true => {
+            assert_bool_by_opt_32(gt_32(a, b), expected);
+        },
+        false => (),
+    };
+    match is_selected(9, fn_idx) {
+        true => {
+            assert_bool_by_opt_32(ge_32(a, b), expected);
+        },
+        false => (),
+    };
+}

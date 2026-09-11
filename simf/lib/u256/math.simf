@@ -239,7 +239,13 @@ pub fn calculate_normalizer_base_128(b: u256) -> u128 {
             match is_zero_128(remainder) {
                 true => norm,
                 false => {
-                    let (_, norm): (bool, u128) = add_128(norm, 1); // norm <= 2^127, so norm + 1 can not overflow
+                    let (
+                        _,
+                        norm
+                    ): (bool, u128) = add_128(
+                        norm,
+                        1
+                    ); // norm <= 2^127, so norm + 1 can not overflow
                     norm
                 },
             }

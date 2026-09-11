@@ -8,5 +8,5 @@ pub fn is_output_op_return(output_index: u32) -> bool {
 
 /// Asserts that the specified output is an OP_RETURN (null data) output
 pub fn assert_output_is_op_return(output_index: u32) {
-   assert!(is_output_op_return(output_index));
+    assert!(is_output_op_return(output_index));
 }

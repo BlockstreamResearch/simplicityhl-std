@@ -31,7 +31,7 @@ pub fn safe_sub_64(a: u64, b: u64) -> u64 {
 /// Returns the product of two u64 values wrapped in Some, or None if the result overflows u64
 pub fn checked_mul_64(a: u64, b: u64) -> Option<u64> {
     let result: u128 = jet::multiply_64(a, b);
-    
+
     let (high, low): (u64, u64) = <u128>::into(result);
 
     match jet::is_zero_64(high) {

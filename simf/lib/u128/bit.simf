@@ -35,7 +35,10 @@ pub fn left_shift_128(shift: u8, a: u128) -> u128 {
 
             match jet::lt_8(shift, 64) {
                 true => {
-                    let (_, low_to_high_amount): (bool, u8) = jet::subtract_8(64, shift); // shift < 64
+                    let (
+                        _,
+                        low_to_high_amount
+                    ): (bool, u8) = jet::subtract_8(64, shift); // shift < 64
                     let shifted_bits: u64 = jet::right_shift_64(low_to_high_amount, a_low);
 
                     let res_high: u64 = jet::or_64(jet::left_shift_64(shift, a_high), shifted_bits);
@@ -46,9 +49,9 @@ pub fn left_shift_128(shift: u8, a: u128) -> u128 {
                     let (_, shift): (bool, u8) = jet::subtract_8(shift, 64); // shift >= 64
 
                     <(u64, u64)>::into((jet::left_shift_64(shift, a_low), 0))
-                }
+                },
             }
-        }
+        },
     }
 }
 
@@ -61,7 +64,10 @@ pub fn right_shift_128(shift: u8, a: u128) -> u128 {
 
             match jet::lt_8(shift, 64) {
                 true => {
-                    let (_, high_to_low_amount): (bool, u8) = jet::subtract_8(64, shift); // shift < 64
+                    let (
+                        _,
+                        high_to_low_amount
+                    ): (bool, u8) = jet::subtract_8(64, shift); // shift < 64
                     let shifted_bits: u64 = jet::left_shift_64(high_to_low_amount, a_high);
 
                     let res_low: u64 = jet::or_64(jet::right_shift_64(shift, a_low), shifted_bits);
@@ -72,8 +78,8 @@ pub fn right_shift_128(shift: u8, a: u128) -> u128 {
                     let (_, shift): (bool, u8) = jet::subtract_8(shift, 64); // shift >= 64
 
                     <(u64, u64)>::into((0, jet::right_shift_64(shift, a_high)))
-                }
+                },
             }
-        }
+        },
     }
 }
