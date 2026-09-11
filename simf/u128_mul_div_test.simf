@@ -1,0 +1,21 @@
+use crate::lib::u128::mul_div::mul_div_128;
+
+use crate::lib::asserts::assert_eq_128;
+use crate::helper::if_test_this_function;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u128 = witness::FIRST_ARG;
+    let b: u128 = witness::SECOND_ARG;
+    let c: u128 = witness::THIRD_ARG;
+
+    let expected: Option<u128> = witness::EXPECTED;
+
+    match if_test_this_function(0, fn_idx) {
+        true => {
+            assert_eq_128(mul_div_128(a, b, c), unwrap(expected));
+        },
+        false => (),
+    };
+}

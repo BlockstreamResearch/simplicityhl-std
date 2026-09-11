@@ -1,0 +1,12 @@
+use crate::lib::u8::convert::u8_to_u16;
+use crate::lib::u16::convert::safe_u16_to_u8;
+
+/// Calculates `floor(a * b / denominator)` with full precision.
+/// Panics if the result overflows a u8
+pub fn mul_div_8(a: u8, b: u8, denominator: u8) -> u8 {
+    let denominator_16: u16 = u8_to_u16(denominator);
+
+    let result_16: u16 = jet::divide_16(jet::multiply_8(a, b), denominator_16);
+
+    safe_u16_to_u8(result_16)
+}

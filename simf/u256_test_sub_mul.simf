@@ -1,4 +1,11 @@
-use crate::lib::u256::math::{sub_256, mul_256, mul_256_64, mul_256_128};
+use crate::lib::u256::math::{
+    sub_256,
+    mul_256,
+    mul_256_64,
+    mul_256_128,
+    mul_512_128,
+    safe_mul_256_128
+};
 use crate::lib::u256::convert::split_u256_into_u64;
 use crate::lib::asserts::{assert_eq_64, assert_eq_128, assert_eq_256};
 use crate::helper::{if_test_this_function, assert_bool};
@@ -18,14 +25,21 @@ fn main() {
 
     let a: u256 = witness::FIRST_ARG;
     let b: u256 = witness::SECOND_ARG;
+    let c: u128 = witness::THIRD_ARG;
     let expected: Option<u256> = witness::EXPECTED;
 
     let expected_bool: bool = witness::EXPECTED_BOOL;
     let second_expected: u256 = witness::SECOND_EXPECTED;
+    let third_expected: u256 = witness::THIRD_EXPECTED;
 
     /// Arithmetic
 
-    match if_test_this_function(0, fn_idx) { true => { assert_eq_uint_bool(sub_256(a, b), unwrap(expected), expected_bool); }, false => (), };
+    match if_test_this_function(0, fn_idx) {
+        true => {
+            assert_eq_uint_bool(sub_256(a, b), unwrap(expected), expected_bool);
+        },
+        false => (),
+    };
 
     match if_test_this_function(1, fn_idx) {
         true => {
@@ -59,6 +73,29 @@ fn main() {
 
             assert_eq_128(result_high, expected);
             assert_eq_256(result_low, second_expected);
+        },
+        false => (),
+    };
+
+    match if_test_this_function(4, fn_idx) {
+        true => {
+            let (result_2, result_1, result_0): (u128, u256, u256) = mul_512_128(a, b, c);
+
+            let (_, expected): (u128, u128) = <u256>::into(unwrap(expected));
+
+            assert_eq_128(result_2, expected);
+            assert_eq_256(result_1, second_expected);
+            assert_eq_256(result_0, third_expected);
+        },
+        false => (),
+    };
+
+    match if_test_this_function(5, fn_idx) {
+        true => {
+            let (_, b): (u128, u128) = <u256>::into(b);
+            let result: u256 = safe_mul_256_128(a, b);
+
+            assert_eq_256(result, unwrap(expected));
         },
         false => (),
     };

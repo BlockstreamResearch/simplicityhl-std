@@ -985,7 +985,7 @@ mod u128_tests_arithmetic {
     }
 
     #[simplex::test]
-    fn u128_test_div_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+    fn u128_test_div_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
         let a = rand::thread_rng().gen_range(0..=u128::MAX);
         let b = 0;
 
@@ -996,11 +996,11 @@ mod u128_tests_arithmetic {
                 op(FunctionToTest::Div128),
                 a,
                 b,
-                Some(DEFAULT_EXPECTED),
+                Some(0),
                 DEFAULT_BOOL,
                 DEFAULT_EXPECTED,
             ),
-            Expect::AssertFailed,
+            Expect::Ok,
         )
     }
 }
