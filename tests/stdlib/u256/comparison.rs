@@ -40,7 +40,7 @@ fn build_witness(
 }
 
 #[simplex::test]
-fn u256_test_is_zero_256_true(context: simplex::TestContext) -> anyhow::Result<()> {
+fn is_zero_256_true(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = [0; 32];
 
     run(
@@ -52,7 +52,7 @@ fn u256_test_is_zero_256_true(context: simplex::TestContext) -> anyhow::Result<(
 }
 
 #[simplex::test]
-fn u256_test_is_zero_256_false(context: simplex::TestContext) -> anyhow::Result<()> {
+fn is_zero_256_false(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX).to_big_endian();
 
     run(
@@ -64,7 +64,7 @@ fn u256_test_is_zero_256_false(context: simplex::TestContext) -> anyhow::Result<
 }
 
 #[simplex::test]
-fn u256_test_lt_256_less(context: simplex::TestContext) -> anyhow::Result<()> {
+fn lt_256_less(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX - 1);
     let b = a + 1;
 
@@ -82,7 +82,7 @@ fn u256_test_lt_256_less(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_lt_256_eq(context: simplex::TestContext) -> anyhow::Result<()> {
+fn lt_256_eq(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX).to_big_endian();
 
     run(
@@ -94,7 +94,7 @@ fn u256_test_lt_256_eq(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_lt_256_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
+fn lt_256_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX);
     let b = a - 1;
 
@@ -112,7 +112,7 @@ fn u256_test_lt_256_bigger(context: simplex::TestContext) -> anyhow::Result<()> 
 }
 
 #[simplex::test]
-fn u256_test_le_256_less(context: simplex::TestContext) -> anyhow::Result<()> {
+fn le_256_less(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX - 1);
     let b = a + 1;
 
@@ -130,7 +130,7 @@ fn u256_test_le_256_less(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_le_256_eq(context: simplex::TestContext) -> anyhow::Result<()> {
+fn le_256_eq(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX).to_big_endian();
 
     run(
@@ -142,7 +142,7 @@ fn u256_test_le_256_eq(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_le_256_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
+fn le_256_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX);
     let b = a - 1;
 

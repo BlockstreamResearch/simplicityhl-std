@@ -6,7 +6,7 @@ use simplicityhl_std::artifacts::tests::binary::derived_binary::{
 };
 
 #[simplex::test]
-fn binary_test(context: simplex::TestContext) -> anyhow::Result<()> {
+fn all_ops(context: simplex::TestContext) -> anyhow::Result<()> {
     let program = BinaryTestProgram::new(&BinaryTestArguments {});
     run(&context, program, BinaryTestWitness {}, Expect::Ok)
 }

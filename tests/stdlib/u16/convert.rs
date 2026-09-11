@@ -36,7 +36,7 @@ fn build_witness(function: u8, a: u16, expected: [u8; 32]) -> U16ConvertTestWitn
 }
 
 #[simplex::test]
-fn u16_convert_test_u16_to_u32(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_to_u32(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u16::MAX);
 
     run(
@@ -52,7 +52,7 @@ fn u16_convert_test_u16_to_u32(context: simplex::TestContext) -> anyhow::Result<
 }
 
 #[simplex::test]
-fn u16_convert_test_u16_to_u64(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_to_u64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u16::MAX);
 
     run(
@@ -68,7 +68,7 @@ fn u16_convert_test_u16_to_u64(context: simplex::TestContext) -> anyhow::Result<
 }
 
 #[simplex::test]
-fn u16_convert_test_u16_to_u128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_to_u128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u16::MAX);
 
     run(
@@ -84,7 +84,7 @@ fn u16_convert_test_u16_to_u128(context: simplex::TestContext) -> anyhow::Result
 }
 
 #[simplex::test]
-fn u16_convert_test_u16_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u16_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u16::MAX);
 
     run(
@@ -100,7 +100,7 @@ fn u16_convert_test_u16_to_u256(context: simplex::TestContext) -> anyhow::Result
 }
 
 #[simplex::test]
-fn u16_convert_test_split_u16_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+fn split_u16_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u16::MAX);
 
     run(
@@ -116,7 +116,7 @@ fn u16_convert_test_split_u16_into_u8(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u16_convert_test_safe_u16_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u16_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=1);
 
     run(
@@ -132,7 +132,7 @@ fn u16_convert_test_safe_u16_to_u1(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u16_convert_test_safe_u16_to_u1_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u16_to_u1_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u16::MAX);
 
     run(
@@ -148,7 +148,7 @@ fn u16_convert_test_safe_u16_to_u1_overflow(context: simplex::TestContext) -> an
 }
 
 #[simplex::test]
-fn u16_convert_test_safe_u16_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u16_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u8::MAX as u16);
 
     run(
@@ -164,7 +164,7 @@ fn u16_convert_test_safe_u16_to_u8(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u16_convert_test_safe_u16_to_u8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u16_to_u8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(u8::MAX as u16 + 1..=u16::MAX);
 
     run(

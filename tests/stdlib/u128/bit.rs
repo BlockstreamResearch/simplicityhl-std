@@ -44,7 +44,7 @@ fn build_witness(
 }
 
 #[simplex::test]
-fn u128_test_and_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn and_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
     let b = rand::thread_rng().gen_range(0..=u128::MAX);
     let result = a & b;
@@ -58,7 +58,7 @@ fn u128_test_and_128(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u128_test_or_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn or_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
     let b = rand::thread_rng().gen_range(0..=u128::MAX);
     let result = a | b;
@@ -72,7 +72,7 @@ fn u128_test_or_128(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u128_test_eq_128_true(context: simplex::TestContext) -> anyhow::Result<()> {
+fn eq_128_true(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
 
     run(
@@ -90,7 +90,7 @@ fn u128_test_eq_128_true(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u128_test_eq_128_false(context: simplex::TestContext) -> anyhow::Result<()> {
+fn eq_128_false(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(1..=u128::MAX);
     let b = a - 1;
 
@@ -109,7 +109,7 @@ fn u128_test_eq_128_false(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u128_test_left_shift_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn left_shift_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = rand::thread_rng().gen_range(1..=127_u128);
     let val = rand::thread_rng().gen_range(0..=u128::MAX);
     let result = val << shift;
@@ -129,7 +129,7 @@ fn u128_test_left_shift_128(context: simplex::TestContext) -> anyhow::Result<()>
 }
 
 #[simplex::test]
-fn u128_test_left_shift_128_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn left_shift_128_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = 0;
     let val = rand::thread_rng().gen_range(0..=u128::MAX);
     let result = val;
@@ -149,7 +149,7 @@ fn u128_test_left_shift_128_by_zero(context: simplex::TestContext) -> anyhow::Re
 }
 
 #[simplex::test]
-fn u128_test_left_shift_128_out_of_range(context: simplex::TestContext) -> anyhow::Result<()> {
+fn left_shift_128_out_of_range(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = rand::thread_rng().gen_range(128..=u8::MAX as u128);
     let val = rand::thread_rng().gen_range(0..=u128::MAX);
 
@@ -168,7 +168,7 @@ fn u128_test_left_shift_128_out_of_range(context: simplex::TestContext) -> anyho
 }
 
 #[simplex::test]
-fn u128_test_right_shift_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn right_shift_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = rand::thread_rng().gen_range(1..=127_u128);
     let val = rand::thread_rng().gen_range(0..=u128::MAX);
     let result = val >> shift;
@@ -188,7 +188,7 @@ fn u128_test_right_shift_128(context: simplex::TestContext) -> anyhow::Result<()
 }
 
 #[simplex::test]
-fn u128_test_right_shift_128_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn right_shift_128_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = 0;
     let val = rand::thread_rng().gen_range(0..=u128::MAX);
     let result = val;
@@ -208,7 +208,7 @@ fn u128_test_right_shift_128_by_zero(context: simplex::TestContext) -> anyhow::R
 }
 
 #[simplex::test]
-fn u128_test_right_shift_128_out_of_range(context: simplex::TestContext) -> anyhow::Result<()> {
+fn right_shift_128_out_of_range(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = rand::thread_rng().gen_range(128..=u8::MAX as u128);
     let val = rand::thread_rng().gen_range(0..=u128::MAX);
 

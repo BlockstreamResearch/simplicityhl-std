@@ -40,7 +40,7 @@ fn build_witness(
 }
 
 #[simplex::test]
-fn u128_test_mul_div_128_product_is_u128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_128_product_is_u128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u64::MAX) as u128;
     let b = rand::thread_rng().gen_range(0..=u64::MAX) as u128;
     let c = rand::thread_rng().gen_range(1..=u128::MAX);
@@ -56,9 +56,7 @@ fn u128_test_mul_div_128_product_is_u128(context: simplex::TestContext) -> anyho
 }
 
 #[simplex::test]
-fn u128_test_mul_div_128_intermediate_overflow(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn mul_div_128_intermediate_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u128::MAX);
     let b = u128::MAX;
     let c = rand::thread_rng().gen_range(a..=u128::MAX);
@@ -74,7 +72,7 @@ fn u128_test_mul_div_128_intermediate_overflow(
 }
 
 #[simplex::test]
-fn u128_test_mul_div_128_result_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_128_result_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u128::MAX);
     let b = u128::MAX;
     let c = rand::thread_rng().gen_range(1..a);
@@ -88,7 +86,7 @@ fn u128_test_mul_div_128_result_overflow(context: simplex::TestContext) -> anyho
 }
 
 #[simplex::test]
-fn u128_test_mul_div_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(1..=u128::MAX);
     let b = rand::thread_rng().gen_range(1..=u128::MAX);
     let c = 0;

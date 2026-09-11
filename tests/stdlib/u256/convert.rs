@@ -41,7 +41,7 @@ fn build_witness(function: u8, a: [u8; 32], expected: [u8; 32]) -> U256ConvertTe
 use crate::common::helper::generate_u256;
 
 #[simplex::test]
-fn u256_convert_test_u256_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u256_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
 
     run(
@@ -57,7 +57,7 @@ fn u256_convert_test_u256_into_u8(context: simplex::TestContext) -> anyhow::Resu
 }
 
 #[simplex::test]
-fn u256_convert_test_u256_into_u16(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u256_into_u16(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
 
     run(
@@ -73,7 +73,7 @@ fn u256_convert_test_u256_into_u16(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u256_convert_test_u256_into_u32(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u256_into_u32(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
 
     run(
@@ -89,7 +89,7 @@ fn u256_convert_test_u256_into_u32(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u256_convert_test_u256_into_u64(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u256_into_u64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
 
     run(
@@ -105,7 +105,7 @@ fn u256_convert_test_u256_into_u64(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u256_convert_test_u256_into_u128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u256_into_u128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
 
     run(
@@ -121,7 +121,7 @@ fn u256_convert_test_u256_into_u128(context: simplex::TestContext) -> anyhow::Re
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u256_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::one());
 
     run(
@@ -137,7 +137,7 @@ fn u256_convert_test_safe_u256_to_u1(context: simplex::TestContext) -> anyhow::R
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u1_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u256_to_u1_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(2), U256::MAX);
 
     run(
@@ -153,7 +153,7 @@ fn u256_convert_test_safe_u256_to_u1_overflow(context: simplex::TestContext) -> 
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u256_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::from(u8::MAX));
 
     run(
@@ -169,7 +169,7 @@ fn u256_convert_test_safe_u256_to_u8(context: simplex::TestContext) -> anyhow::R
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u256_to_u8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(u8::MAX) + 1, U256::MAX);
 
     run(
@@ -185,7 +185,7 @@ fn u256_convert_test_safe_u256_to_u8_overflow(context: simplex::TestContext) -> 
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u16(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u256_to_u16(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::from(u16::MAX));
 
     run(
@@ -201,9 +201,7 @@ fn u256_convert_test_safe_u256_to_u16(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u16_overflow(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn safe_u256_to_u16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(u16::MAX) + 1, U256::MAX);
 
     run(
@@ -219,7 +217,7 @@ fn u256_convert_test_safe_u256_to_u16_overflow(
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u32(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u256_to_u32(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::from(u32::MAX));
 
     run(
@@ -235,9 +233,7 @@ fn u256_convert_test_safe_u256_to_u32(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u32_overflow(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn safe_u256_to_u32_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(u32::MAX) + 1, U256::MAX);
 
     run(
@@ -253,7 +249,7 @@ fn u256_convert_test_safe_u256_to_u32_overflow(
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u64(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u256_to_u64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::from(u64::MAX));
 
     run(
@@ -269,9 +265,7 @@ fn u256_convert_test_safe_u256_to_u64(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u64_overflow(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn safe_u256_to_u64_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(u64::MAX) + 1, U256::MAX);
 
     run(
@@ -287,7 +281,7 @@ fn u256_convert_test_safe_u256_to_u64_overflow(
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u256_to_u128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::from(u128::MAX));
 
     run(
@@ -303,9 +297,7 @@ fn u256_convert_test_safe_u256_to_u128(context: simplex::TestContext) -> anyhow:
 }
 
 #[simplex::test]
-fn u256_convert_test_safe_u256_to_u128_overflow(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn safe_u256_to_u128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(u128::MAX) + 1, U256::MAX);
 
     run(

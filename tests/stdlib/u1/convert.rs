@@ -36,7 +36,7 @@ fn build_witness(function: u8, a: u8, expected: [u8; 32]) -> U1ConvertTestWitnes
 }
 
 #[simplex::test]
-fn u1_convert_test_u1_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u1_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=1);
 
     run(
@@ -48,7 +48,7 @@ fn u1_convert_test_u1_to_u8(context: simplex::TestContext) -> anyhow::Result<()>
 }
 
 #[simplex::test]
-fn u1_convert_test_u1_to_u16(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u1_to_u16(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=1);
 
     run(
@@ -64,7 +64,7 @@ fn u1_convert_test_u1_to_u16(context: simplex::TestContext) -> anyhow::Result<()
 }
 
 #[simplex::test]
-fn u1_convert_test_u1_to_u32(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u1_to_u32(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=1);
 
     run(
@@ -80,7 +80,7 @@ fn u1_convert_test_u1_to_u32(context: simplex::TestContext) -> anyhow::Result<()
 }
 
 #[simplex::test]
-fn u1_convert_test_u1_to_u64(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u1_to_u64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=1);
 
     run(
@@ -96,7 +96,7 @@ fn u1_convert_test_u1_to_u64(context: simplex::TestContext) -> anyhow::Result<()
 }
 
 #[simplex::test]
-fn u1_convert_test_u1_to_u128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u1_to_u128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=1);
 
     run(
@@ -112,7 +112,7 @@ fn u1_convert_test_u1_to_u128(context: simplex::TestContext) -> anyhow::Result<(
 }
 
 #[simplex::test]
-fn u1_convert_test_u1_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u1_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=1);
 
     run(
@@ -128,7 +128,7 @@ fn u1_convert_test_u1_to_u256(context: simplex::TestContext) -> anyhow::Result<(
 }
 
 #[simplex::test]
-fn u1_convert_test_split_u1_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
+fn split_u1_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=1);
 
     run(

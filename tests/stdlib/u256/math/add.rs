@@ -42,7 +42,7 @@ fn build_witness(
 }
 
 #[simplex::test]
-fn u256_test_add_256_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_256_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX / 2);
     let b = generate_u256(U256::zero(), U256::MAX / 2);
     let result = (a + b).to_big_endian();
@@ -63,7 +63,7 @@ fn u256_test_add_256_not_overflow(context: simplex::TestContext) -> anyhow::Resu
 }
 
 #[simplex::test]
-fn u256_test_add_256_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_256_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = U256::MAX;
     let b = generate_u256(U256::one(), U256::MAX);
     let result = (b - 1).to_big_endian();
@@ -84,7 +84,7 @@ fn u256_test_add_256_overflow(context: simplex::TestContext) -> anyhow::Result<(
 }
 
 #[simplex::test]
-fn u256_test_add_256_128_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_256_128_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX / 2);
     let b = generate_u256(U256::one(), U256::from(u128::MAX));
     let result = (a + b).to_big_endian();
@@ -105,7 +105,7 @@ fn u256_test_add_256_128_not_overflow(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u256_test_add_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = U256::MAX;
     let b = generate_u256(U256::one(), U256::from(u128::MAX));
     let result = (b - 1).to_big_endian();
@@ -126,9 +126,7 @@ fn u256_test_add_256_128_overflow(context: simplex::TestContext) -> anyhow::Resu
 }
 
 #[simplex::test]
-fn u256_test_full_add_256_not_overflow_carry_low_false(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn full_add_256_not_overflow_carry_low_false(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX / 2);
     let b = generate_u256(U256::zero(), U256::MAX / 2);
 
@@ -152,9 +150,7 @@ fn u256_test_full_add_256_not_overflow_carry_low_false(
 }
 
 #[simplex::test]
-fn u256_test_full_add_256_overflow_carry_low_false(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn full_add_256_overflow_carry_low_false(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = U256::MAX;
     let b = generate_u256(U256::one(), U256::MAX);
 
@@ -178,9 +174,7 @@ fn u256_test_full_add_256_overflow_carry_low_false(
 }
 
 #[simplex::test]
-fn u256_test_full_add_256_not_overflow_carry_low_true(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn full_add_256_not_overflow_carry_low_true(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX / 2);
     let b = generate_u256(U256::zero(), U256::MAX / 2);
 
@@ -204,9 +198,7 @@ fn u256_test_full_add_256_not_overflow_carry_low_true(
 }
 
 #[simplex::test]
-fn u256_test_full_add_256_overflow_carry_low_true(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn full_add_256_overflow_carry_low_true(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = U256::MAX;
     let b = generate_u256(U256::one(), U256::MAX).to_big_endian();
 
