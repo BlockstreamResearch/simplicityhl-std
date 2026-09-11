@@ -32,7 +32,7 @@ fn build_witness(op: u8, a: u64, b: u64, c: u64, expected: Option<u64>) -> U64Mu
 }
 
 #[simplex::test]
-fn u64_test_mul_div_64_product_is_u64(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_64_product_is_u64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX) as u64;
     let b = rand::thread_rng().gen_range(0..=u32::MAX) as u64;
     let c = rand::thread_rng().gen_range(1..=u64::MAX);
@@ -48,7 +48,7 @@ fn u64_test_mul_div_64_product_is_u64(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u64_test_mul_div_64_intermediate_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_64_intermediate_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u64::MAX);
     let b = u64::MAX;
     let c = rand::thread_rng().gen_range(a..=u64::MAX);
@@ -64,7 +64,7 @@ fn u64_test_mul_div_64_intermediate_overflow(context: simplex::TestContext) -> a
 }
 
 #[simplex::test]
-fn u64_test_mul_div_64_result_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_64_result_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u64::MAX);
     let b = u64::MAX;
     let c = rand::thread_rng().gen_range(1..a);
@@ -78,7 +78,7 @@ fn u64_test_mul_div_64_result_overflow(context: simplex::TestContext) -> anyhow:
 }
 
 #[simplex::test]
-fn u64_test_mul_div_64_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_64_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(1..=u64::MAX);
     let b = rand::thread_rng().gen_range(1..=u64::MAX);
     let c = 0;

@@ -34,7 +34,7 @@ fn build_witness(function: u8, a: u128, b: u128, expected_bool: bool) -> U128Tes
 }
 
 #[simplex::test]
-fn u128_test_is_zero_128_true(context: simplex::TestContext) -> anyhow::Result<()> {
+fn is_zero_128_true(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = 0;
 
     run(
@@ -46,7 +46,7 @@ fn u128_test_is_zero_128_true(context: simplex::TestContext) -> anyhow::Result<(
 }
 
 #[simplex::test]
-fn u128_test_is_zero_128_false(context: simplex::TestContext) -> anyhow::Result<()> {
+fn is_zero_128_false(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(1..=u128::MAX);
 
     run(
@@ -58,7 +58,7 @@ fn u128_test_is_zero_128_false(context: simplex::TestContext) -> anyhow::Result<
 }
 
 #[simplex::test]
-fn u128_test_lt_128_less(context: simplex::TestContext) -> anyhow::Result<()> {
+fn lt_128_less(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..u128::MAX);
     let b = a + 1;
 
@@ -71,7 +71,7 @@ fn u128_test_lt_128_less(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u128_test_lt_128_eq(context: simplex::TestContext) -> anyhow::Result<()> {
+fn lt_128_eq(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..u128::MAX);
     let b = a;
 
@@ -84,7 +84,7 @@ fn u128_test_lt_128_eq(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u128_test_lt_128_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
+fn lt_128_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(1..=u128::MAX);
     let b = a - 1;
 
@@ -97,7 +97,7 @@ fn u128_test_lt_128_bigger(context: simplex::TestContext) -> anyhow::Result<()> 
 }
 
 #[simplex::test]
-fn u128_test_le_128_less(context: simplex::TestContext) -> anyhow::Result<()> {
+fn le_128_less(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..u128::MAX);
     let b = a + 1;
 
@@ -110,7 +110,7 @@ fn u128_test_le_128_less(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u128_test_le_128_eq(context: simplex::TestContext) -> anyhow::Result<()> {
+fn le_128_eq(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..u128::MAX);
     let b = a;
 
@@ -123,7 +123,7 @@ fn u128_test_le_128_eq(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u128_test_le_128_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
+fn le_128_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(1..=u128::MAX);
     let b = a - 1;
 

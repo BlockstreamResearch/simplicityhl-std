@@ -40,7 +40,7 @@ fn build_witness(
 }
 
 #[simplex::test]
-fn u256_test_and_256(context: simplex::TestContext) -> anyhow::Result<()> {
+fn and_256(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = generate_u256(U256::zero(), U256::MAX);
     let result = (a & b).to_big_endian();
@@ -59,7 +59,7 @@ fn u256_test_and_256(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_or_256(context: simplex::TestContext) -> anyhow::Result<()> {
+fn or_256(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = generate_u256(U256::zero(), U256::MAX);
     let result = (a | b).to_big_endian();
@@ -78,7 +78,7 @@ fn u256_test_or_256(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_left_shift_256(context: simplex::TestContext) -> anyhow::Result<()> {
+fn left_shift_256(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = rand::thread_rng().gen_range(1..u8::MAX);
     let val = generate_u256(U256::zero(), U256::MAX);
     let result = (val << shift).to_big_endian();
@@ -97,7 +97,7 @@ fn u256_test_left_shift_256(context: simplex::TestContext) -> anyhow::Result<()>
 }
 
 #[simplex::test]
-fn u256_test_left_shift_256_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn left_shift_256_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = 0;
     let val = generate_u256(U256::zero(), U256::MAX).to_big_endian();
     let result = val;
@@ -116,7 +116,7 @@ fn u256_test_left_shift_256_by_zero(context: simplex::TestContext) -> anyhow::Re
 }
 
 #[simplex::test]
-fn u256_test_left_shift_256_max(context: simplex::TestContext) -> anyhow::Result<()> {
+fn left_shift_256_max(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = u8::MAX;
     let val = generate_u256(U256::zero(), U256::MAX);
     let result = (val << shift).to_big_endian();
@@ -135,7 +135,7 @@ fn u256_test_left_shift_256_max(context: simplex::TestContext) -> anyhow::Result
 }
 
 #[simplex::test]
-fn u256_test_right_shift_256(context: simplex::TestContext) -> anyhow::Result<()> {
+fn right_shift_256(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = rand::thread_rng().gen_range(1..u8::MAX);
     let val = generate_u256(U256::zero(), U256::MAX);
     let result = (val >> shift).to_big_endian();
@@ -154,7 +154,7 @@ fn u256_test_right_shift_256(context: simplex::TestContext) -> anyhow::Result<()
 }
 
 #[simplex::test]
-fn u256_test_right_shift_256_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn right_shift_256_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = 0;
     let val = generate_u256(U256::zero(), U256::MAX).to_big_endian();
     let result = val;
@@ -173,7 +173,7 @@ fn u256_test_right_shift_256_by_zero(context: simplex::TestContext) -> anyhow::R
 }
 
 #[simplex::test]
-fn u256_test_right_shift_256_max(context: simplex::TestContext) -> anyhow::Result<()> {
+fn right_shift_256_max(context: simplex::TestContext) -> anyhow::Result<()> {
     let shift = u8::MAX;
     let val = generate_u256(U256::zero(), U256::MAX);
     let result = (val >> shift).to_big_endian();

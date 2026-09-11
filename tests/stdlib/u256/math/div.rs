@@ -45,7 +45,7 @@ fn build_witness(
 }
 
 #[simplex::test]
-fn u256_test_calculate_normalizer_base_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn calculate_normalizer_base_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let threshold = 1u128 << 127;
 
     let a = generate_u256(U256::from(u128::MAX) + 1, U256::MAX);
@@ -68,9 +68,7 @@ fn u256_test_calculate_normalizer_base_128(context: simplex::TestContext) -> any
 }
 
 #[simplex::test]
-fn u256_test_calculate_normalizer_base_128_norm_is_1(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn calculate_normalizer_base_128_norm_is_1(context: simplex::TestContext) -> anyhow::Result<()> {
     let threshold = 1u128 << 127;
 
     // a >= 2^255 keeps a_high >= 2^127, so the divisor is already normalized
@@ -95,7 +93,7 @@ fn u256_test_calculate_normalizer_base_128_norm_is_1(
 }
 
 #[simplex::test]
-fn u256_test_calculate_normalizer_base_128_norm_greater_than_1(
+fn calculate_normalizer_base_128_norm_greater_than_1(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let threshold = 1u128 << 127;
@@ -125,7 +123,7 @@ fn u256_test_calculate_normalizer_base_128_norm_greater_than_1(
 }
 
 #[simplex::test]
-fn u256_test_calculate_normalizer_base_128_a_is_u128_fail(
+fn calculate_normalizer_base_128_a_is_u128_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let threshold = 1u128 << 127;
@@ -149,7 +147,7 @@ fn u256_test_calculate_normalizer_base_128_a_is_u128_fail(
 }
 
 #[simplex::test]
-fn u256_test_calculate_normalizer_base_128_b_is_zero_fail(
+fn calculate_normalizer_base_128_b_is_zero_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let a = [0; 32];
@@ -169,7 +167,7 @@ fn u256_test_calculate_normalizer_base_128_b_is_zero_fail(
 }
 
 #[simplex::test]
-fn test_div_mod_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = generate_u256(U256::one(), U256::from(u64::MAX));
 
@@ -191,7 +189,7 @@ fn test_div_mod_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn test_div_mod_256_64_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_64_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = [0; 32];
 
@@ -210,7 +208,7 @@ fn test_div_mod_256_64_overflow(context: simplex::TestContext) -> anyhow::Result
 }
 
 #[simplex::test]
-fn test_algorithm_d_256_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn algorithm_d_256_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = generate_u256(U256::from(u64::MAX) + 1, U256::from(u128::MAX));
 
@@ -232,9 +230,7 @@ fn test_algorithm_d_256_128(context: simplex::TestContext) -> anyhow::Result<()>
 }
 
 #[simplex::test]
-fn test_algorithm_d_256_128_fail_b_fits_into_u64(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn algorithm_d_256_128_fail_b_fits_into_u64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = generate_u256(U256::one(), U256::from(u64::MAX));
 
@@ -256,7 +252,7 @@ fn test_algorithm_d_256_128_fail_b_fits_into_u64(
 }
 
 #[simplex::test]
-fn test_algorithm_d_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn algorithm_d_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = [0; 32];
 
@@ -275,7 +271,7 @@ fn test_algorithm_d_256_128_overflow(context: simplex::TestContext) -> anyhow::R
 }
 
 #[simplex::test]
-fn test_algorithm_d_256_128_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
+fn algorithm_d_256_128_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = (generate_u256(U256::one(), U256::from(u128::MAX))).to_big_endian();
 
     let q = U256::one().to_big_endian();
@@ -290,7 +286,7 @@ fn test_algorithm_d_256_128_a_eq_b(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn test_div_mod_256_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = generate_u256(U256::from(u64::MAX) + 1, U256::from(u128::MAX));
 
@@ -312,7 +308,7 @@ fn test_div_mod_256_128(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn test_div_mod_256_128_b_fits_into_u64(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_128_b_fits_into_u64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = generate_u256(U256::one(), U256::from(u64::MAX));
 
@@ -334,7 +330,7 @@ fn test_div_mod_256_128_b_fits_into_u64(context: simplex::TestContext) -> anyhow
 }
 
 #[simplex::test]
-fn test_div_mod_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = [0; 32];
 
@@ -353,7 +349,7 @@ fn test_div_mod_256_128_overflow(context: simplex::TestContext) -> anyhow::Resul
 }
 
 #[simplex::test]
-fn test_div_mod_256_128_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_128_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = (generate_u256(U256::one(), U256::from(u128::MAX))).to_big_endian();
 
     let q = U256::one().to_big_endian();
@@ -368,7 +364,7 @@ fn test_div_mod_256_128_a_eq_b(context: simplex::TestContext) -> anyhow::Result<
 }
 
 #[simplex::test]
-fn u256_test_div_mod_256_a_less_than_b(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_a_less_than_b(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX - 1);
     let b = generate_u256(a + 1, U256::MAX);
 
@@ -390,7 +386,7 @@ fn u256_test_div_mod_256_a_less_than_b(context: simplex::TestContext) -> anyhow:
 }
 
 #[simplex::test]
-fn u256_test_div_mod_256_div_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_div_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = generate_u256(U256::one(), U256::from(u128::MAX));
     let a = generate_u256(b, U256::from(u128::MAX));
 
@@ -412,7 +408,7 @@ fn u256_test_div_mod_256_div_128(context: simplex::TestContext) -> anyhow::Resul
 }
 
 #[simplex::test]
-fn u256_test_div_mod_256_q_is_1(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_q_is_1(context: simplex::TestContext) -> anyhow::Result<()> {
     // case where a >= b and a_high = b_high != 0
     let b_low = generate_u256(U256::zero(), U256::from(u128::MAX));
     let a_low = generate_u256(b_low, U256::from(u128::MAX));
@@ -439,7 +435,7 @@ fn u256_test_div_mod_256_q_is_1(context: simplex::TestContext) -> anyhow::Result
 }
 
 #[simplex::test]
-fn u256_test_div_mod_256_b_fits_into_u128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_b_fits_into_u128(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = generate_u256(U256::one(), U256::from(u128::MAX));
     let a = generate_u256(U256::from(u128::MAX) + 1, U256::MAX);
 
@@ -461,7 +457,7 @@ fn u256_test_div_mod_256_b_fits_into_u128(context: simplex::TestContext) -> anyh
 }
 
 #[simplex::test]
-fn u256_test_div_mod_256_b_is_u256(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_b_is_u256(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = generate_u256(U256::one(), U256::MAX - 1);
     let a = generate_u256(b + 1, U256::MAX);
 
@@ -483,7 +479,7 @@ fn u256_test_div_mod_256_b_is_u256(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u256_test_div_mod_256_a_equal_b(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_a_equal_b(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX).to_big_endian();
 
     run(
@@ -501,9 +497,7 @@ fn u256_test_div_mod_256_a_equal_b(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u256_test_div_mod_256_equal_high_words_max_low_diff(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn div_mod_256_equal_high_words_max_low_diff(context: simplex::TestContext) -> anyhow::Result<()> {
     let high = generate_u256(U256::one(), U256::from(u128::MAX));
 
     let a = ((high << 128) | (U256::from(u128::MAX))).to_big_endian();
@@ -524,9 +518,7 @@ fn u256_test_div_mod_256_equal_high_words_max_low_diff(
 }
 
 #[simplex::test]
-fn u256_test_div_mod_256_eq_high_words_a_less_than_b(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn div_mod_256_eq_high_words_a_less_than_b(context: simplex::TestContext) -> anyhow::Result<()> {
     let high = generate_u256(U256::one(), U256::from(u128::MAX));
 
     let a = (high << 128).to_big_endian();
@@ -541,7 +533,7 @@ fn u256_test_div_mod_256_eq_high_words_a_less_than_b(
 }
 
 #[simplex::test]
-fn u256_test_div_mod_256_edge_case(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_edge_case(context: simplex::TestContext) -> anyhow::Result<()> {
     let a: U256 = U256::from(2).pow(U256::from(255));
     let b = U256::from(2).pow(U256::from(127)) + U256::from(2).pow(U256::from(64)) - 1;
 
@@ -562,7 +554,7 @@ fn u256_test_div_mod_256_edge_case(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u256_test_div_256(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_256(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = generate_u256(U256::one(), U256::MAX);
     let result = (a / b).to_big_endian();
@@ -582,7 +574,7 @@ fn u256_test_div_256(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_div_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = [0; 32];
 

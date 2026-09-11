@@ -37,7 +37,7 @@ fn build_witness(function: u8, a: u32, expected: [u8; 32]) -> U32ConvertTestWitn
 }
 
 #[simplex::test]
-fn u32_convert_test_u32_to_u64(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_to_u64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
     run(
@@ -53,7 +53,7 @@ fn u32_convert_test_u32_to_u64(context: simplex::TestContext) -> anyhow::Result<
 }
 
 #[simplex::test]
-fn u32_convert_test_u32_to_u128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_to_u128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
     run(
@@ -69,7 +69,7 @@ fn u32_convert_test_u32_to_u128(context: simplex::TestContext) -> anyhow::Result
 }
 
 #[simplex::test]
-fn u32_convert_test_u32_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
+fn u32_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
     run(
@@ -85,7 +85,7 @@ fn u32_convert_test_u32_to_u256(context: simplex::TestContext) -> anyhow::Result
 }
 
 #[simplex::test]
-fn u32_convert_test_split_u32_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+fn split_u32_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
     run(
@@ -101,7 +101,7 @@ fn u32_convert_test_split_u32_into_u8(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u32_convert_test_split_u32_into_u16(context: simplex::TestContext) -> anyhow::Result<()> {
+fn split_u32_into_u16(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
     run(
@@ -117,7 +117,7 @@ fn u32_convert_test_split_u32_into_u16(context: simplex::TestContext) -> anyhow:
 }
 
 #[simplex::test]
-fn u32_convert_test_safe_u32_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u32_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=1);
 
     run(
@@ -133,7 +133,7 @@ fn u32_convert_test_safe_u32_to_u1(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u32_convert_test_safe_u32_to_u1_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u32_to_u1_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u32::MAX);
 
     run(
@@ -149,7 +149,7 @@ fn u32_convert_test_safe_u32_to_u1_overflow(context: simplex::TestContext) -> an
 }
 
 #[simplex::test]
-fn u32_convert_test_safe_u32_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u32_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u8::MAX as u32);
 
     run(
@@ -165,7 +165,7 @@ fn u32_convert_test_safe_u32_to_u8(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u32_convert_test_safe_u32_to_u8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u32_to_u8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(u8::MAX as u32 + 1..=u32::MAX);
 
     run(
@@ -181,7 +181,7 @@ fn u32_convert_test_safe_u32_to_u8_overflow(context: simplex::TestContext) -> an
 }
 
 #[simplex::test]
-fn u32_convert_test_safe_u32_to_u16(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u32_to_u16(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u16::MAX as u32);
 
     run(
@@ -197,7 +197,7 @@ fn u32_convert_test_safe_u32_to_u16(context: simplex::TestContext) -> anyhow::Re
 }
 
 #[simplex::test]
-fn u32_convert_test_safe_u32_to_u16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_u32_to_u16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(u16::MAX as u32 + 1..=u32::MAX);
 
     run(

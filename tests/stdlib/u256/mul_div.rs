@@ -51,9 +51,7 @@ fn safe_u512_to_u256(a: [u8; 64]) -> [u8; 32] {
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_product_fits_into_u256(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn mul_div_256_product_fits_into_u256(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::from(u128::MAX));
     let b = generate_u256(U256::zero(), U256::from(u128::MAX));
     let c = generate_u256(U256::one(), U256::MAX);
@@ -75,9 +73,7 @@ fn u256_test_mul_div_256_product_fits_into_u256(
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_intermediate_overflow(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn mul_div_256_intermediate_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(2), U256::MAX);
     let b = U256::MAX;
     let c = generate_u256(a, U256::MAX);
@@ -99,7 +95,7 @@ fn u256_test_mul_div_256_intermediate_overflow(
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_result_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_256_result_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(2), U256::MAX);
     let b = U256::MAX;
     let c = generate_u256(U256::one(), a);
@@ -119,7 +115,7 @@ fn u256_test_mul_div_256_result_overflow(context: simplex::TestContext) -> anyho
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_remainder_is_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_256_remainder_is_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(u128::MAX) + 1, U256::MAX);
     let b = generate_u256(U256::from(u128::MAX) + 1, U256::MAX);
     let c = a;
@@ -139,7 +135,7 @@ fn u256_test_mul_div_256_remainder_is_zero(context: simplex::TestContext) -> any
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_denominator_is_u128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_256_denominator_is_u128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX);
     let b = generate_u256(U256::one(), U256::from(u128::MAX));
     let c = generate_u256(b, U256::from(u128::MAX));
@@ -161,7 +157,7 @@ fn u256_test_mul_div_256_denominator_is_u128(context: simplex::TestContext) -> a
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_min_denom_high(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_256_min_denom_high(context: simplex::TestContext) -> anyhow::Result<()> {
     let pow129: U256 = U256::from(2).pow(U256::from(129));
 
     let a = generate_u256(U256::from(u128::MAX) + 1, pow129);
@@ -185,7 +181,7 @@ fn u256_test_mul_div_256_min_denom_high(context: simplex::TestContext) -> anyhow
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX);
     let b = generate_u256(U256::one(), U256::MAX);
     let c = U256::zero();
@@ -205,9 +201,7 @@ fn u256_test_mul_div_256_div_by_zero(context: simplex::TestContext) -> anyhow::R
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_algorithm_d_512_256_check(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+fn mul_div_256_algorithm_d_512_256_check(context: simplex::TestContext) -> anyhow::Result<()> {
     let pow2_128: U256 = U256::from(u128::MAX) + 1;
 
     let a = generate_u256(pow2_128, U256::MAX);
@@ -235,7 +229,7 @@ fn u256_test_mul_div_256_algorithm_d_512_256_check(
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_algorithm_d_512_256_c_is_res_high(
+fn mul_div_256_algorithm_d_512_256_c_is_res_high(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let pow2_128: U256 = U256::from(u128::MAX) + 1;
@@ -265,7 +259,7 @@ fn u256_test_mul_div_256_algorithm_d_512_256_c_is_res_high(
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_normalize_to_threshold_512_127_norm_is_1(
+fn mul_div_256_normalize_to_threshold_512_127_norm_is_1(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let pow2_128: U256 = U256::from(u128::MAX) + 1;
@@ -298,7 +292,7 @@ fn u256_test_mul_div_256_normalize_to_threshold_512_127_norm_is_1(
 }
 
 #[simplex::test]
-fn u256_test_mul_div_256_normalize_to_threshold_512_127_norm_greater_than_1(
+fn mul_div_256_normalize_to_threshold_512_127_norm_greater_than_1(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(u128::MAX) + 1, U256::MAX);

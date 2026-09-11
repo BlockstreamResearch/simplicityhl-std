@@ -62,7 +62,7 @@ fn split_u512(a: [u8; 64]) -> ([u8; 32], [u8; 32]) {
 }
 
 #[simplex::test]
-fn u256_test_sub_256_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_256_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = generate_u256(U256::zero(), a);
     let result = (a - b).to_big_endian();
@@ -85,7 +85,7 @@ fn u256_test_sub_256_not_overflow(context: simplex::TestContext) -> anyhow::Resu
 }
 
 #[simplex::test]
-fn u256_test_sub_256_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_256_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX).to_big_endian();
 
     run(
@@ -106,7 +106,7 @@ fn u256_test_sub_256_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()>
 }
 
 #[simplex::test]
-fn u256_test_sub_256_a_low_eq_b_low(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_256_a_low_eq_b_low(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b_high = rand::thread_rng().gen_range(0..=u128::MAX);
 
@@ -133,7 +133,7 @@ fn u256_test_sub_256_a_low_eq_b_low(context: simplex::TestContext) -> anyhow::Re
 }
 
 #[simplex::test]
-fn u256_test_sub_256_diff_is_u128_max(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_256_diff_is_u128_max(context: simplex::TestContext) -> anyhow::Result<()> {
     let a_low: u128 = u128::MAX;
 
     let a_high = rand::thread_rng().gen_range(0..=u128::MAX);
@@ -162,7 +162,7 @@ fn u256_test_sub_256_diff_is_u128_max(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u256_test_sub_256_diff_is_u256_max(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_256_diff_is_u256_max(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = U256::MAX.to_big_endian();
     let b = U256::zero();
 
@@ -184,7 +184,7 @@ fn u256_test_sub_256_diff_is_u256_max(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u256_test_sub_256_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_256_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX - 1);
     let b = U256::MAX;
     let result = a + 1;
@@ -207,7 +207,7 @@ fn u256_test_sub_256_overflow(context: simplex::TestContext) -> anyhow::Result<(
 }
 
 #[simplex::test]
-fn u256_test_mul_256(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_256(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX);
     let b = generate_u256(U256::one(), U256::MAX);
     let result = a.full_mul(b).to_big_endian();
@@ -232,7 +232,7 @@ fn u256_test_mul_256(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_mul_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX);
     let b = generate_u256(U256::one(), U256::from(u64::MAX));
     let result = a.full_mul(b).to_big_endian();
@@ -257,7 +257,7 @@ fn u256_test_mul_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_mul_256_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_256_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::one(), U256::MAX);
     let b = generate_u256(U256::one(), U256::from(u128::MAX));
     let result = a.full_mul(b).to_big_endian();
@@ -282,7 +282,7 @@ fn u256_test_mul_256_128(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_mul_512_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_512_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a_1 = generate_u256(U256::one(), U256::MAX);
     let a_0 = generate_u256(U256::one(), U256::MAX);
     let b = rand::thread_rng().gen_range(1..=u128::MAX);
@@ -317,7 +317,7 @@ fn u256_test_mul_512_128(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn u256_test_safe_mul_256_128_fitting(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_mul_256_128_fitting(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::from(u128::MAX));
     let b = generate_u256(U256::zero(), U256::from(u128::MAX));
 
@@ -339,7 +339,7 @@ fn u256_test_safe_mul_256_128_fitting(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u256_test_safe_mul_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn safe_mul_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(u128::MAX) + 1, U256::MAX);
     let b = U256::from(u128::MAX);
 

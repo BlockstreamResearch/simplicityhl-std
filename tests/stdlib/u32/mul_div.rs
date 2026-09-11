@@ -32,7 +32,7 @@ fn build_witness(op: u8, a: u32, b: u32, c: u32, expected: Option<u32>) -> U32Mu
 }
 
 #[simplex::test]
-fn u32_test_mul_div_32_product_is_u32(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_32_product_is_u32(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u16::MAX) as u32;
     let b = rand::thread_rng().gen_range(0..=u16::MAX) as u32;
     let c = rand::thread_rng().gen_range(1..=u32::MAX);
@@ -48,7 +48,7 @@ fn u32_test_mul_div_32_product_is_u32(context: simplex::TestContext) -> anyhow::
 }
 
 #[simplex::test]
-fn u32_test_mul_div_32_intermediate_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_32_intermediate_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u32::MAX);
     let b = u32::MAX;
     let c = rand::thread_rng().gen_range(a..=u32::MAX);
@@ -64,7 +64,7 @@ fn u32_test_mul_div_32_intermediate_overflow(context: simplex::TestContext) -> a
 }
 
 #[simplex::test]
-fn u32_test_mul_div_32_result_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_32_result_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u32::MAX);
     let b = u32::MAX;
     let c = rand::thread_rng().gen_range(1..a);
@@ -78,7 +78,7 @@ fn u32_test_mul_div_32_result_overflow(context: simplex::TestContext) -> anyhow:
 }
 
 #[simplex::test]
-fn u32_test_mul_div_32_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_32_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(1..=u32::MAX);
     let b = rand::thread_rng().gen_range(1..=u32::MAX);
     let c = 0;

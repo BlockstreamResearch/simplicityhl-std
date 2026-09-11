@@ -32,7 +32,7 @@ fn build_witness(op: u8, a: u8, b: u8, c: u8, expected: Option<u8>) -> U8MulDivT
 }
 
 #[simplex::test]
-fn u8_test_mul_div_8_product_is_u8(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_8_product_is_u8(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(1..=u8::MAX);
     let b = u8::MAX / a;
     let c = rand::thread_rng().gen_range(1..=u8::MAX);
@@ -48,7 +48,7 @@ fn u8_test_mul_div_8_product_is_u8(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn u8_test_mul_div_8_intermediate_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_8_intermediate_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u8::MAX);
     let b = u8::MAX;
     let c = rand::thread_rng().gen_range(a..=u8::MAX);
@@ -64,7 +64,7 @@ fn u8_test_mul_div_8_intermediate_overflow(context: simplex::TestContext) -> any
 }
 
 #[simplex::test]
-fn u8_test_mul_div_8_result_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_8_result_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u8::MAX);
     let b = u8::MAX;
     let c = rand::thread_rng().gen_range(1..a);
@@ -78,7 +78,7 @@ fn u8_test_mul_div_8_result_overflow(context: simplex::TestContext) -> anyhow::R
 }
 
 #[simplex::test]
-fn u8_test_mul_div_8_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_div_8_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(1..=u8::MAX);
     let b = rand::thread_rng().gen_range(1..=u8::MAX);
     let c = 0;
