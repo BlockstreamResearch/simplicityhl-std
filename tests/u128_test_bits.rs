@@ -5,9 +5,9 @@ use rand::Rng;
 use crate::common::helper::DEFAULT_BOOL;
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u128_test_bits::U128TestBitsProgram;
-use simplicityhl_std::artifacts::u128_test_bits::derived_u128_test_bits::{
-    U128TestBitsArguments, U128TestBitsWitness,
+use simplicityhl_std::artifacts::tests::u128::bit::BitProgram as U128TestBitsProgram;
+use simplicityhl_std::artifacts::tests::u128::bit::derived_bit::{
+    BitArguments as U128TestBitsArguments, BitWitness as U128TestBitsWitness,
 };
 
 enum FunctionToTest {

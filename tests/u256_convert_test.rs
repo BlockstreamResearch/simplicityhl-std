@@ -4,9 +4,9 @@ use primitive_types::U256;
 
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_convert_test::U256ConvertTestProgram;
-use simplicityhl_std::artifacts::u256_convert_test::derived_u256_convert_test::{
-    U256ConvertTestArguments, U256ConvertTestWitness,
+use simplicityhl_std::artifacts::tests::u256::convert::ConvertProgram as U256ConvertTestProgram;
+use simplicityhl_std::artifacts::tests::u256::convert::derived_convert::{
+    ConvertArguments as U256ConvertTestArguments, ConvertWitness as U256ConvertTestWitness,
 };
 
 enum FunctionToTest {

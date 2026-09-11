@@ -4,9 +4,9 @@ use rand::Rng;
 
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::asserts_test::AssertsTestProgram;
-use simplicityhl_std::artifacts::asserts_test::derived_asserts_test::{
-    AssertsTestArguments, AssertsTestWitness,
+use simplicityhl_std::artifacts::tests::asserts::AssertsProgram as AssertsTestProgram;
+use simplicityhl_std::artifacts::tests::asserts::derived_asserts::{
+    AssertsArguments as AssertsTestArguments, AssertsWitness as AssertsTestWitness,
 };
 
 // Dispatch indices — must match the `if_test_this_function(N, ..)` arms in

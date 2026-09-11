@@ -5,9 +5,9 @@ use primitive_types::U256;
 use common::u256_wrapper::U256Wrapper;
 use common::uint::TestUint;
 
-use simplicityhl_std::artifacts::u256_math_test::U256MathTestProgram;
-use simplicityhl_std::artifacts::u256_math_test::derived_u256_math_test::{
-    U256MathTestArguments, U256MathTestWitness,
+use simplicityhl_std::artifacts::tests::u256::math::api::ApiProgram as U256MathTestProgram;
+use simplicityhl_std::artifacts::tests::u256::math::api::derived_api::{
+    ApiArguments as U256MathTestArguments, ApiWitness as U256MathTestWitness,
 };
 
 // The only per-width code for the common operations.

@@ -5,9 +5,9 @@ use rand::Rng;
 
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u32_convert_test::U32ConvertTestProgram;
-use simplicityhl_std::artifacts::u32_convert_test::derived_u32_convert_test::{
-    U32ConvertTestArguments, U32ConvertTestWitness,
+use simplicityhl_std::artifacts::tests::u32::convert::ConvertProgram as U32ConvertTestProgram;
+use simplicityhl_std::artifacts::tests::u32::convert::derived_convert::{
+    ConvertArguments as U32ConvertTestArguments, ConvertWitness as U32ConvertTestWitness,
 };
 
 enum FunctionToTest {

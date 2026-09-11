@@ -4,9 +4,9 @@ use rand::Rng;
 
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u128_test_compare::U128TestCompareProgram;
-use simplicityhl_std::artifacts::u128_test_compare::derived_u128_test_compare::{
-    U128TestCompareArguments, U128TestCompareWitness,
+use simplicityhl_std::artifacts::tests::u128::comparison::ComparisonProgram as U128TestCompareProgram;
+use simplicityhl_std::artifacts::tests::u128::comparison::derived_comparison::{
+    ComparisonArguments as U128TestCompareArguments, ComparisonWitness as U128TestCompareWitness,
 };
 
 enum FunctionToTest {

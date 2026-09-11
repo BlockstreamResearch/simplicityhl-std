@@ -7,9 +7,9 @@ use std::ops::Div;
 use crate::common::core::{Expect, run};
 use crate::common::helper::generate_u256;
 
-use simplicityhl_std::artifacts::u256_mul_div_test::U256MulDivTestProgram;
-use simplicityhl_std::artifacts::u256_mul_div_test::derived_u256_mul_div_test::{
-    U256MulDivTestArguments, U256MulDivTestWitness,
+use simplicityhl_std::artifacts::tests::u256::mul_div::MulDivProgram as U256MulDivTestProgram;
+use simplicityhl_std::artifacts::tests::u256::mul_div::derived_mul_div::{
+    MulDivArguments as U256MulDivTestArguments, MulDivWitness as U256MulDivTestWitness,
 };
 
 const DEFAULT_EXPECTED: [u8; 32] = [0; 32];

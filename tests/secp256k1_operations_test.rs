@@ -7,9 +7,10 @@ use secp256k1_zkp::{PublicKey, Secp256k1, SecretKey, rand::rngs::OsRng as SecpOs
 
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::secp256k1_operations_test::Secp256k1OperationsTestProgram;
-use simplicityhl_std::artifacts::secp256k1_operations_test::derived_secp256k1_operations_test::{
-    Secp256k1OperationsTestArguments, Secp256k1OperationsTestWitness,
+use simplicityhl_std::artifacts::tests::secp256k1::operations::OperationsProgram as Secp256k1OperationsTestProgram;
+use simplicityhl_std::artifacts::tests::secp256k1::operations::derived_operations::{
+    OperationsArguments as Secp256k1OperationsTestArguments,
+    OperationsWitness as Secp256k1OperationsTestWitness,
 };
 
 enum FunctionToTest {

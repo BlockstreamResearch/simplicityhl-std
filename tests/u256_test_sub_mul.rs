@@ -7,9 +7,9 @@ use rand::Rng;
 use crate::common::helper::{DEFAULT_BOOL, generate_u256};
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_test_sub_mul::U256TestSubMulProgram;
-use simplicityhl_std::artifacts::u256_test_sub_mul::derived_u256_test_sub_mul::{
-    U256TestSubMulArguments, U256TestSubMulWitness,
+use simplicityhl_std::artifacts::tests::u256::math::sub_mul::SubMulProgram as U256TestSubMulProgram;
+use simplicityhl_std::artifacts::tests::u256::math::sub_mul::derived_sub_mul::{
+    SubMulArguments as U256TestSubMulArguments, SubMulWitness as U256TestSubMulWitness,
 };
 
 enum FunctionToTest {

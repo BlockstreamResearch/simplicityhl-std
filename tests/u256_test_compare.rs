@@ -5,9 +5,9 @@ use primitive_types::U256;
 use crate::common::helper::generate_u256;
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_test_compare::U256TestCompareProgram;
-use simplicityhl_std::artifacts::u256_test_compare::derived_u256_test_compare::{
-    U256TestCompareArguments, U256TestCompareWitness,
+use simplicityhl_std::artifacts::tests::u256::comparison::ComparisonProgram as U256TestCompareProgram;
+use simplicityhl_std::artifacts::tests::u256::comparison::derived_comparison::{
+    ComparisonArguments as U256TestCompareArguments, ComparisonWitness as U256TestCompareWitness,
 };
 
 enum FunctionToTest {

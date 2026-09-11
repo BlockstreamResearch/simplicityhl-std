@@ -6,9 +6,9 @@ use crate::common::core::{run, run_with_op_return};
 use crate::common::helper::DEFAULT_BOOL;
 use common::core::Expect;
 
-use simplicityhl_std::artifacts::op_return_test::OpReturnTestProgram;
-use simplicityhl_std::artifacts::op_return_test::derived_op_return_test::{
-    OpReturnTestArguments, OpReturnTestWitness,
+use simplicityhl_std::artifacts::tests::op_return::OpReturnProgram as OpReturnTestProgram;
+use simplicityhl_std::artifacts::tests::op_return::derived_op_return::{
+    OpReturnArguments as OpReturnTestArguments, OpReturnWitness as OpReturnTestWitness,
 };
 
 enum FunctionToTest {

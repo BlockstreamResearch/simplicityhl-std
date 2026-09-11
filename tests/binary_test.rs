@@ -2,9 +2,9 @@ mod common;
 
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::binary_test::BinaryTestProgram;
-use simplicityhl_std::artifacts::binary_test::derived_binary_test::{
-    BinaryTestArguments, BinaryTestWitness,
+use simplicityhl_std::artifacts::tests::binary::BinaryProgram as BinaryTestProgram;
+use simplicityhl_std::artifacts::tests::binary::derived_binary::{
+    BinaryArguments as BinaryTestArguments, BinaryWitness as BinaryTestWitness,
 };
 
 mod binary_tests {

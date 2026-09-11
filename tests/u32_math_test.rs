@@ -2,9 +2,9 @@ mod common;
 
 use common::uint::TestUint;
 
-use simplicityhl_std::artifacts::u32_math_test::U32MathTestProgram;
-use simplicityhl_std::artifacts::u32_math_test::derived_u32_math_test::{
-    U32MathTestArguments, U32MathTestWitness,
+use simplicityhl_std::artifacts::tests::u32::math::MathProgram as U32MathTestProgram;
+use simplicityhl_std::artifacts::tests::u32::math::derived_math::{
+    MathArguments as U32MathTestArguments, MathWitness as U32MathTestWitness,
 };
 
 // The only per-width code for the common operations.

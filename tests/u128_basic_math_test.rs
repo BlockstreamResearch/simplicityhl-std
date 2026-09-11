@@ -6,9 +6,10 @@ use rand::Rng;
 use crate::common::helper::DEFAULT_BOOL;
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u128_basic_math_test::U128BasicMathTestProgram;
-use simplicityhl_std::artifacts::u128_basic_math_test::derived_u128_basic_math_test::{
-    U128BasicMathTestArguments, U128BasicMathTestWitness,
+use simplicityhl_std::artifacts::tests::u128::math::primitives::PrimitivesProgram as U128BasicMathTestProgram;
+use simplicityhl_std::artifacts::tests::u128::math::primitives::derived_primitives::{
+    PrimitivesArguments as U128BasicMathTestArguments,
+    PrimitivesWitness as U128BasicMathTestWitness,
 };
 
 enum FunctionToTest {

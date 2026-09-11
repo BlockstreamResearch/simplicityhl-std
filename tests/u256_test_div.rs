@@ -5,9 +5,9 @@ use primitive_types::U256;
 use crate::common::helper::generate_u256;
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_test_div::U256TestDivProgram;
-use simplicityhl_std::artifacts::u256_test_div::derived_u256_test_div::{
-    U256TestDivArguments, U256TestDivWitness,
+use simplicityhl_std::artifacts::tests::u256::math::div::DivProgram as U256TestDivProgram;
+use simplicityhl_std::artifacts::tests::u256::math::div::derived_div::{
+    DivArguments as U256TestDivArguments, DivWitness as U256TestDivWitness,
 };
 
 enum FunctionToTest {

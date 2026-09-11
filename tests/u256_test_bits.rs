@@ -6,9 +6,9 @@ use rand::Rng;
 use crate::common::helper::generate_u256;
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_test_bits::U256TestBitsProgram;
-use simplicityhl_std::artifacts::u256_test_bits::derived_u256_test_bits::{
-    U256TestBitsArguments, U256TestBitsWitness,
+use simplicityhl_std::artifacts::tests::u256::bit::BitProgram as U256TestBitsProgram;
+use simplicityhl_std::artifacts::tests::u256::bit::derived_bit::{
+    BitArguments as U256TestBitsArguments, BitWitness as U256TestBitsWitness,
 };
 
 enum FunctionToTest {

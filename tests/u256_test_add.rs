@@ -5,9 +5,9 @@ use primitive_types::U256;
 use crate::common::helper::{DEFAULT_BOOL, generate_u256};
 use common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u256_test_add::U256TestAddProgram;
-use simplicityhl_std::artifacts::u256_test_add::derived_u256_test_add::{
-    U256TestAddArguments, U256TestAddWitness,
+use simplicityhl_std::artifacts::tests::u256::math::add::AddProgram as U256TestAddProgram;
+use simplicityhl_std::artifacts::tests::u256::math::add::derived_add::{
+    AddArguments as U256TestAddArguments, AddWitness as U256TestAddWitness,
 };
 
 enum FunctionToTest {

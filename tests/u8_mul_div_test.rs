@@ -3,9 +3,9 @@ mod common;
 use crate::common::core::{Expect, run};
 use rand::Rng;
 
-use simplicityhl_std::artifacts::u8_mul_div_test::U8MulDivTestProgram;
-use simplicityhl_std::artifacts::u8_mul_div_test::derived_u8_mul_div_test::{
-    U8MulDivTestArguments, U8MulDivTestWitness,
+use simplicityhl_std::artifacts::tests::u8::mul_div::MulDivProgram as U8MulDivTestProgram;
+use simplicityhl_std::artifacts::tests::u8::mul_div::derived_mul_div::{
+    MulDivArguments as U8MulDivTestArguments, MulDivWitness as U8MulDivTestWitness,
 };
 
 const DEFAULT_EXPECTED: u8 = 0;

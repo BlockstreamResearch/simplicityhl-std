@@ -5,9 +5,9 @@ use rand::Rng;
 
 use crate::common::core::{Expect, run};
 
-use simplicityhl_std::artifacts::u128_mul_div_test::U128MulDivTestProgram;
-use simplicityhl_std::artifacts::u128_mul_div_test::derived_u128_mul_div_test::{
-    U128MulDivTestArguments, U128MulDivTestWitness,
+use simplicityhl_std::artifacts::tests::u128::mul_div::MulDivProgram as U128MulDivTestProgram;
+use simplicityhl_std::artifacts::tests::u128::mul_div::derived_mul_div::{
+    MulDivArguments as U128MulDivTestArguments, MulDivWitness as U128MulDivTestWitness,
 };
 
 const DEFAULT_EXPECTED: u128 = 0;
