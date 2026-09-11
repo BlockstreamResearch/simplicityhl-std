@@ -38,8 +38,8 @@ mod u64_mul_div_test {
 
     #[simplex::test]
     fn u64_test_mul_div_64_product_is_u64(context: simplex::TestContext) -> anyhow::Result<()> {
-        let a = rand::thread_rng().gen_range(0..=u16::MAX) as u64;
-        let b = rand::thread_rng().gen_range(0..=u16::MAX) as u64;
+        let a = rand::thread_rng().gen_range(0..=u32::MAX) as u64;
+        let b = rand::thread_rng().gen_range(0..=u32::MAX) as u64;
         let c = rand::thread_rng().gen_range(1..=u64::MAX);
 
         let res = a * b / c;

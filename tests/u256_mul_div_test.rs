@@ -325,7 +325,7 @@ mod u256_mul_div_test {
 
         let c = generate_u256(
             max(U256::from(u128::MAX) + 1, result_high),
-            U256::from(2).pow(U256::from(255)),
+            U256::from(2).pow(U256::from(255)) - 1,
         );
 
         let res = safe_u512_to_u256(product.div(c).to_big_endian());
