@@ -75,6 +75,63 @@ mod u256_tests_arithmetic {
     }
 
     #[simplex::test]
+    fn u256_test_calculate_normalizer_base_128_norm_is_1(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let threshold = 1u128 << 127;
+
+        // a >= 2^255 keeps a_high >= 2^127, so the divisor is already normalized
+        let a = generate_u256(U256::from(2).pow(U256::from(255)), U256::MAX);
+        let a_high = (a >> 128).as_u128();
+
+        let norm = threshold.div_ceil(a_high);
+        assert_eq!(norm, 1);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::CalculateNormalizerBase128),
+                a.to_big_endian(),
+                DEFAULT_EXPECTED,
+                Some(U256::from(norm).to_big_endian()),
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
+    fn u256_test_calculate_normalizer_base_128_norm_greater_than_1(
+        context: simplex::TestContext,
+    ) -> anyhow::Result<()> {
+        let threshold = 1u128 << 127;
+
+        // a < 2^255 keeps a_high < 2^127, so the divisor has to be scaled up
+        let a = generate_u256(
+            U256::from(u128::MAX) + 1,
+            U256::from(2).pow(U256::from(255)) - 1,
+        );
+        let a_high = (a >> 128).as_u128();
+
+        let norm = threshold.div_ceil(a_high);
+        assert!(norm > 1);
+
+        run(
+            &context,
+            program(),
+            build_witness(
+                op(FunctionToTest::CalculateNormalizerBase128),
+                a.to_big_endian(),
+                DEFAULT_EXPECTED,
+                Some(U256::from(norm).to_big_endian()),
+                DEFAULT_EXPECTED,
+            ),
+            Expect::Ok,
+        )
+    }
+
+    #[simplex::test]
     fn u256_test_calculate_normalizer_base_128_a_is_u128_fail(
         context: simplex::TestContext,
     ) -> anyhow::Result<()> {
