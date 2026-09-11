@@ -228,19 +228,23 @@ pub fn safe_mul_256_128(a: u256, b: u128) -> u256 {
 pub fn calculate_normalizer_base_128(b: u256) -> u128 {
     // Compile-time constant: 2^127
     let threshold: u128 = 0x80000000000000000000000000000000;
-
     let (b_high, _): (u128, u128) = split_u256_into_u128(b);
 
     assert!(not(is_zero_128(b_high)));
 
-    let (norm, remainder): (u128, u128) = div_mod_128(threshold, b_high);
+    match lt_128(b_high, threshold) {
+        true => {
+            let (norm, remainder): (u128, u128) = div_mod_128(threshold, b_high);
 
-    match is_zero_128(remainder) {
-        true => norm,
-        false => {
-            let (_, norm): (bool, u128) = add_128(norm, 1); // norm <= 2^127, so norm + 1 can not overflow
-            norm
+            match is_zero_128(remainder) {
+                true => norm,
+                false => {
+                    let (_, norm): (bool, u128) = add_128(norm, 1); // norm <= 2^127, so norm + 1 can not overflow
+                    norm
+                },
+            }
         },
+        false => 1,
     }
 }
 
