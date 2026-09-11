@@ -42,22 +42,72 @@ fn main() {
     /// Safe functions
 
     // add
-    match if_test_this_function(0, fn_idx) { true => { assert_eq_opt(checked_add_128(a, b), expected); }, false => (), };
-    match if_test_this_function(1, fn_idx) { true => {assert_eq_128(safe_add_128(a, b), unwrap(expected)); }, false => (), };
+    match if_test_this_function(0, fn_idx) {
+        true => {
+            assert_eq_opt(checked_add_128(a, b), expected);
+        },
+        false => (),
+    };
+    match if_test_this_function(1, fn_idx) {
+        true => {
+            assert_eq_128(safe_add_128(a, b), unwrap(expected));
+        },
+        false => (),
+    };
 
     // sub
-    match if_test_this_function(2, fn_idx) { true => { assert_eq_opt(checked_sub_128(a, b), expected); }, false => (), };
-    match if_test_this_function(3, fn_idx) { true => {assert_eq_128(safe_sub_128(a, b), unwrap(expected)); }, false => (), };
+    match if_test_this_function(2, fn_idx) {
+        true => {
+            assert_eq_opt(checked_sub_128(a, b), expected);
+        },
+        false => (),
+    };
+    match if_test_this_function(3, fn_idx) {
+        true => {
+            assert_eq_128(safe_sub_128(a, b), unwrap(expected));
+        },
+        false => (),
+    };
 
     // mul
-    match if_test_this_function(4, fn_idx) { true => { assert_eq_opt(checked_mul_128(a, b), expected); }, false => (), };
-    match if_test_this_function(5, fn_idx) { true => {assert_eq_128(safe_mul_128(a, b), unwrap(expected)); }, false => (), };
+    match if_test_this_function(4, fn_idx) {
+        true => {
+            assert_eq_opt(checked_mul_128(a, b), expected);
+        },
+        false => (),
+    };
+    match if_test_this_function(5, fn_idx) {
+        true => {
+            assert_eq_128(safe_mul_128(a, b), unwrap(expected));
+        },
+        false => (),
+    };
 
     // div
-    match if_test_this_function(6, fn_idx) { true => { assert_eq_opt(checked_div_128(a, b), expected); }, false => (), };
-    match if_test_this_function(7, fn_idx) { true => {assert_eq_128(safe_div_128(a, b), unwrap(expected)); }, false => (), };
+    match if_test_this_function(6, fn_idx) {
+        true => {
+            assert_eq_opt(checked_div_128(a, b), expected);
+        },
+        false => (),
+    };
+    match if_test_this_function(7, fn_idx) {
+        true => {
+            assert_eq_128(safe_div_128(a, b), unwrap(expected));
+        },
+        false => (),
+    };
 
     // gt, ge
-    match if_test_this_function(8, fn_idx) { true => { assert_bool_by_opt(gt_128(a, b), expected); }, false => (), };
-    match if_test_this_function(9, fn_idx) { true => { assert_bool_by_opt(ge_128(a, b), expected); }, false => (), };
+    match if_test_this_function(8, fn_idx) {
+        true => {
+            assert_bool_by_opt(gt_128(a, b), expected);
+        },
+        false => (),
+    };
+    match if_test_this_function(9, fn_idx) {
+        true => {
+            assert_bool_by_opt(ge_128(a, b), expected);
+        },
+        false => (),
+    };
 }

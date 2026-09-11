@@ -7,6 +7,16 @@ fn main() {
     let index: u32 = witness::INDEX;
     let expected: bool = witness::EXPECTED;
 
-    match if_test_this_function(0, fn_idx) { true => { assert_bool(is_output_op_return(index), expected); }, false => (), };
-    match if_test_this_function(1, fn_idx) { true => { assert_output_is_op_return(index); }, false => (), };
+    match if_test_this_function(0, fn_idx) {
+        true => {
+            assert_bool(is_output_op_return(index), expected);
+        },
+        false => (),
+    };
+    match if_test_this_function(1, fn_idx) {
+        true => {
+            assert_output_is_op_return(index);
+        },
+        false => (),
+    };
 }
