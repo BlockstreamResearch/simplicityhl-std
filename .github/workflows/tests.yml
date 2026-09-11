@@ -17,6 +17,7 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: full
+  SIMPLEX_VERSION: 0.0.11
 
 jobs:
   simplex-tests:
@@ -47,7 +48,7 @@ jobs:
       - name: Install simplex-cli
         uses: BlockstreamResearch/simplicityhl-toolchain@v0.0.2
         with:
-          components: simplex
+          components: simplex@${{ env.SIMPLEX_VERSION }}
 
       - name: Generate contract artifacts
         shell: bash
