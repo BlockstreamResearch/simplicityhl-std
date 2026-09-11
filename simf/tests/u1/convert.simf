@@ -7,7 +7,6 @@ use crate::lib::u1::convert::{
     u1_to_u256,
     u1_to_bool
 };
-use crate::lib::u128::bit::eq_128;
 use crate::lib::asserts::{
     assert_eq_bool,
     assert_eq_8,
@@ -17,7 +16,7 @@ use crate::lib::asserts::{
     assert_eq_128,
     assert_eq_256
 };
-use crate::tests::support::helper::if_test_this_function;
+use crate::tests::support::dispatch::is_selected;
 
 fn main() {
     let fn_idx: u8 = witness::FUNCTION_INDEX;
@@ -26,7 +25,7 @@ fn main() {
 
     let expected: u256 = witness::EXPECTED;
 
-    match if_test_this_function(0, fn_idx) {
+    match is_selected(0, fn_idx) {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let (_, _, _, expected): (u16, u16, u16, u16) = <u64>::into(expected);
@@ -37,7 +36,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(1, fn_idx) {
+    match is_selected(1, fn_idx) {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let (_, _, _, expected): (u16, u16, u16, u16) = <u64>::into(expected);
@@ -47,7 +46,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(2, fn_idx) {
+    match is_selected(2, fn_idx) {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
             let (_, expected): (u32, u32) = <u64>::into(expected);
@@ -57,7 +56,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(3, fn_idx) {
+    match is_selected(3, fn_idx) {
         true => {
             let (_, _, _, expected): (u64, u64, u64, u64) = <u256>::into(expected);
 
@@ -66,7 +65,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(4, fn_idx) {
+    match is_selected(4, fn_idx) {
         true => {
             let (_, expected): (u128, u128) = <u256>::into(expected);
 
@@ -75,14 +74,14 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(5, fn_idx) {
+    match is_selected(5, fn_idx) {
         true => {
             assert_eq_256(u1_to_u256(a), expected);
         },
         false => (),
     };
 
-    match if_test_this_function(6, fn_idx) {
+    match is_selected(6, fn_idx) {
         true => {
             let expected_bool: bool = jet::eq_256(expected, 1);
             assert_eq_bool(u1_to_bool(a), expected_bool);

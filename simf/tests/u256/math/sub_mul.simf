@@ -8,17 +8,8 @@ use crate::lib::u256::math::{
 };
 use crate::lib::u256::convert::split_u256_into_u64;
 use crate::lib::asserts::{assert_eq_64, assert_eq_128, assert_eq_256};
-use crate::tests::support::helper::{if_test_this_function, assert_bool};
-
-/// Asserts a result equals expected u256 and bool values. 
-/// Used for functions that return carry or borrow bool value.
-fn assert_eq_uint_bool(result: (bool, u256), expected: u256, expected_bool: bool) {
-    let (bool_res, uint_res): (bool, u256) = result;
-
-    assert_bool(bool_res, expected_bool);
-
-    assert_eq_256(uint_res, expected);
-}
+use crate::tests::support::expect::assert_eq_uint_bool_256;
+use crate::tests::support::dispatch::is_selected;
 
 fn main() {
     let fn_idx: u8 = witness::FUNCTION_INDEX;
@@ -34,14 +25,14 @@ fn main() {
 
     /// Arithmetic
 
-    match if_test_this_function(0, fn_idx) {
+    match is_selected(0, fn_idx) {
         true => {
-            assert_eq_uint_bool(sub_256(a, b), unwrap(expected), expected_bool);
+            assert_eq_uint_bool_256(sub_256(a, b), unwrap(expected), expected_bool);
         },
         false => (),
     };
 
-    match if_test_this_function(1, fn_idx) {
+    match is_selected(1, fn_idx) {
         true => {
             let (result_high, result_low): (u256, u256) = mul_256(a, b);
 
@@ -51,7 +42,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(2, fn_idx) {
+    match is_selected(2, fn_idx) {
         true => {
             let (_, _, _, b): (u64, u64, u64, u64) = split_u256_into_u64(b);
             let (_, _, _, expected): (u64, u64, u64, u64) = split_u256_into_u64(unwrap(expected));
@@ -64,7 +55,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(3, fn_idx) {
+    match is_selected(3, fn_idx) {
         true => {
             let (_, b): (u128, u128) = <u256>::into(b);
             let (_, expected): (u128, u128) = <u256>::into(unwrap(expected));
@@ -77,7 +68,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(4, fn_idx) {
+    match is_selected(4, fn_idx) {
         true => {
             let (result_2, result_1, result_0): (u128, u256, u256) = mul_512_128(a, b, c);
 
@@ -90,7 +81,7 @@ fn main() {
         false => (),
     };
 
-    match if_test_this_function(5, fn_idx) {
+    match is_selected(5, fn_idx) {
         true => {
             let (_, b): (u128, u128) = <u256>::into(b);
             let result: u256 = safe_mul_256_128(a, b);

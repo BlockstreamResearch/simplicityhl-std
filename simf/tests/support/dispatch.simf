@@ -1,0 +1,6 @@
+/// Indices `0..192` belong to the operations shared by all unsigned widths and
+/// stay in lockstep with `CommonOp` on the Rust side. `192..256` are free for
+/// operations specific to a single width.
+pub fn is_selected(index: u8, fn_idx: u8) -> bool {
+    jet::eq_8(index, fn_idx)
+}
