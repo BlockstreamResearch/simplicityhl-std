@@ -8,6 +8,8 @@ use simplicityhl_std::artifacts::tests::u32::convert::derived_convert::{
     ConvertArguments as U32ConvertTestArguments, ConvertWitness as U32ConvertTestWitness,
 };
 
+use FunctionToTest::*;
+
 enum FunctionToTest {
     U32ToU64,
     U32ToU128,
@@ -19,20 +21,46 @@ enum FunctionToTest {
     SafeU32ToU16,
 }
 
-#[inline]
-fn op(o: FunctionToTest) -> u8 {
-    o as u8
-}
-
 fn program() -> U32ConvertTestProgram {
     U32ConvertTestProgram::new(&U32ConvertTestArguments {})
 }
 
-fn build_witness(function: u8, a: u32, expected: [u8; 32]) -> U32ConvertTestWitness {
-    U32ConvertTestWitness {
-        function_index: function,
-        first_arg: a,
-        expected,
+/// One dispatch arm of the contract, plus the witness it reads.
+struct Case {
+    witness: U32ConvertTestWitness,
+}
+
+fn case(function: FunctionToTest) -> Case {
+    Case {
+        witness: U32ConvertTestWitness {
+            function_index: function as u8,
+            first_arg: 0,
+            expected: [0; 32],
+        },
+    }
+}
+
+impl Case {
+    /// The operand, `first_arg`.
+    fn arg(mut self, a: u32) -> Self {
+        self.witness.first_arg = a;
+        self
+    }
+
+    /// `expected`: the value the arm should produce.
+    fn expect(mut self, expected: [u8; 32]) -> Self {
+        self.witness.expected = expected;
+        self
+    }
+
+    /// Fund, spend, and expect the spend to succeed.
+    fn run(self, context: &simplex::TestContext) -> anyhow::Result<()> {
+        self.expecting(context, Expect::Ok)
+    }
+
+    /// Fund, spend, and expect `expect`.
+    fn expecting(self, context: &simplex::TestContext, expect: Expect) -> anyhow::Result<()> {
+        run(context, program(), self.witness, expect)
     }
 }
 
@@ -40,174 +68,108 @@ fn build_witness(function: u8, a: u32, expected: [u8; 32]) -> U32ConvertTestWitn
 fn u32_to_u64(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::U32ToU64),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::Ok,
-    )
+    case(U32ToU64)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .run(&context)
 }
 
 #[simplex::test]
 fn u32_to_u128(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::U32ToU128),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::Ok,
-    )
+    case(U32ToU128)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .run(&context)
 }
 
 #[simplex::test]
 fn u32_to_u256(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::U32ToU256),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::Ok,
-    )
+    case(U32ToU256)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .run(&context)
 }
 
 #[simplex::test]
 fn split_u32_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::SplitU32IntoU8),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::Ok,
-    )
+    case(SplitU32IntoU8)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .run(&context)
 }
 
 #[simplex::test]
 fn split_u32_into_u16(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u32::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::SplitU32IntoU16),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::Ok,
-    )
+    case(SplitU32IntoU16)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .run(&context)
 }
 
 #[simplex::test]
 fn safe_u32_to_u1(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=1);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::SafeU32ToU1),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::Ok,
-    )
+    case(SafeU32ToU1)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .run(&context)
 }
 
 #[simplex::test]
 fn safe_u32_to_u1_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(2..=u32::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::SafeU32ToU1),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::AssertFailed,
-    )
+    case(SafeU32ToU1)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn safe_u32_to_u8(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u8::MAX as u32);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::SafeU32ToU8),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::Ok,
-    )
+    case(SafeU32ToU8)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .run(&context)
 }
 
 #[simplex::test]
 fn safe_u32_to_u8_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(u8::MAX as u32 + 1..=u32::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::SafeU32ToU8),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::AssertFailed,
-    )
+    case(SafeU32ToU8)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn safe_u32_to_u16(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u16::MAX as u32);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::SafeU32ToU16),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::Ok,
-    )
+    case(SafeU32ToU16)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .run(&context)
 }
 
 #[simplex::test]
 fn safe_u32_to_u16_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(u16::MAX as u32 + 1..=u32::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::SafeU32ToU16),
-            a,
-            U256::from(a).to_big_endian(),
-        ),
-        Expect::AssertFailed,
-    )
+    case(SafeU32ToU16)
+        .arg(a)
+        .expect(U256::from(a).to_big_endian())
+        .expecting(&context, Expect::AssertFailed)
 }

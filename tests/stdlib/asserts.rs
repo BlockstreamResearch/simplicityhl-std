@@ -7,8 +7,10 @@ use simplicityhl_std::artifacts::tests::asserts::derived_asserts::{
     AssertsArguments as AssertsTestArguments, AssertsWitness as AssertsTestWitness,
 };
 
-// Dispatch indices — must match the `if_test_this_function(N, ..)` arms in
-// simf/asserts_test.simf.
+// Dispatch indices which must match the `is_selected(N, ..)` arms in
+// simf/tests/asserts.simf.
+use FunctionToTest::*;
+
 enum FunctionToTest {
     AssertEq1,
     AssertEq8,
@@ -157,337 +159,194 @@ fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTes
     witness
 }
 
-fn run_assert(
-    context: &simplex::TestContext,
+/// One assert call, described by what makes it pass.
+struct Case {
     function: FunctionToTest,
     same: bool,
     none: bool,
-    expect: Expect,
-) -> anyhow::Result<()> {
-    run(
-        context,
-        program(),
-        build_witness(function, same, none),
-        expect,
-    )
 }
 
-// ---------- assert_eq: happy = equal args, unhappy = distinct args ----------
+fn case(function: FunctionToTest) -> Case {
+    Case {
+        function,
+        same: false,
+        none: false,
+    }
+}
+
+impl Case {
+    /// Make the two `assert_eq` arguments equal.
+    fn equal(mut self) -> Self {
+        self.same = true;
+        self
+    }
+
+    /// Make the `assert_none` argument `None`.
+    fn none(mut self) -> Self {
+        self.none = true;
+        self
+    }
+
+    /// Fund, spend, and expect the spend to succeed.
+    fn run(self, context: &simplex::TestContext) -> anyhow::Result<()> {
+        self.expecting(context, Expect::Ok)
+    }
+
+    /// Fund, spend, and expect `expect`.
+    fn expecting(self, context: &simplex::TestContext, expect: Expect) -> anyhow::Result<()> {
+        let witness = build_witness(self.function, self.same, self.none);
+        run(context, program(), witness, expect)
+    }
+}
+
+// assert_eq: happy = equal args, unhappy = distinct args
 #[simplex::test]
 fn assert_eq_1_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(&context, FunctionToTest::AssertEq1, true, false, Expect::Ok)
+    case(AssertEq1).equal().run(&context)
 }
 
 #[simplex::test]
 fn assert_eq_1_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq1,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertEq1).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_eq_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(&context, FunctionToTest::AssertEq8, true, false, Expect::Ok)
+    case(AssertEq8).equal().run(&context)
 }
 
 #[simplex::test]
 fn assert_eq_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq8,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertEq8).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_eq_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq16,
-        true,
-        false,
-        Expect::Ok,
-    )
+    case(AssertEq16).equal().run(&context)
 }
 
 #[simplex::test]
 fn assert_eq_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq16,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertEq16).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_eq_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq32,
-        true,
-        false,
-        Expect::Ok,
-    )
+    case(AssertEq32).equal().run(&context)
 }
 
 #[simplex::test]
 fn assert_eq_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq32,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertEq32).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_eq_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq64,
-        true,
-        false,
-        Expect::Ok,
-    )
+    case(AssertEq64).equal().run(&context)
 }
 
 #[simplex::test]
 fn assert_eq_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq64,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertEq64).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_eq_128_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq128,
-        true,
-        false,
-        Expect::Ok,
-    )
+    case(AssertEq128).equal().run(&context)
 }
 
 #[simplex::test]
 fn assert_eq_128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq128,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertEq128).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_eq_256_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq256,
-        true,
-        false,
-        Expect::Ok,
-    )
+    case(AssertEq256).equal().run(&context)
 }
 
 #[simplex::test]
 fn assert_eq_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEq256,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertEq256).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_eq_bool_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEqBool,
-        true,
-        false,
-        Expect::Ok,
-    )
+    case(AssertEqBool).equal().run(&context)
 }
 
 #[simplex::test]
 fn assert_eq_bool_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertEqBool,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertEqBool).expecting(&context, Expect::AssertFailed)
 }
 
-// ---------- assert_none: happy = None arg, unhappy = Some arg ----------
+// assert_none: happy = None arg, unhappy = Some arg
 #[simplex::test]
 fn assert_none_1_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone1,
-        false,
-        true,
-        Expect::Ok,
-    )
+    case(AssertNone1).none().run(&context)
 }
 
 #[simplex::test]
 fn assert_none_1_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone1,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertNone1).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_none_8_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone8,
-        false,
-        true,
-        Expect::Ok,
-    )
+    case(AssertNone8).none().run(&context)
 }
 
 #[simplex::test]
 fn assert_none_8_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone8,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertNone8).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_none_16_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone16,
-        false,
-        true,
-        Expect::Ok,
-    )
+    case(AssertNone16).none().run(&context)
 }
 
 #[simplex::test]
 fn assert_none_16_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone16,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertNone16).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_none_32_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone32,
-        false,
-        true,
-        Expect::Ok,
-    )
+    case(AssertNone32).none().run(&context)
 }
 
 #[simplex::test]
 fn assert_none_32_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone32,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertNone32).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_none_64_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone64,
-        false,
-        true,
-        Expect::Ok,
-    )
+    case(AssertNone64).none().run(&context)
 }
 
 #[simplex::test]
 fn assert_none_64_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone64,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertNone64).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_none_128_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone128,
-        false,
-        true,
-        Expect::Ok,
-    )
+    case(AssertNone128).none().run(&context)
 }
 
 #[simplex::test]
 fn assert_none_128_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone128,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertNone128).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn assert_none_256_happy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone256,
-        false,
-        true,
-        Expect::Ok,
-    )
+    case(AssertNone256).none().run(&context)
 }
 
 #[simplex::test]
 fn assert_none_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
-    run_assert(
-        &context,
-        FunctionToTest::AssertNone256,
-        false,
-        false,
-        Expect::AssertFailed,
-    )
+    case(AssertNone256).expecting(&context, Expect::AssertFailed)
 }

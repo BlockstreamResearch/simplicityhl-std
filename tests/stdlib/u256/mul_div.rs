@@ -10,34 +10,57 @@ use simplicityhl_std::artifacts::tests::u256::mul_div::derived_mul_div::{
     MulDivArguments as U256MulDivTestArguments, MulDivWitness as U256MulDivTestWitness,
 };
 
-const DEFAULT_EXPECTED: [u8; 32] = [0; 32];
+use FunctionToTest::*;
 
 enum FunctionToTest {
     MulDiv,
-}
-
-#[inline]
-fn op(o: FunctionToTest) -> u8 {
-    o as u8
 }
 
 fn program() -> U256MulDivTestProgram {
     U256MulDivTestProgram::new(&U256MulDivTestArguments {})
 }
 
-fn build_witness(
-    op: u8,
-    a: [u8; 32],
-    b: [u8; 32],
-    c: [u8; 32],
-    expected: Option<[u8; 32]>,
-) -> U256MulDivTestWitness {
-    U256MulDivTestWitness {
-        function_index: op,
-        first_arg: a,
-        second_arg: b,
-        third_arg: c,
-        expected,
+/// One dispatch arm of the contract, plus the witness it reads.
+struct Case {
+    witness: U256MulDivTestWitness,
+}
+
+fn case(function: FunctionToTest) -> Case {
+    Case {
+        witness: U256MulDivTestWitness {
+            function_index: function as u8,
+            first_arg: [0; 32],
+            second_arg: [0; 32],
+            third_arg: [0; 32],
+            expected: None,
+        },
+    }
+}
+
+impl Case {
+    /// The three operands, `first_arg`, `second_arg` and `third_arg`.
+    fn args(mut self, a: [u8; 32], b: [u8; 32], c: [u8; 32]) -> Self {
+        self.witness.first_arg = a;
+        self.witness.second_arg = b;
+        self.witness.third_arg = c;
+        self
+    }
+
+    /// The value the arm should return. `None`, the default, means the arm is
+    /// expected to produce nothing.
+    fn expect(mut self, expected: [u8; 32]) -> Self {
+        self.witness.expected = Some(expected);
+        self
+    }
+
+    /// Fund, spend, and expect the spend to succeed.
+    fn run(self, context: &simplex::TestContext) -> anyhow::Result<()> {
+        self.expecting(context, Expect::Ok)
+    }
+
+    /// Fund, spend, and expect `expect`.
+    fn expecting(self, context: &simplex::TestContext, expect: Expect) -> anyhow::Result<()> {
+        run(context, program(), self.witness, expect)
     }
 }
 
@@ -58,18 +81,10 @@ fn mul_div_256_product_fits_into_u256(context: simplex::TestContext) -> anyhow::
 
     let res = safe_u512_to_u256(a.full_mul(b).div(c).to_big_endian());
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some(res),
-        ),
-        Expect::Ok,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect(res)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -80,18 +95,10 @@ fn mul_div_256_intermediate_overflow(context: simplex::TestContext) -> anyhow::R
 
     let res = safe_u512_to_u256(a.full_mul(b).div(c).to_big_endian());
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some(res),
-        ),
-        Expect::Ok,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect(res)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -100,18 +107,10 @@ fn mul_div_256_result_overflow(context: simplex::TestContext) -> anyhow::Result<
     let b = U256::MAX;
     let c = generate_u256(U256::one(), a);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some(DEFAULT_EXPECTED),
-        ),
-        Expect::AssertFailed,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect([0; 32])
+        .expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
@@ -120,18 +119,10 @@ fn mul_div_256_remainder_is_zero(context: simplex::TestContext) -> anyhow::Resul
     let b = generate_u256(U256::from(u128::MAX) + 1, U256::MAX);
     let c = a;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some(b.to_big_endian()),
-        ),
-        Expect::Ok,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect(b.to_big_endian())
+        .run(&context)
 }
 
 #[simplex::test]
@@ -142,18 +133,10 @@ fn mul_div_256_denominator_is_u128(context: simplex::TestContext) -> anyhow::Res
 
     let res = safe_u512_to_u256(a.full_mul(b).div(c).to_big_endian());
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some(res),
-        ),
-        Expect::Ok,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect(res)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -166,18 +149,10 @@ fn mul_div_256_min_denom_high(context: simplex::TestContext) -> anyhow::Result<(
 
     let res = safe_u512_to_u256(a.full_mul(b).div(c).to_big_endian());
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some(res),
-        ),
-        Expect::Ok,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect(res)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -186,18 +161,10 @@ fn mul_div_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> 
     let b = generate_u256(U256::one(), U256::MAX);
     let c = U256::zero();
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some([0; 32]),
-        ),
-        Expect::Ok,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect([0; 32])
+        .run(&context)
 }
 
 #[simplex::test]
@@ -214,18 +181,10 @@ fn mul_div_256_algorithm_d_512_256_check(context: simplex::TestContext) -> anyho
 
     let res = safe_u512_to_u256(product.div(c).to_big_endian());
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some(res),
-        ),
-        Expect::Ok,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect(res)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -244,18 +203,10 @@ fn mul_div_256_algorithm_d_512_256_c_is_res_high(
 
     let res = safe_u512_to_u256(product.div(c).to_big_endian());
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some(res),
-        ),
-        Expect::Ok,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect(res)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -277,18 +228,10 @@ fn mul_div_256_normalize_to_threshold_512_127_norm_is_1(
 
     let res = safe_u512_to_u256(product.div(c).to_big_endian());
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some(res),
-        ),
-        Expect::Ok,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect(res)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -312,16 +255,8 @@ fn mul_div_256_normalize_to_threshold_512_127_norm_greater_than_1(
 
     let res = safe_u512_to_u256(product.div(c).to_big_endian());
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::MulDiv),
-            a.to_big_endian(),
-            b.to_big_endian(),
-            c.to_big_endian(),
-            Some(res),
-        ),
-        Expect::Ok,
-    )
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect(res)
+        .run(&context)
 }

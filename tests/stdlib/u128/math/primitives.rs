@@ -2,13 +2,14 @@ use primitive_types::U256;
 use rand::Rng;
 
 use crate::common::core::{Expect, run};
-use crate::common::helper::DEFAULT_BOOL;
 
 use simplicityhl_std::artifacts::tests::u128::math::primitives::PrimitivesProgram as U128BasicMathTestProgram;
 use simplicityhl_std::artifacts::tests::u128::math::primitives::derived_primitives::{
     PrimitivesArguments as U128BasicMathTestArguments,
     PrimitivesWitness as U128BasicMathTestWitness,
 };
+
+use FunctionToTest::*;
 
 enum FunctionToTest {
     Add128,
@@ -25,32 +26,64 @@ enum FunctionToTest {
     Div128,
 }
 
-#[inline]
-fn op(o: FunctionToTest) -> u8 {
-    o as u8
-}
-
-const DEFAULT_EXPECTED: u128 = 0;
-
 fn program() -> U128BasicMathTestProgram {
     U128BasicMathTestProgram::new(&U128BasicMathTestArguments {})
 }
 
-fn build_witness(
-    function: u8,
-    a: u128,
-    b: u128,
-    expected: Option<u128>,
-    expected_bool: bool,
-    second_expected: u128,
-) -> U128BasicMathTestWitness {
-    U128BasicMathTestWitness {
-        function_index: function,
-        first_arg: a,
-        second_arg: b,
-        expected,
-        expected_bool,
-        second_expected,
+/// One dispatch arm of the contract, plus the witness it reads.
+struct Case {
+    witness: U128BasicMathTestWitness,
+}
+
+fn case(function: FunctionToTest) -> Case {
+    Case {
+        witness: U128BasicMathTestWitness {
+            function_index: function as u8,
+            first_arg: 0,
+            second_arg: 0,
+            expected: None,
+            expected_bool: false,
+            second_expected: 0,
+        },
+    }
+}
+
+impl Case {
+    /// The two operands, `first_arg` and `second_arg`.
+    fn args(mut self, a: u128, b: u128) -> Self {
+        self.witness.first_arg = a;
+        self.witness.second_arg = b;
+        self
+    }
+
+    /// The value the arm should return. `None`, the default, means the arm is
+    /// expected to produce nothing.
+    fn expect(mut self, expected: u128) -> Self {
+        self.witness.expected = Some(expected);
+        self
+    }
+
+    /// `expected_bool`: the carry or borrow an arm reports beside its value.
+    fn flag(mut self, flag: bool) -> Self {
+        self.witness.expected_bool = flag;
+        self
+    }
+
+    /// `second_expected`: the spare slot. A remainder, a low word, or a carry
+    /// fed back in, depending on the arm.
+    fn second(mut self, second: u128) -> Self {
+        self.witness.second_expected = second;
+        self
+    }
+
+    /// Fund, spend, and expect the spend to succeed.
+    fn run(self, context: &simplex::TestContext) -> anyhow::Result<()> {
+        self.expecting(context, Expect::Ok)
+    }
+
+    /// Fund, spend, and expect `expect`.
+    fn expecting(self, context: &simplex::TestContext, expect: Expect) -> anyhow::Result<()> {
+        run(context, program(), self.witness, expect)
     }
 }
 
@@ -67,19 +100,7 @@ fn add_128_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = rand::thread_rng().gen_range(0..=u128::MAX / 2);
     let result = a + b;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Add128),
-            a,
-            b,
-            Some(result),
-            false,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Add128).args(a, b).expect(result).run(&context)
 }
 
 #[simplex::test]
@@ -88,19 +109,11 @@ fn add_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = rand::thread_rng().gen_range(1..=u128::MAX);
     let result = b - 1;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Add128),
-            a,
-            b,
-            Some(result),
-            true,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Add128)
+        .args(a, b)
+        .expect(result)
+        .flag(true)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -109,19 +122,7 @@ fn add_128_64_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> 
     let b = rand::thread_rng().gen_range(0..=u64::MAX) as u128;
     let result = a + b;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Add128_64),
-            a,
-            b,
-            Some(result),
-            false,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Add128_64).args(a, b).expect(result).run(&context)
 }
 
 #[simplex::test]
@@ -130,19 +131,11 @@ fn add_128_64_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = rand::thread_rng().gen_range(1..=u64::MAX) as u128;
     let result = b - 1;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Add128_64),
-            a,
-            b,
-            Some(result),
-            true,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Add128_64)
+        .args(a, b)
+        .expect(result)
+        .flag(true)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -153,19 +146,12 @@ fn full_add_128_not_overflow_carry_low_false(context: simplex::TestContext) -> a
     let result_carry = false;
     let carry_low = 0_u128;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FullAdd128),
-            a,
-            b,
-            Some(result),
-            result_carry,
-            carry_low,
-        ),
-        Expect::Ok,
-    )
+    case(FullAdd128)
+        .args(a, b)
+        .expect(result)
+        .flag(result_carry)
+        .second(carry_low)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -176,19 +162,12 @@ fn full_add_128_overflow_carry_low_false(context: simplex::TestContext) -> anyho
     let result_carry = true;
     let carry_low = 0_u128;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FullAdd128),
-            a,
-            b,
-            Some(result),
-            result_carry,
-            carry_low,
-        ),
-        Expect::Ok,
-    )
+    case(FullAdd128)
+        .args(a, b)
+        .expect(result)
+        .flag(result_carry)
+        .second(carry_low)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -199,19 +178,12 @@ fn full_add_128_not_overflow_carry_low_true(context: simplex::TestContext) -> an
     let result_carry = false;
     let carry_low = 1_u128;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FullAdd128),
-            a,
-            b,
-            Some(result),
-            result_carry,
-            carry_low,
-        ),
-        Expect::Ok,
-    )
+    case(FullAdd128)
+        .args(a, b)
+        .expect(result)
+        .flag(result_carry)
+        .second(carry_low)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -222,19 +194,12 @@ fn full_add_128_overflow_carry_low_true(context: simplex::TestContext) -> anyhow
     let result_carry = true;
     let carry_low = 1_u128;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FullAdd128),
-            a,
-            b,
-            Some(result),
-            result_carry,
-            carry_low,
-        ),
-        Expect::Ok,
-    )
+    case(FullAdd128)
+        .args(a, b)
+        .expect(result)
+        .flag(result_carry)
+        .second(carry_low)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -243,38 +208,14 @@ fn sub_128_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = rand::thread_rng().gen_range(0..=a);
     let result = a - b;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Sub128),
-            a,
-            b,
-            Some(result),
-            false,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Sub128).args(a, b).expect(result).run(&context)
 }
 
 #[simplex::test]
 fn sub_128_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Sub128),
-            a,
-            a,
-            Some(0),
-            false,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Sub128).args(a, a).expect(0).run(&context)
 }
 
 #[simplex::test]
@@ -288,19 +229,11 @@ fn sub_128_a_low_eq_b_low(context: simplex::TestContext) -> anyhow::Result<()> {
     let carry = a < b;
     let result = a.wrapping_sub(b);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Sub128),
-            a,
-            b,
-            Some(result),
-            carry,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Sub128)
+        .args(a, b)
+        .expect(result)
+        .flag(carry)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -316,19 +249,11 @@ fn sub_128_diff_is_u64_max(context: simplex::TestContext) -> anyhow::Result<()> 
     let carry = a < b;
     let result = a.wrapping_sub(b);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Sub128),
-            a,
-            b,
-            Some(result),
-            carry,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Sub128)
+        .args(a, b)
+        .expect(result)
+        .flag(carry)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -336,19 +261,7 @@ fn sub_128_diff_is_u128_max(context: simplex::TestContext) -> anyhow::Result<()>
     let a = u128::MAX;
     let b = 0;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Sub128),
-            a,
-            b,
-            Some(a),
-            false,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Sub128).args(a, b).expect(a).run(&context)
 }
 
 #[simplex::test]
@@ -357,19 +270,11 @@ fn sub_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = u128::MAX;
     let result = a + 1;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Sub128),
-            a,
-            b,
-            Some(result),
-            true,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Sub128)
+        .args(a, b)
+        .expect(result)
+        .flag(true)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -380,19 +285,12 @@ fn full_sub_128_borrow_low_false(context: simplex::TestContext) -> anyhow::Resul
     let result_borrow = false;
     let borrow_low = 0_u128;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FullSub128),
-            a,
-            b,
-            Some(result),
-            result_borrow,
-            borrow_low,
-        ),
-        Expect::Ok,
-    )
+    case(FullSub128)
+        .args(a, b)
+        .expect(result)
+        .flag(result_borrow)
+        .second(borrow_low)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -403,19 +301,12 @@ fn full_sub_128_overflow_borrow_low_false(context: simplex::TestContext) -> anyh
     let result_borrow = true;
     let borrow_low = 0_u128;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FullSub128),
-            a,
-            b,
-            Some(result),
-            result_borrow,
-            borrow_low,
-        ),
-        Expect::Ok,
-    )
+    case(FullSub128)
+        .args(a, b)
+        .expect(result)
+        .flag(result_borrow)
+        .second(borrow_low)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -426,19 +317,12 @@ fn full_sub_128_borrow_low_true(context: simplex::TestContext) -> anyhow::Result
     let result_borrow = false;
     let borrow_low = 1_u128;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FullSub128),
-            a,
-            b,
-            Some(result),
-            result_borrow,
-            borrow_low,
-        ),
-        Expect::Ok,
-    )
+    case(FullSub128)
+        .args(a, b)
+        .expect(result)
+        .flag(result_borrow)
+        .second(borrow_low)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -449,19 +333,12 @@ fn full_sub_128_overflow_borrow_low_true(context: simplex::TestContext) -> anyho
 
     let borrow_low = 1_u128;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FullSub128),
-            a,
-            b,
-            Some(result - 1),
-            result_borrow,
-            borrow_low,
-        ),
-        Expect::Ok,
-    )
+    case(FullSub128)
+        .args(a, b)
+        .expect(result - 1)
+        .flag(result_borrow)
+        .second(borrow_low)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -472,19 +349,11 @@ fn mul_128(context: simplex::TestContext) -> anyhow::Result<()> {
 
     let (result_high, result_low) = split_helper(result);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Mul128),
-            a,
-            b,
-            Some(result_high),
-            DEFAULT_BOOL,
-            result_low,
-        ),
-        Expect::Ok,
-    )
+    case(Mul128)
+        .args(a, b)
+        .expect(result_high)
+        .second(result_low)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -495,19 +364,11 @@ fn mul_128_64(context: simplex::TestContext) -> anyhow::Result<()> {
 
     let (result_high, result_low) = split_helper(result);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Mul128_64),
-            a,
-            b as u128,
-            Some(result_high),
-            DEFAULT_BOOL,
-            result_low,
-        ),
-        Expect::Ok,
-    )
+    case(Mul128_64)
+        .args(a, b as u128)
+        .expect(result_high)
+        .second(result_low)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -518,19 +379,10 @@ fn calculate_normalizer_base_64_b_is_u64(context: simplex::TestContext) -> anyho
 
     let norm: u128 = threshold.div_ceil(b);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::CalculateNormalizerBase64),
-            DEFAULT_EXPECTED,
-            b,
-            Some(norm),
-            false,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(CalculateNormalizerBase64)
+        .args(0, b)
+        .expect(norm)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -541,19 +393,10 @@ fn calculate_normalizer_base_64_b_is_big_enough_not_normalize(
 
     let b = rand::thread_rng().gen_range(threshold..=u64::MAX as u128);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::CalculateNormalizerBase64),
-            DEFAULT_EXPECTED,
-            b,
-            Some(1),
-            false,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(CalculateNormalizerBase64)
+        .args(0, b)
+        .expect(1)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -565,38 +408,21 @@ fn calculate_normalizer_base_64_b_is_u128(context: simplex::TestContext) -> anyh
 
     let norm: u128 = threshold.div_ceil(b_high);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::CalculateNormalizerBase64),
-            DEFAULT_EXPECTED,
-            b,
-            Some(norm),
-            true,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(CalculateNormalizerBase64)
+        .args(0, b)
+        .expect(norm)
+        .flag(true)
+        .run(&context)
 }
 
 #[simplex::test]
 fn calculate_normalizer_base_64_b_is_u64_fail(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = rand::thread_rng().gen_range((u64::MAX as u128) + 1..=u128::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::CalculateNormalizerBase64),
-            DEFAULT_EXPECTED,
-            b,
-            Some(DEFAULT_EXPECTED),
-            false,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::AssertFailed,
-    )
+    case(CalculateNormalizerBase64)
+        .args(0, b)
+        .expect(0)
+        .expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
@@ -605,19 +431,11 @@ fn calculate_normalizer_base_64_b_is_u128_fail(
 ) -> anyhow::Result<()> {
     let b = rand::thread_rng().gen_range(1..=u64::MAX as u128);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::CalculateNormalizerBase64),
-            DEFAULT_EXPECTED,
-            b,
-            Some(DEFAULT_EXPECTED),
-            true,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::AssertFailed,
-    )
+    case(CalculateNormalizerBase64)
+        .args(0, b)
+        .expect(0)
+        .flag(true)
+        .expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
@@ -626,19 +444,10 @@ fn calculate_normalizer_base_64_b_is_zero_fail(
 ) -> anyhow::Result<()> {
     let b = 0;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::CalculateNormalizerBase64),
-            DEFAULT_EXPECTED,
-            b,
-            Some(DEFAULT_EXPECTED),
-            false,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::AssertFailed,
-    )
+    case(CalculateNormalizerBase64)
+        .args(0, b)
+        .expect(0)
+        .expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
@@ -656,19 +465,11 @@ fn estimate_quotient_digit_base_64(context: simplex::TestContext) -> anyhow::Res
 
     let q = (a / b).as_u128();
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::EstimateQuotientDigitBase64),
-            a_high as u128,
-            a_low,
-            Some(q),
-            DEFAULT_BOOL,
-            b,
-        ),
-        Expect::Ok,
-    )
+    case(EstimateQuotientDigitBase64)
+        .args(a_high as u128, a_low)
+        .expect(q)
+        .second(b)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -687,19 +488,11 @@ fn estimate_quotient_digit_base_64_fail(context: simplex::TestContext) -> anyhow
 
     let q = (a / b).as_u128();
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::EstimateQuotientDigitBase64),
-            a_high as u128,
-            a_low,
-            Some(q),
-            DEFAULT_BOOL,
-            b,
-        ),
-        Expect::AssertFailed,
-    )
+    case(EstimateQuotientDigitBase64)
+        .args(a_high as u128, a_low)
+        .expect(q)
+        .second(b)
+        .expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
@@ -710,19 +503,11 @@ fn div_mod_128_64(context: simplex::TestContext) -> anyhow::Result<()> {
     let q = a / b;
     let r = a % b;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::DivMod128_64),
-            a,
-            b,
-            Some(q),
-            DEFAULT_BOOL,
-            r,
-        ),
-        Expect::Ok,
-    )
+    case(DivMod128_64)
+        .args(a, b)
+        .expect(q)
+        .second(r)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -730,19 +515,10 @@ fn div_mod_128_64_overflow(context: simplex::TestContext) -> anyhow::Result<()> 
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
     let b = 0;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::DivMod128_64),
-            a,
-            b,
-            Some(DEFAULT_EXPECTED),
-            DEFAULT_BOOL,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::AssertFailed,
-    )
+    case(DivMod128_64)
+        .args(a, b)
+        .expect(0)
+        .expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
@@ -753,19 +529,7 @@ fn div_mod_128_a_less_than_b(context: simplex::TestContext) -> anyhow::Result<()
     let q = a / b;
     let r = a % b;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::DivMod128),
-            a,
-            b,
-            Some(q),
-            DEFAULT_BOOL,
-            r,
-        ),
-        Expect::Ok,
-    )
+    case(DivMod128).args(a, b).expect(q).second(r).run(&context)
 }
 
 #[simplex::test]
@@ -776,19 +540,11 @@ fn div_mod_128_div_64(context: simplex::TestContext) -> anyhow::Result<()> {
     let q = a / b as u128;
     let r = a % b as u128;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::DivMod128),
-            a,
-            b as u128,
-            Some(q),
-            DEFAULT_BOOL,
-            r,
-        ),
-        Expect::Ok,
-    )
+    case(DivMod128)
+        .args(a, b as u128)
+        .expect(q)
+        .second(r)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -804,19 +560,7 @@ fn div_mod_128_q_is_1(context: simplex::TestContext) -> anyhow::Result<()> {
     let q = a / b;
     let r = a % b;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::DivMod128),
-            a,
-            b,
-            Some(q),
-            DEFAULT_BOOL,
-            r,
-        ),
-        Expect::Ok,
-    )
+    case(DivMod128).args(a, b).expect(q).second(r).run(&context)
 }
 
 #[simplex::test]
@@ -827,19 +571,7 @@ fn div_mod_128_b_is_u64(context: simplex::TestContext) -> anyhow::Result<()> {
     let q = a / b;
     let r = a % b;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::DivMod128),
-            a,
-            b,
-            Some(q),
-            DEFAULT_BOOL,
-            r,
-        ),
-        Expect::Ok,
-    )
+    case(DivMod128).args(a, b).expect(q).second(r).run(&context)
 }
 
 #[simplex::test]
@@ -853,38 +585,18 @@ fn div_mod_128_b_is_u128(context: simplex::TestContext) -> anyhow::Result<()> {
     let q = a / b;
     let r = a % b;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::DivMod128),
-            a,
-            b,
-            Some(q),
-            DEFAULT_BOOL,
-            r,
-        ),
-        Expect::Ok,
-    )
+    case(DivMod128).args(a, b).expect(q).second(r).run(&context)
 }
 
 #[simplex::test]
 fn div_mod_128_a_equal_b(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(1..=u128::MAX);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::DivMod128),
-            a,
-            a,
-            Some(1u128),
-            DEFAULT_BOOL,
-            0u128,
-        ),
-        Expect::Ok,
-    )
+    case(DivMod128)
+        .args(a, a)
+        .expect(1u128)
+        .second(0u128)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -894,19 +606,11 @@ fn div_mod_128_equal_high_words_max_low_diff(context: simplex::TestContext) -> a
     let a = ((high as u128) << 64) | (u64::MAX as u128);
     let b = (high as u128) << 64;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::DivMod128),
-            a,
-            b,
-            Some(1u128),
-            DEFAULT_BOOL,
-            u64::MAX as u128,
-        ),
-        Expect::Ok,
-    )
+    case(DivMod128)
+        .args(a, b)
+        .expect(1u128)
+        .second(u64::MAX as u128)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -916,19 +620,11 @@ fn div_mod_128_eq_high_words_a_less_than_b(context: simplex::TestContext) -> any
     let a = (high as u128) << 64;
     let b = ((high as u128) << 64) | (u64::MAX as u128);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::DivMod128),
-            a,
-            b,
-            Some(0u128),
-            DEFAULT_BOOL,
-            a,
-        ),
-        Expect::Ok,
-    )
+    case(DivMod128)
+        .args(a, b)
+        .expect(0u128)
+        .second(a)
+        .run(&context)
 }
 
 #[simplex::test]
@@ -937,19 +633,7 @@ fn div_128(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = rand::thread_rng().gen_range(1..=u128::MAX);
     let result = a / b;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Div128),
-            a,
-            b,
-            Some(result),
-            DEFAULT_BOOL,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Div128).args(a, b).expect(result).run(&context)
 }
 
 #[simplex::test]
@@ -957,17 +641,5 @@ fn div_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
     let b = 0;
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::Div128),
-            a,
-            b,
-            Some(0),
-            DEFAULT_BOOL,
-            DEFAULT_EXPECTED,
-        ),
-        Expect::Ok,
-    )
+    case(Div128).args(a, b).expect(0).run(&context)
 }

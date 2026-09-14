@@ -11,6 +11,8 @@ use simplicityhl_std::artifacts::tests::secp256k1::operations::derived_operation
     OperationsWitness as Secp256k1OperationsTestWitness,
 };
 
+use FunctionToTest::*;
+
 enum FunctionToTest {
     GeToPoint,
     PointToGej,
@@ -23,16 +25,6 @@ enum FunctionToTest {
     GejPointEq,
     SafeGejNormalize,
 }
-
-#[inline]
-fn op(o: FunctionToTest) -> u8 {
-    o as u8
-}
-
-const DEFAULT_UINT: [u8; 32] = [0u8; 32];
-const DEFAULT_GE: ([u8; 32], [u8; 32]) = ([0u8; 32], [0u8; 32]);
-const DEFAULT_GEJ: (([u8; 32], [u8; 32]), [u8; 32]) = (([0u8; 32], [0u8; 32]), [0u8; 32]);
-const DEFAULT_POINT: (u8, [u8; 32]) = (0, [0u8; 32]);
 
 // FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 const SECP_P: [u8; 32] = [
@@ -50,34 +42,106 @@ fn program() -> Secp256k1OperationsTestProgram {
     Secp256k1OperationsTestProgram::new(&Secp256k1OperationsTestArguments {})
 }
 
-#[allow(clippy::too_many_arguments)]
-fn build_witness(
-    function: u8,
-    first_uint: [u8; 32],
-    second_uint: [u8; 32],
-    first_ge: ([u8; 32], [u8; 32]),
-    second_ge: ([u8; 32], [u8; 32]),
-    first_gej: (([u8; 32], [u8; 32]), [u8; 32]),
-    second_gej: (([u8; 32], [u8; 32]), [u8; 32]),
-    first_point: (u8, [u8; 32]),
-    expected_uint: [u8; 32],
-    expected_ge: ([u8; 32], [u8; 32]),
-    expected_gej: (([u8; 32], [u8; 32]), [u8; 32]),
-    expected_point: (u8, [u8; 32]),
-) -> Secp256k1OperationsTestWitness {
-    Secp256k1OperationsTestWitness {
-        function_index: function,
-        first_uint,
-        second_uint,
-        first_ge,
-        second_ge,
-        first_gej,
-        second_gej,
-        first_point,
-        expected_uint,
-        expected_ge,
-        expected_gej,
-        expected_point,
+/// One dispatch arm of the contract, plus the witness it reads.
+struct Case {
+    witness: Secp256k1OperationsTestWitness,
+}
+
+fn case(function: FunctionToTest) -> Case {
+    Case {
+        witness: Secp256k1OperationsTestWitness {
+            function_index: function as u8,
+            first_uint: [0; 32],
+            second_uint: [0; 32],
+            first_ge: ([0; 32], [0; 32]),
+            second_ge: ([0; 32], [0; 32]),
+            first_gej: (([0; 32], [0; 32]), [0; 32]),
+            second_gej: (([0; 32], [0; 32]), [0; 32]),
+            first_point: (0, [0; 32]),
+            expected_uint: [0; 32],
+            expected_ge: ([0; 32], [0; 32]),
+            expected_gej: (([0; 32], [0; 32]), [0; 32]),
+            expected_point: (0, [0; 32]),
+        },
+    }
+}
+
+impl Case {
+    /// The two field or scalar operands, `first_uint` and `second_uint`.
+    fn uints(mut self, first_uint: [u8; 32], second_uint: [u8; 32]) -> Self {
+        self.witness.first_uint = first_uint;
+        self.witness.second_uint = second_uint;
+        self
+    }
+
+    /// Only `first_ge`.
+    fn ge(mut self, first_ge: ([u8; 32], [u8; 32])) -> Self {
+        self.witness.first_ge = first_ge;
+        self
+    }
+
+    /// The two affine points, `first_ge` and `second_ge`.
+    fn ges(mut self, first_ge: ([u8; 32], [u8; 32]), second_ge: ([u8; 32], [u8; 32])) -> Self {
+        self.witness.first_ge = first_ge;
+        self.witness.second_ge = second_ge;
+        self
+    }
+
+    /// Only `first_gej`.
+    fn gej(mut self, first_gej: (([u8; 32], [u8; 32]), [u8; 32])) -> Self {
+        self.witness.first_gej = first_gej;
+        self
+    }
+
+    /// The two Jacobian points, `first_gej` and `second_gej`.
+    fn gejs(
+        mut self,
+        first_gej: (([u8; 32], [u8; 32]), [u8; 32]),
+        second_gej: (([u8; 32], [u8; 32]), [u8; 32]),
+    ) -> Self {
+        self.witness.first_gej = first_gej;
+        self.witness.second_gej = second_gej;
+        self
+    }
+
+    /// `first_point`: a compressed point, parity byte and x coordinate.
+    fn point(mut self, first_point: (u8, [u8; 32])) -> Self {
+        self.witness.first_point = first_point;
+        self
+    }
+
+    /// `expected_uint`: the field or scalar the arm should produce.
+    fn expect_uint(mut self, expected_uint: [u8; 32]) -> Self {
+        self.witness.expected_uint = expected_uint;
+        self
+    }
+
+    /// `expected_ge`: the affine point the arm should produce.
+    fn expect_ge(mut self, expected_ge: ([u8; 32], [u8; 32])) -> Self {
+        self.witness.expected_ge = expected_ge;
+        self
+    }
+
+    /// `expected_gej`: the Jacobian point the arm should produce.
+    fn expect_gej(mut self, expected_gej: (([u8; 32], [u8; 32]), [u8; 32])) -> Self {
+        self.witness.expected_gej = expected_gej;
+        self
+    }
+
+    /// `expected_point`: the compressed point the arm should produce.
+    fn expect_point(mut self, expected_point: (u8, [u8; 32])) -> Self {
+        self.witness.expected_point = expected_point;
+        self
+    }
+
+    /// Fund, spend, and expect the spend to succeed.
+    fn run(self, context: &simplex::TestContext) -> anyhow::Result<()> {
+        self.expecting(context, Expect::Ok)
+    }
+
+    /// Fund, spend, and expect `expect`.
+    fn expecting(self, context: &simplex::TestContext, expect: Expect) -> anyhow::Result<()> {
+        run(context, program(), self.witness, expect)
     }
 }
 
@@ -201,25 +265,10 @@ fn ge_to_point_matches_parity(context: simplex::TestContext) -> anyhow::Result<(
     let ge = random_ge_bytes();
     let expected_parity = ge.1[31] & 1; // 0 (even y) or 1 (odd y)
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::GeToPoint),
-            DEFAULT_UINT,
-            DEFAULT_UINT,
-            ge,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            (expected_parity, ge.0),
-        ),
-        Expect::Ok,
-    )
+    case(GeToPoint)
+        .ge(ge)
+        .expect_point((expected_parity, ge.0))
+        .run(&context)
 }
 
 // 1. point_to_gej
@@ -228,25 +277,10 @@ fn point_to_gej_roundtrip(context: simplex::TestContext) -> anyhow::Result<()> {
     let ge = random_ge_bytes();
     let point = compress(ge);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::PointToGej),
-            DEFAULT_UINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_GEJ,
-            point,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            point,
-        ),
-        Expect::Ok,
-    )
+    case(PointToGej)
+        .point(point)
+        .expect_point(point)
+        .run(&context)
 }
 
 // 2. fe_sub
@@ -254,25 +288,7 @@ fn point_to_gej_roundtrip(context: simplex::TestContext) -> anyhow::Result<()> {
 fn fe_sub_self_is_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = random_fe_bytes();
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FeSub),
-            a,
-            a,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-            [0u8; 32],
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-        ),
-        Expect::Ok,
-    )
+    case(FeSub).uints(a, a).expect_uint([0u8; 32]).run(&context)
 }
 
 #[simplex::test]
@@ -281,25 +297,7 @@ fn fe_sub_matches_reference(context: simplex::TestContext) -> anyhow::Result<()>
     let b = random_fe_bytes();
     let exp = fe_sub_ref(a, b);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FeSub),
-            a,
-            b,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-            exp,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-        ),
-        Expect::Ok,
-    )
+    case(FeSub).uints(a, b).expect_uint(exp).run(&context)
 }
 
 // 3. scalar_sub
@@ -309,25 +307,7 @@ fn scalar_sub_matches_reference(context: simplex::TestContext) -> anyhow::Result
     let b = random_scalar_bytes();
     let exp = scalar_sub_ref(a, b);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::ScalarSub),
-            a,
-            b,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-            exp,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-        ),
-        Expect::Ok,
-    )
+    case(ScalarSub).uints(a, b).expect_uint(exp).run(&context)
 }
 
 // 4. gej_sub
@@ -341,25 +321,10 @@ fn gej_sub_matches_reference(context: simplex::TestContext) -> anyhow::Result<()
     let q = PublicKey::from_secret_key(&secp, &sk_q);
     let diff = p.combine(&q.negate(&secp)).expect("p - q non-infinity");
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::GejSub),
-            DEFAULT_UINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            pk_to_gej(&p),
-            pk_to_gej(&q),
-            DEFAULT_POINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            pk_to_gej(&diff),
-            DEFAULT_POINT,
-        ),
-        Expect::Ok,
-    )
+    case(GejSub)
+        .gejs(pk_to_gej(&p), pk_to_gej(&q))
+        .expect_gej(pk_to_gej(&diff))
+        .run(&context)
 }
 
 // 5. fe_eq
@@ -367,48 +332,12 @@ fn gej_sub_matches_reference(context: simplex::TestContext) -> anyhow::Result<()
 fn fe_eq_reflexive(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = random_fe_bytes();
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FeEq),
-            a,
-            a,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-        ),
-        Expect::Ok,
-    )
+    case(FeEq).uints(a, a).run(&context)
 }
 
 #[simplex::test]
 fn fe_eq_zero_and_p_are_equal(context: simplex::TestContext) -> anyhow::Result<()> {
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::FeEq),
-            [0u8; 32],
-            SECP_P,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-        ),
-        Expect::Ok,
-    )
+    case(FeEq).uints([0u8; 32], SECP_P).run(&context)
 }
 
 // 6. scalar_eq
@@ -421,25 +350,7 @@ fn scalar_eq_s_and_s_plus_n_are_equal(context: simplex::TestContext) -> anyhow::
     let mut s_plus_n = SECP_N;
     s_plus_n[31] = s_plus_n[31].wrapping_add(5);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::ScalarEq),
-            s,
-            s_plus_n,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-        ),
-        Expect::Ok,
-    )
+    case(ScalarEq).uints(s, s_plus_n).run(&context)
 }
 
 // 7. ge_eq
@@ -448,25 +359,9 @@ fn ge_eq_rejects_negation(context: simplex::TestContext) -> anyhow::Result<()> {
     let ge = random_ge_bytes();
     let neg_y = fe_negate_ref(ge.1);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::GeEq),
-            DEFAULT_UINT,
-            DEFAULT_UINT,
-            ge,
-            (ge.0, neg_y),
-            DEFAULT_GEJ,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-        ),
-        Expect::AssertFailed,
-    )
+    case(GeEq)
+        .ges(ge, (ge.0, neg_y))
+        .expecting(&context, Expect::AssertFailed)
 }
 
 // 8. gej_point_eq
@@ -479,25 +374,7 @@ fn gej_point_eq_rescaled(context: simplex::TestContext) -> anyhow::Result<()> {
     let l3 = fe_mul_ref(l2, lambda);
     let g = ((fe_mul_ref(ge.0, l2), fe_mul_ref(ge.1, l3)), lambda);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::GejPointEq),
-            DEFAULT_UINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            g,
-            DEFAULT_GEJ,
-            compress(ge),
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-        ),
-        Expect::Ok,
-    )
+    case(GejPointEq).gej(g).point(compress(ge)).run(&context)
 }
 
 #[simplex::test]
@@ -516,25 +393,10 @@ fn gej_point_eq_rejects_negation(context: simplex::TestContext) -> anyhow::Resul
     let ge = random_ge_bytes();
     let (parity, x) = compress(ge);
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::GejPointEq),
-            DEFAULT_UINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            ge_to_gej(ge),
-            DEFAULT_GEJ,
-            (parity ^ 1, x),
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-        ),
-        Expect::AssertFailed,
-    )
+    case(GejPointEq)
+        .gej(ge_to_gej(ge))
+        .point((parity ^ 1, x))
+        .expecting(&context, Expect::AssertFailed)
 }
 
 // 9. safe_gej_normalize
@@ -542,23 +404,8 @@ fn gej_point_eq_rejects_negation(context: simplex::TestContext) -> anyhow::Resul
 fn safe_gej_normalize_roundtrip(context: simplex::TestContext) -> anyhow::Result<()> {
     let ge = random_ge_bytes();
 
-    run(
-        &context,
-        program(),
-        build_witness(
-            op(FunctionToTest::SafeGejNormalize),
-            DEFAULT_UINT,
-            DEFAULT_UINT,
-            DEFAULT_GE,
-            DEFAULT_GE,
-            ge_to_gej(ge),
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-            DEFAULT_UINT,
-            ge,
-            DEFAULT_GEJ,
-            DEFAULT_POINT,
-        ),
-        Expect::Ok,
-    )
+    case(SafeGejNormalize)
+        .gej(ge_to_gej(ge))
+        .expect_ge(ge)
+        .run(&context)
 }

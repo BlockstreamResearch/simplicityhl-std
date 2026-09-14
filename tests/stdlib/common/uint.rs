@@ -12,8 +12,8 @@ use simplex::program::{Program, WitnessTrait};
 use super::core::{Expect, run};
 
 /// Dispatch indices for the operations that exist for every unsigned width.
-/// These map 1:1 onto the `if_test_this_function(N, ..)` arms in each width's
-/// `*_test.simf`.
+/// These map 1:1 onto the `is_selected(N, ..)` arms in each width's math test
+/// program under `simf/tests`.
 pub enum CommonOp {
     CheckedAdd,
     SafeAdd,
