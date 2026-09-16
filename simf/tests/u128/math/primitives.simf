@@ -13,6 +13,7 @@ use crate::lib::u128::math::{
     div_128
 };
 use crate::lib::u128::bit::eq_128;
+
 use crate::tests::support::expect::assert_eq_uint_bool_128;
 use crate::tests::support::dispatch::is_selected;
 

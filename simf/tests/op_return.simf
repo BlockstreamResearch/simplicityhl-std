@@ -1,4 +1,5 @@
 use crate::lib::op_return::{is_output_op_return, assert_output_is_op_return};
+
 use crate::tests::support::dispatch::is_selected;
 use crate::tests::support::expect::assert_bool;
 

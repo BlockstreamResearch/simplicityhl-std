@@ -15,6 +15,7 @@ use crate::lib::asserts::{
     assert_none_128,
     assert_none_256
 };
+
 use crate::tests::support::dispatch::is_selected;
 
 fn main() {

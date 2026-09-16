@@ -1,6 +1,6 @@
 use crate::lib::u64::mul_div::mul_div_64;
-
 use crate::lib::asserts::assert_eq_64;
+
 use crate::tests::support::dispatch::is_selected;
 
 fn main() {

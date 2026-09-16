@@ -10,6 +10,7 @@ use crate::lib::u16::math::{
     gt_16,
     ge_16
 };
+
 use crate::tests::support::expect::{assert_bool_by_opt_16, assert_eq_opt_16};
 use crate::tests::support::dispatch::is_selected;
 

@@ -18,6 +18,7 @@ use crate::lib::asserts::{
     assert_eq_64,
     assert_eq_256
 };
+
 use crate::tests::support::dispatch::is_selected;
 
 fn main() {

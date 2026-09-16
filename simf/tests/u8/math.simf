@@ -10,6 +10,7 @@ use crate::lib::u8::math::{
     gt_8,
     ge_8
 };
+
 use crate::tests::support::expect::{assert_bool_by_opt_8, assert_eq_opt_8};
 use crate::tests::support::dispatch::is_selected;
 
