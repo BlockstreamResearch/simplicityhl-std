@@ -79,7 +79,7 @@ pub fn assert_scalar_eq(a: Scalar, b: Scalar) {
 pub fn assert_ge_eq(a: Ge, b: Ge) {
     let (ax, ay): (Fe, Fe) = a;
     let (bx, by): (Fe, Fe) = b;
-    
+
     assert_fe_eq(ax, bx);
     assert_fe_eq(ay, by);
 }

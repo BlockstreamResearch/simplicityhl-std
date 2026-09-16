@@ -193,9 +193,12 @@ pub fn calculate_normalizer_base_64(b: u128, is_b_u128: bool) -> u64 {
     match jet::is_zero_64(remainder) {
         true => norm,
         false => {
-            let (_, norm): (bool, u64) = jet::add_64(norm, 1); // norm <= 2^63, so norm + 1 can not overflow
+            let (
+                _,
+                norm
+            ): (bool, u64) = jet::add_64(norm, 1); // norm <= 2^63, so norm + 1 can not overflow
             norm
-        }
+        },
     }
 }
 
@@ -221,7 +224,11 @@ fn normalize_to_threshold_128_63(a: u128, b: u128, is_b_u128: bool) -> (u256, u1
 /// Returns the quotient digit to use in the subsequent multiply-and-subtract step.
 /// Expects result to fit into u64
 pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u64) -> u64 {
-    let (q_hat, r_hat, carry): (u64, u64, bool) = match jet::lt_64(u2, v1) {
+    let (
+        q_hat,
+        r_hat,
+        carry
+    ): (u64, u64, bool) = match jet::lt_64(u2, v1) {
         true => {
             let (q_hat, r_hat): (u64, u64) = jet::div_mod_128_64(<(u64, u64)>::into((u2, u1)), v1);
             (q_hat, r_hat, false)
@@ -309,11 +316,7 @@ pub fn div_mod_128_64(a: u128, b: u64) -> (u128, u64) {
         a_normalized,
         b_normalized,
         norm
-    ): (u256, u128, u64) = normalize_to_threshold_128_63(
-        a_prime,
-        u64_to_u128(b),
-        false
-    );
+    ): (u256, u128, u64) = normalize_to_threshold_128_63(a_prime, u64_to_u128(b), false);
 
     // a_normalized fits into u128, because remainder < b and b_normalized fits into u64
     let (_, a_normalized): (u128, u128) = <u256>::into(a_normalized);

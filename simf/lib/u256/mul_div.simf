@@ -23,10 +23,22 @@ use crate::lib::u256::comparison::{is_zero_256, lt_256};
 /// Returns the quotient digit to use in the subsequent multiply-and-subtract step.
 /// Expects result to fit into u128
 fn estimate_quotient_digit_base_128(u2: u128, u1: u128, u0: u128, v1: u128, v0: u128) -> u128 {
-    let (q_hat, r_hat, carry): (u128, u128, bool) = match lt_128(u2, v1) {
+    let (
+        q_hat,
+        r_hat,
+        carry
+    ): (u128, u128, bool) = match lt_128(u2, v1) {
         true => {
-            let (q_hat, r_hat) : (u256, u128) = algorithm_d_256_128(<(u128, u128)>::into((u2, u1)), v1);
-            let (_, q_hat): (u128, u128) = split_u256_into_u128(q_hat); // skip the check for optimization. u2 < v1, so q_hat fits into u128
+            let (
+                q_hat,
+                r_hat
+            ): (u256, u128) = algorithm_d_256_128(<(u128, u128)>::into((u2, u1)), v1);
+            let (
+                _,
+                q_hat
+            ): (u128, u128) = split_u256_into_u128(
+                q_hat
+            ); // skip the check for optimization. u2 < v1, so q_hat fits into u128
 
             (q_hat, r_hat, false)
         },
@@ -123,7 +135,9 @@ fn algorithm_d_512_256(dividend_high: u256, dividend_low: u256, divisor: u256) -
         norm_dividend_high,
         norm_dividend_low,
         norm_divisor
-    ): (u128, u256, u256, u256) = (normalize_to_threshold_512_127(dividend_high, dividend_low, divisor));
+    ): (u128, u256, u256, u256) = (
+        normalize_to_threshold_512_127(dividend_high, dividend_low, divisor)
+    );
 
     let (u3, u2): (u128, u128) = split_u256_into_u128(norm_dividend_high);
     let (u1, u0): (u128, u128) = split_u256_into_u128(norm_dividend_low);
@@ -158,14 +172,29 @@ pub fn mul_div_256(a: u256, b: u256, denominator: u256) -> u256 {
                             // result_high < denominator, denominator fits into u128, so result_high fits too.
                             // split_u256_into_u128 is used instead of safe_u256_to_u128 to avoid the unnecessary check
                             let (_, result_2): (u128, u128) = split_u256_into_u128(result_high);
-                            let (result_1, result_0): (u128, u128) = split_u256_into_u128(result_low);
+                            let (
+                                result_1,
+                                result_0
+                            ): (u128, u128) = split_u256_into_u128(result_low);
 
                             // result_high < denominator, so result_2 < denom_low and q1 fits into u128
-                            let (q1, r): (u256, u128) = div_mod_256_128(<(u128, u128)>::into((result_2, result_1)), denom_low); 
+                            let (
+                                q1,
+                                r
+                            ): (u256, u128) = div_mod_256_128(
+                                <(u128, u128)>::into((result_2, result_1)),
+                                denom_low
+                            );
                             let (_, q1): (u128, u128) = split_u256_into_u128(q1);
 
                             // r < denom_low, so q0 fits into u128
-                            let (q0, _): (u256, u128) = div_mod_256_128(<(u128, u128)>::into((r, result_0)), denom_low); 
+                            let (
+                                q0,
+                                _
+                            ): (u256, u128) = div_mod_256_128(
+                                <(u128, u128)>::into((r, result_0)),
+                                denom_low
+                            );
                             let (_, q0): (u128, u128) = split_u256_into_u128(q0);
 
                             <(u128, u128)>::into((q1, q0))
