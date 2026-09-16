@@ -1,4 +1,4 @@
-name: Smplx-tests
+name: Smplx-lint
 
 on:
   workflow_dispatch:
@@ -16,19 +16,14 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_BACKTRACE: full
   SIMPLEX_VERSION: 0.0.11
 
 jobs:
-  simplex-tests:
+  lint:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     permissions:
       contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchain: [ "1.91.0" ]
 
     steps:
       - name: Checkout
@@ -40,7 +35,8 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ matrix.toolchain }}
+          toolchain: "1.91.0"
+          components: rustfmt, clippy
 
       - name: Use Rust cache
         uses: Swatinem/rust-cache@v2
@@ -50,15 +46,16 @@ jobs:
         with:
           components: simplex@${{ env.SIMPLEX_VERSION }}
 
+      # For building generated files
       - name: Generate contract artifacts
         shell: bash
         run: |
           simplex build
 
-      - name: Build
+      - name: Check formatting
         run: |
-          cargo build --workspace --all-features --verbose
+          cargo fmt --all --check
 
-      - name: Test
+      - name: Run clippy
         run: |
-          simplex test --test-threads 4
+          cargo clippy --workspace --all-targets --all-features -- -D warnings
