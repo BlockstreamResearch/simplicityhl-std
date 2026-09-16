@@ -160,3 +160,4 @@ Q. Are there (or could there be) standard protocols or conventions for (1) coven
     * See also <https://docs.simplicity-lang.org/documentation/timelock> 
 * Fee management?
 * More convenient SHA256?
+* Some functionality for hardcoding a blinding factor of 1 as a workaround for reissuance issue: "cannot reissue without blinding reissuance token" https://github.com/ElementsProject/elements/issues/259
