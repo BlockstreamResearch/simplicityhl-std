@@ -7,9 +7,9 @@ use std::ops::{Add, Div, Mul, Sub};
 use rand::Rng;
 use rand::distributions::uniform::SampleUniform;
 
-use simplex::program::{Program, WitnessTrait};
-
 use super::core::{Expect, run};
+use simplex::program::{Program, WitnessTrait};
+use simplex::simplicityhl::WitnessValues;
 
 /// Dispatch indices for the operations that exist for every unsigned width.
 /// These map 1:1 onto the `is_selected(N, ..)` arms in each width's math test
@@ -44,7 +44,7 @@ pub trait TestUint:
     + Div<Output = Self>
 {
     type Program: AsRef<Program>;
-    type Witness: WitnessTrait + 'static;
+    type Witness: Into<WitnessValues> + 'static;
 
     const ZERO: Self;
     const ONE: Self;

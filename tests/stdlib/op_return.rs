@@ -17,7 +17,7 @@ enum FunctionToTest {
 const DEFAULT_DATA: &[u8; 1] = &[1];
 
 fn program() -> OpReturnTestProgram {
-    OpReturnTestProgram::new(&OpReturnTestArguments {})
+    OpReturnTestProgram::new(OpReturnTestArguments {})
 }
 
 /// One dispatch arm of the contract, plus the witness it reads and whether the

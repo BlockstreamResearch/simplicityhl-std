@@ -27,7 +27,7 @@ enum FunctionToTest {
 }
 
 fn program() -> U128BasicMathTestProgram {
-    U128BasicMathTestProgram::new(&U128BasicMathTestArguments {})
+    U128BasicMathTestProgram::new(U128BasicMathTestArguments {})
 }
 
 /// One dispatch arm of the contract, plus the witness it reads.

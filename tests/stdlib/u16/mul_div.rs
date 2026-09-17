@@ -13,7 +13,7 @@ enum FunctionToTest {
 }
 
 fn program() -> U16MulDivTestProgram {
-    U16MulDivTestProgram::new(&U16MulDivTestArguments {})
+    U16MulDivTestProgram::new(U16MulDivTestArguments {})
 }
 
 /// One dispatch arm of the contract, plus the witness it reads.

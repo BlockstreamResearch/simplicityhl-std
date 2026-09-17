@@ -19,7 +19,7 @@ enum FunctionToTest {
 }
 
 fn program() -> U256TestBitsProgram {
-    U256TestBitsProgram::new(&U256TestBitsArguments {})
+    U256TestBitsProgram::new(U256TestBitsArguments {})
 }
 
 /// One dispatch arm of the contract, plus the witness it reads.
