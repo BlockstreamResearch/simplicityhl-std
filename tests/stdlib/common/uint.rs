@@ -8,7 +8,7 @@ use rand::Rng;
 use rand::distributions::uniform::SampleUniform;
 
 use super::core::{Expect, run};
-use simplex::program::{Program, WitnessTrait};
+use simplex::program::Program;
 use simplex::simplicityhl::WitnessValues;
 
 /// Dispatch indices for the operations that exist for every unsigned width.

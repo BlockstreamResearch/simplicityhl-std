@@ -2,7 +2,7 @@
 // part of it, so per-crate dead-code analysis would warn about the rest.
 #![allow(dead_code)]
 
-use simplex::program::{Program, WitnessTrait};
+use simplex::program::Program;
 use simplex::simplicityhl::WitnessValues;
 use simplex::simplicityhl::elements::Script;
 use simplex::transaction::{
