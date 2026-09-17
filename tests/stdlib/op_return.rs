@@ -129,3 +129,197 @@ fn assert_output_is_op_return_fail(context: simplex::TestContext) -> anyhow::Res
         .index(index)
         .expecting(&context, Expect::AssertFailed)
 }
+
+mod op_return_tests_fuzz {
+    use super::*;
+
+    use crate::common::core::FuzzExecutionCheck;
+    use simplex::fuzz;
+    use simplex::fuzz::FuzzEngineBuilder;
+    use simplex::fuzz::builders::{FinalTransactionBuilder, ProgramTarget};
+    use simplex::fuzz::engine::FuzzStrategyBuilder;
+    use simplex::fuzz::proptest::prelude::{Just, any};
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+    use simplex::transaction::{
+        FinalTransaction, PartialInput, PartialOutput, RequiredSignature, UTXO,
+    };
+
+    const EXPECTED_IS_OP_RETURN: bool = true;
+
+    const PROGRAM_TARGET: ProgramTarget = ProgramTarget::Input(0);
+    type OpReturnFuzzEngineBuilder =
+        FuzzEngineBuilder<OpReturnTestProgram, OpReturnTestArguments, OpReturnTestWitness>;
+
+    fn arb_non_zero_u32() -> impl Strategy<Value = u32> {
+        any::<u32>().prop_filter("output index should not be zero", |index| *index != 0)
+    }
+
+    struct CaseFuzz {
+        case: Case,
+        builder: OpReturnFuzzEngineBuilder,
+        indices: BoxedStrategy<u32>,
+        test_name: &'static str,
+        expect: Expect,
+    }
+
+    fn case_fuzz(
+        function: FunctionToTest,
+        builder: OpReturnFuzzEngineBuilder,
+        test_name: &'static str,
+    ) -> CaseFuzz {
+        CaseFuzz {
+            case: case(function),
+            builder,
+            indices: Just(0_u32).boxed(),
+            test_name,
+            expect: Expect::Ok,
+        }
+    }
+
+    impl CaseFuzz {
+        fn strategy(mut self, indices: impl Strategy<Value = u32> + 'static) -> Self {
+            self.indices = indices.boxed();
+            self
+        }
+
+        fn flag(mut self, flag: bool) -> Self {
+            self.case = self.case.flag(flag);
+            self
+        }
+
+        fn op_return(mut self, data: &'static [u8]) -> Self {
+            self.case = self.case.op_return(data);
+            self
+        }
+
+        fn expect(mut self, expect: Expect) -> Self {
+            self.expect = expect;
+            self
+        }
+
+        fn build_initial_tx(data: Option<&[u8]>) -> FinalTransaction {
+            let mut tx = FinalTransaction::new();
+            tx.add_input(PartialInput::new(UTXO::default()), RequiredSignature::None);
+
+            if let Some(data) = data {
+                tx.add_output(PartialOutput::new_metadata(data));
+            }
+
+            tx
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let Case { witness, data } = self.case;
+
+            let strategy = self
+                .indices
+                .prop_map(move |index| {
+                    let arguments: Arguments = OpReturnTestArguments {}.into();
+                    let witness: WitnessValues = OpReturnTestWitness {
+                        index,
+                        ..witness.clone()
+                    }
+                    .into();
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            let strategy =
+                FuzzStrategyBuilder::<OpReturnTestArguments, OpReturnTestWitness, _>::new()
+                    .with_custom_strategy(strategy)
+                    .build();
+
+            let transaction_builder =
+                FinalTransactionBuilder::new(CaseFuzz::build_initial_tx(data), [PROGRAM_TARGET])?;
+
+            self.builder
+                .build(strategy, transaction_builder)
+                .run_with_check(FuzzExecutionCheck::new(self.test_name, self.expect));
+
+            Ok(())
+        }
+    }
+
+    #[simplex::fuzz]
+    fn is_output_op_return_true(
+        fuzz_engine_builder: OpReturnFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            IsOpReturn,
+            fuzz_engine_builder,
+            "is_output_op_return with OP_RETURN",
+        )
+        .flag(EXPECTED_IS_OP_RETURN)
+        .op_return(DEFAULT_DATA)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn is_output_op_return_empty_index_false(
+        fuzz_engine_builder: OpReturnFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            IsOpReturn,
+            fuzz_engine_builder,
+            "is_output_op_return outside outputs",
+        )
+        .strategy(arb_non_zero_u32())
+        .op_return(DEFAULT_DATA)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn is_output_op_return_false(
+        fuzz_engine_builder: OpReturnFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            IsOpReturn,
+            fuzz_engine_builder,
+            "is_output_op_return without outputs",
+        )
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_output_is_op_return_pass(
+        fuzz_engine_builder: OpReturnFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertOutputIsOpReturn,
+            fuzz_engine_builder,
+            "assert_output_is_op_return with OP_RETURN",
+        )
+        .op_return(DEFAULT_DATA)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_output_is_op_return_empty_index_fail(
+        fuzz_engine_builder: OpReturnFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertOutputIsOpReturn,
+            fuzz_engine_builder,
+            "assert_output_is_op_return outside outputs",
+        )
+        .strategy(arb_non_zero_u32())
+        .op_return(DEFAULT_DATA)
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_output_is_op_return_fail(
+        fuzz_engine_builder: OpReturnFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertOutputIsOpReturn,
+            fuzz_engine_builder,
+            "assert_output_is_op_return without outputs",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+}
