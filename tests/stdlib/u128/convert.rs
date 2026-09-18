@@ -24,7 +24,7 @@ enum FunctionToTest {
 }
 
 fn program() -> U128ConvertTestProgram {
-    U128ConvertTestProgram::new(&U128ConvertTestArguments {})
+    U128ConvertTestProgram::new(U128ConvertTestArguments {})
 }
 
 /// One dispatch arm of the contract, plus the witness it reads.

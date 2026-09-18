@@ -7,6 +7,6 @@ use simplicityhl_std::artifacts::tests::binary::derived_binary::{
 
 #[simplex::test]
 fn all_ops(context: simplex::TestContext) -> anyhow::Result<()> {
-    let program = BinaryTestProgram::new(&BinaryTestArguments {});
+    let program = BinaryTestProgram::new(BinaryTestArguments {});
     run(&context, program, BinaryTestWitness {}, Expect::Ok)
 }

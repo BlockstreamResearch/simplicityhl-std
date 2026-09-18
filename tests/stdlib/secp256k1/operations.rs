@@ -39,10 +39,11 @@ const SECP_N: [u8; 32] = [
 ];
 
 fn program() -> Secp256k1OperationsTestProgram {
-    Secp256k1OperationsTestProgram::new(&Secp256k1OperationsTestArguments {})
+    Secp256k1OperationsTestProgram::new(Secp256k1OperationsTestArguments {})
 }
 
 /// One dispatch arm of the contract, plus the witness it reads.
+#[derive(Clone, Debug)]
 struct Case {
     witness: Secp256k1OperationsTestWitness,
 }
@@ -408,4 +409,315 @@ fn safe_gej_normalize_roundtrip(context: simplex::TestContext) -> anyhow::Result
         .gej(ge_to_gej(ge))
         .expect_ge(ge)
         .run(&context)
+}
+
+mod fuzz {
+    use std::fmt::Debug;
+
+    use super::*;
+
+    use crate::common::core::FuzzExecutionCheck;
+    use simplex::fuzz;
+    use simplex::fuzz::FuzzEngineBuilder;
+    use simplex::fuzz::builders::{FinalTransactionBuilder, ProgramTarget};
+    use simplex::fuzz::engine::FuzzStrategyBuilder;
+    use simplex::fuzz::proptest::prelude::{Just, any};
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+    use simplex::transaction::{FinalTransaction, PartialInput, RequiredSignature, UTXO};
+
+    const PROGRAM_TARGET: ProgramTarget = ProgramTarget::Input(0);
+
+    type Ge = ([u8; 32], [u8; 32]);
+    type Gej = (Ge, [u8; 32]);
+
+    type Secp256k1FuzzEngineBuilder = FuzzEngineBuilder<
+        Secp256k1OperationsTestProgram,
+        Secp256k1OperationsTestArguments,
+        Secp256k1OperationsTestWitness,
+    >;
+
+    fn arb_fe() -> impl Strategy<Value = [u8; 32]> {
+        any::<[u8; 32]>().prop_filter("valid secp256k1 field element", |value| *value < SECP_P)
+    }
+
+    fn arb_non_zero_fe() -> impl Strategy<Value = [u8; 32]> {
+        arb_fe().prop_filter("non-zero secp256k1 field element", |value| {
+            *value != [0; 32]
+        })
+    }
+
+    fn arb_scalar() -> impl Strategy<Value = [u8; 32]> {
+        any::<[u8; 32]>().prop_filter("valid secp256k1 scalar", |value| *value < SECP_N)
+    }
+
+    fn arb_secret_key() -> impl Strategy<Value = SecretKey> {
+        any::<[u8; 32]>().prop_filter_map("valid secp256k1 secret key", |bytes| {
+            SecretKey::from_slice(&bytes).ok()
+        })
+    }
+
+    fn ge_from_secret_key(secret_key: SecretKey) -> Ge {
+        let secp = Secp256k1::new();
+        let public_key = PublicKey::from_secret_key(&secp, &secret_key);
+        let serialized = public_key.serialize_uncompressed();
+
+        let mut x = [0; 32];
+        x.copy_from_slice(&serialized[1..33]);
+
+        let mut y = [0; 32];
+        y.copy_from_slice(&serialized[33..65]);
+
+        (x, y)
+    }
+
+    fn arb_ge() -> impl Strategy<Value = Ge> {
+        arb_secret_key().prop_map(ge_from_secret_key)
+    }
+
+    /// Fuzz counterparts for every `#[simplex::test]` case with randomized inputs.
+    /// Deterministic cases stay as regular tests.
+    struct CaseFuzz {
+        cases: BoxedStrategy<Case>,
+        builder: Secp256k1FuzzEngineBuilder,
+        test_name: &'static str,
+        expect: Expect,
+    }
+
+    fn case_fuzz(
+        function: FunctionToTest,
+        builder: Secp256k1FuzzEngineBuilder,
+        test_name: &'static str,
+    ) -> CaseFuzz {
+        CaseFuzz {
+            cases: Just(case(function)).boxed(),
+            builder,
+            test_name,
+            expect: Expect::Ok,
+        }
+    }
+
+    impl CaseFuzz {
+        fn inject<T>(
+            mut self,
+            values: impl Strategy<Value = T> + 'static,
+            inject: impl Fn(Case, T) -> Case + 'static,
+        ) -> Self
+        where
+            T: Debug + 'static,
+        {
+            self.cases = (self.cases, values)
+                .prop_map(move |(case, values)| inject(case, values))
+                .boxed();
+            self
+        }
+
+        fn expect(mut self, expect: Expect) -> Self {
+            self.expect = expect;
+            self
+        }
+
+        fn build_initial_tx() -> FinalTransaction {
+            let mut tx = FinalTransaction::new();
+            tx.add_input(PartialInput::new(UTXO::default()), RequiredSignature::None);
+            tx
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let strategy = self
+                .cases
+                .prop_map(|case| {
+                    let arguments: Arguments = Secp256k1OperationsTestArguments {}.into();
+                    let witness: WitnessValues = case.witness.into();
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            let strategy = FuzzStrategyBuilder::<
+                Secp256k1OperationsTestArguments,
+                Secp256k1OperationsTestWitness,
+                _,
+            >::new()
+            .with_custom_strategy(strategy)
+            .build();
+
+            let transaction_builder =
+                FinalTransactionBuilder::new(Self::build_initial_tx(), [PROGRAM_TARGET])?;
+
+            self.builder
+                .build(strategy, transaction_builder)
+                .run_with_check(FuzzExecutionCheck::new(self.test_name, self.expect));
+
+            Ok(())
+        }
+    }
+
+    // 0. ge_to_point
+    #[simplex::fuzz]
+    fn ge_to_point_matches_parity(
+        fuzz_engine_builder: Secp256k1FuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        // Sample one on-curve point; whatever parity it has, that's what we expect
+        // ge_to_point to produce.
+        case_fuzz(GeToPoint, fuzz_engine_builder, "ge_to_point")
+            .inject(arb_ge(), |case, ge| {
+                let expected_parity = ge.1[31] & 1; // 0 (even y) or 1 (odd y)
+
+                case.ge(ge).expect_point((expected_parity, ge.0))
+            })
+            .run()
+    }
+
+    // 1. point_to_gej
+    #[simplex::fuzz]
+    fn point_to_gej_roundtrip(
+        fuzz_engine_builder: Secp256k1FuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(PointToGej, fuzz_engine_builder, "point_to_gej")
+            .inject(arb_ge(), |case, ge| {
+                let point = compress(ge);
+                case.point(point).expect_point(point)
+            })
+            .run()
+    }
+
+    // 2. fe_sub
+    #[simplex::fuzz]
+    fn fe_sub_self_is_zero(fuzz_engine_builder: Secp256k1FuzzEngineBuilder) -> anyhow::Result<()> {
+        case_fuzz(FeSub, fuzz_engine_builder, "fe_sub self is zero")
+            .inject(arb_fe(), |case, a| case.uints(a, a).expect_uint([0u8; 32]))
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn fe_sub_matches_reference(
+        fuzz_engine_builder: Secp256k1FuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(FeSub, fuzz_engine_builder, "fe_sub")
+            .inject((arb_fe(), arb_fe()), |case, (a, b)| {
+                let exp = fe_sub_ref(a, b);
+                case.uints(a, b).expect_uint(exp)
+            })
+            .run()
+    }
+
+    // 3. scalar_sub
+    #[simplex::fuzz]
+    fn scalar_sub_matches_reference(
+        fuzz_engine_builder: Secp256k1FuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(ScalarSub, fuzz_engine_builder, "scalar_sub")
+            .inject((arb_scalar(), arb_scalar()), |case, (a, b)| {
+                let exp = scalar_sub_ref(a, b);
+                case.uints(a, b).expect_uint(exp)
+            })
+            .run()
+    }
+
+    // 4. gej_sub
+    #[simplex::fuzz]
+    fn gej_sub_matches_reference(
+        fuzz_engine_builder: Secp256k1FuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(GejSub, fuzz_engine_builder, "gej_sub")
+            .inject(
+                (arb_secret_key(), arb_secret_key())
+                    .prop_filter("distinct secp256k1 points", |(p, q)| p != q),
+                |case, (p_secret, q_secret)| {
+                    let secp = Secp256k1::new();
+                    let p = PublicKey::from_secret_key(&secp, &p_secret);
+                    let q = PublicKey::from_secret_key(&secp, &q_secret);
+                    let diff = p.combine(&q.negate(&secp)).expect("p - q non-infinity");
+
+                    case.gejs(pk_to_gej(&p), pk_to_gej(&q))
+                        .expect_gej(pk_to_gej(&diff))
+                },
+            )
+            .run()
+    }
+
+    // 5. fe_eq
+    #[simplex::fuzz]
+    fn fe_eq_reflexive(fuzz_engine_builder: Secp256k1FuzzEngineBuilder) -> anyhow::Result<()> {
+        case_fuzz(FeEq, fuzz_engine_builder, "fe_eq_reflexive")
+            .inject(arb_fe(), |case, value| case.uints(value, value))
+            .run()
+    }
+
+    // 6. scalar_eq has only a deterministic case and remains a regular test.
+
+    // 7. ge_eq
+    #[simplex::fuzz]
+    fn ge_eq_rejects_negation(
+        fuzz_engine_builder: Secp256k1FuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(GeEq, fuzz_engine_builder, "ge_eq negation")
+            .inject(arb_ge(), |case, ge| {
+                case.ges(ge, (ge.0, fe_negate_ref(ge.1)))
+            })
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+
+    // 8. gej_point_eq
+    #[simplex::fuzz]
+    fn gej_point_eq_rescaled(
+        fuzz_engine_builder: Secp256k1FuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(GejPointEq, fuzz_engine_builder, "gej_point_eq_rescaled")
+            .inject((arb_ge(), arb_non_zero_fe()), |case, (ge, lambda)| {
+                let lambda_squared = fe_mul_ref(lambda, lambda);
+                let lambda_cubed = fe_mul_ref(lambda_squared, lambda);
+                let gej: Gej = (
+                    (
+                        fe_mul_ref(ge.0, lambda_squared),
+                        fe_mul_ref(ge.1, lambda_cubed),
+                    ),
+                    lambda,
+                );
+
+                case.gej(gej).point(compress(ge))
+            })
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn gej_point_eq_rejects_negation(
+        fuzz_engine_builder: Secp256k1FuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(GejPointEq, fuzz_engine_builder, "gej_point_eq negation")
+            .inject(arb_ge(), |case, ge| {
+                let (parity, x) = compress(ge);
+                case.gej(ge_to_gej(ge)).point((parity ^ 1, x))
+            })
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+
+    // 9. safe_gej_normalize
+    #[simplex::fuzz]
+    fn safe_gej_normalize_roundtrip(
+        fuzz_engine_builder: Secp256k1FuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            SafeGejNormalize,
+            fuzz_engine_builder,
+            "safe_gej_normalize_roundtrip",
+        )
+        .inject((arb_ge(), arb_non_zero_fe()), |case, (ge, lambda)| {
+            let lambda_squared = fe_mul_ref(lambda, lambda);
+            let lambda_cubed = fe_mul_ref(lambda_squared, lambda);
+            let gej: Gej = (
+                (
+                    fe_mul_ref(ge.0, lambda_squared),
+                    fe_mul_ref(ge.1, lambda_cubed),
+                ),
+                lambda,
+            );
+
+            case.gej(gej).expect_ge(ge)
+        })
+        .run()
+    }
 }
