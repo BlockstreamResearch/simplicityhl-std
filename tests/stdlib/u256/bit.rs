@@ -64,6 +64,7 @@ impl Case {
     }
 }
 
+// U256 stores its four u64 limbs from least to most significant.
 #[simplex::test]
 fn and_256(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
@@ -177,21 +178,62 @@ mod bit_tests_fuzz {
     type U256BitFuzzEngineBuilder =
         FuzzEngineBuilder<U256TestBitsProgram, U256TestBitsArguments, U256TestBitsWitness>;
 
-    // (A, B, Result)
-    type BitInputs = (U256, U256, U256);
-
     fn arb_u256() -> impl Strategy<Value = U256> {
         any::<[u8; 32]>().prop_map(|bytes| U256::from_big_endian(&bytes))
     }
 
-    fn non_zero_u8_shift() -> impl Strategy<Value = u8> {
-        any::<u8>().prop_filter("shift is unequal to zero", |shift| *shift != 0)
+    fn arb_non_zero_u8() -> impl Strategy<Value = u8> {
+        any::<u8>().prop_filter("u8 should not be zero", |index| *index != 0)
     }
 
-    struct CaseFuzz {
+    #[derive(Debug, Default)]
+    struct FuzzCase {
+        first_arg: Option<U256>,
+        second_arg: Option<U256>,
+        expected: Option<U256>,
+    }
+
+    impl FuzzCase {
+        fn first_arg(first_arg: U256) -> Self {
+            let mut x = Self::default();
+            let _ = x.first_arg.insert(first_arg);
+            x
+        }
+
+        fn second_arg(mut self, second_arg: U256) -> Self {
+            let _ = self.second_arg.insert(second_arg);
+            self
+        }
+
+        fn expect(mut self, expected: U256) -> Self {
+            let _ = self.expected.insert(expected);
+            self
+        }
+
+        fn into_witness(self, witness: U256TestBitsWitness) -> WitnessValues {
+            Case { witness }
+                .args(
+                    self.first_arg
+                        .expect("no first arg in witness")
+                        .to_big_endian(),
+                    self.second_arg
+                        .expect("no second arg in witness")
+                        .to_big_endian(),
+                )
+                .expect(
+                    self.expected
+                        .expect("no expected arg in witness")
+                        .to_big_endian(),
+                )
+                .witness
+                .into()
+        }
+    }
+
+    struct FuzzCaseBuilder {
         case: Case,
         builder: U256BitFuzzEngineBuilder,
-        inputs: Option<BoxedStrategy<BitInputs>>,
+        inputs: Option<BoxedStrategy<FuzzCase>>,
         test_name: &'static str,
     }
 
@@ -199,8 +241,8 @@ mod bit_tests_fuzz {
         function: FunctionToTest,
         builder: U256BitFuzzEngineBuilder,
         test_name: &'static str,
-    ) -> CaseFuzz {
-        CaseFuzz {
+    ) -> FuzzCaseBuilder {
+        FuzzCaseBuilder {
             case: case(function),
             builder,
             inputs: None,
@@ -208,8 +250,8 @@ mod bit_tests_fuzz {
         }
     }
 
-    impl CaseFuzz {
-        fn strategy(mut self, inputs: impl Strategy<Value = BitInputs> + 'static) -> Self {
+    impl FuzzCaseBuilder {
+        fn strategy(mut self, inputs: impl Strategy<Value = FuzzCase> + 'static) -> Self {
             self.inputs = Some(inputs.boxed());
             self
         }
@@ -225,22 +267,9 @@ mod bit_tests_fuzz {
             let inputs = self.inputs.expect("a fuzz strategy must be specified");
 
             let strategy = inputs
-                .prop_map(move |(a, b, expected)| {
-                    (
-                        a.to_big_endian(),
-                        b.to_big_endian(),
-                        expected.to_big_endian(),
-                    )
-                })
-                .prop_map(move |(a, b, expected)| {
+                .prop_map(move |case| {
                     let arguments: Arguments = U256TestBitsArguments {}.into();
-                    let witness: WitnessValues = Case {
-                        witness: witness.clone(),
-                    }
-                    .args(a, b)
-                    .expect(expected)
-                    .witness
-                    .into();
+                    let witness = case.into_witness(witness.clone());
 
                     (arguments, witness)
                 })
@@ -265,10 +294,8 @@ mod bit_tests_fuzz {
     #[simplex::fuzz]
     fn and_256(fuzz_engine_builder: U256BitFuzzEngineBuilder) -> anyhow::Result<()> {
         let strategy = {
-            let a = arb_u256();
-            let b = arb_u256();
-
-            (a, b).prop_map(|(a, b)| (a, b, a & b))
+            (arb_u256(), arb_u256())
+                .prop_map(|(a, b)| FuzzCase::first_arg(a).second_arg(b).expect(a & b))
         };
 
         case_fuzz(And256, fuzz_engine_builder, "u256 bitwise and")
@@ -279,10 +306,8 @@ mod bit_tests_fuzz {
     #[simplex::fuzz]
     fn or_256(fuzz_engine_builder: U256BitFuzzEngineBuilder) -> anyhow::Result<()> {
         let strategy = {
-            let a = arb_u256();
-            let b = arb_u256();
-
-            (a, b).prop_map(|(a, b)| (a, b, a | b))
+            (arb_u256(), arb_u256())
+                .prop_map(|(a, b)| FuzzCase::first_arg(a).second_arg(b).expect(a | b))
         };
 
         case_fuzz(Or256, fuzz_engine_builder, "u256 bitwise or")
@@ -293,13 +318,10 @@ mod bit_tests_fuzz {
     #[simplex::fuzz]
     fn left_shift_256(fuzz_engine_builder: U256BitFuzzEngineBuilder) -> anyhow::Result<()> {
         let strategy = {
-            let shift = non_zero_u8_shift();
-            let value = arb_u256();
-
-            (shift, value).prop_map(|(shift, value)| {
-                let expected = value << shift;
-
-                (U256::from(shift), value, expected)
+            (arb_non_zero_u8(), arb_u256()).prop_map(|(shift, value)| {
+                FuzzCase::first_arg(U256::from(shift))
+                    .second_arg(value)
+                    .expect(value << shift)
             })
         };
 
@@ -310,7 +332,13 @@ mod bit_tests_fuzz {
 
     #[simplex::fuzz]
     fn left_shift_256_by_zero(fuzz_engine_builder: U256BitFuzzEngineBuilder) -> anyhow::Result<()> {
-        let strategy = arb_u256().prop_map(|value| (U256::zero(), value, value));
+        let strategy = {
+            arb_u256().prop_map(|value| {
+                FuzzCase::first_arg(U256::zero())
+                    .second_arg(value)
+                    .expect(value)
+            })
+        };
 
         case_fuzz(LeftShift256, fuzz_engine_builder, "u256 left shift by zero")
             .strategy(strategy)
@@ -319,11 +347,13 @@ mod bit_tests_fuzz {
 
     #[simplex::fuzz]
     fn left_shift_256_max(fuzz_engine_builder: U256BitFuzzEngineBuilder) -> anyhow::Result<()> {
-        let strategy = arb_u256().prop_map(|value| {
-            let expected = value << u8::MAX;
-
-            (U256::from(u8::MAX), value, expected)
-        });
+        let strategy = {
+            arb_u256().prop_map(|value| {
+                FuzzCase::first_arg(U256::from(u8::MAX))
+                    .second_arg(value)
+                    .expect(value << u8::MAX)
+            })
+        };
 
         case_fuzz(LeftShift256, fuzz_engine_builder, "u256 left shift by max")
             .strategy(strategy)
@@ -333,13 +363,10 @@ mod bit_tests_fuzz {
     #[simplex::fuzz]
     fn right_shift_256(fuzz_engine_builder: U256BitFuzzEngineBuilder) -> anyhow::Result<()> {
         let strategy = {
-            let shift = non_zero_u8_shift();
-            let value = arb_u256();
-
-            (shift, value).prop_map(|(shift, value)| {
-                let expected = value >> shift;
-
-                (U256::from(shift), value, expected)
+            (arb_non_zero_u8(), arb_u256()).prop_map(|(shift, value)| {
+                FuzzCase::first_arg(U256::from(shift))
+                    .second_arg(value)
+                    .expect(value >> shift)
             })
         };
 
@@ -352,7 +379,13 @@ mod bit_tests_fuzz {
     fn right_shift_256_by_zero(
         fuzz_engine_builder: U256BitFuzzEngineBuilder,
     ) -> anyhow::Result<()> {
-        let strategy = arb_u256().prop_map(|value| (U256::zero(), value, value));
+        let strategy = {
+            arb_u256().prop_map(|value| {
+                FuzzCase::first_arg(U256::zero())
+                    .second_arg(value)
+                    .expect(value)
+            })
+        };
 
         case_fuzz(
             RightShift256,
@@ -365,11 +398,13 @@ mod bit_tests_fuzz {
 
     #[simplex::fuzz]
     fn right_shift_256_max(fuzz_engine_builder: U256BitFuzzEngineBuilder) -> anyhow::Result<()> {
-        let strategy = arb_u256().prop_map(|value| {
-            let expected = value >> u8::MAX;
-
-            (U256::from(u8::MAX), value, expected)
-        });
+        let strategy = {
+            arb_u256().prop_map(|value| {
+                FuzzCase::first_arg(U256::from(u8::MAX))
+                    .second_arg(value)
+                    .expect(value >> u8::MAX)
+            })
+        };
 
         case_fuzz(
             RightShift256,

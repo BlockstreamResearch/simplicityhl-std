@@ -32,3 +32,38 @@ impl TestUint for u64 {
 
 // Stamps the 22 `#[simplex::test]` entry points for u64. Logic lives in common::uint.
 crate::uint_tests!(u64);
+
+mod math_tests_fuzz {
+    use super::*;
+
+    use crate::common::uint_fuzz::TestUintFuzz;
+    use simplex::fuzz::FuzzEngineBuilder;
+    use simplex::fuzz::proptest::prelude::any;
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+
+    type U64MathFuzzEngineBuilder =
+        FuzzEngineBuilder<U64MathTestProgram, U64MathTestArguments, U64MathTestWitness>;
+
+    impl TestUintFuzz for u64 {
+        type Arguments = U64MathTestArguments;
+
+        fn arguments() -> Self::Arguments {
+            U64MathTestArguments {}
+        }
+
+        fn arb_any() -> BoxedStrategy<Self> {
+            any::<u64>().boxed()
+        }
+
+        fn arb_non_zero() -> BoxedStrategy<Self> {
+            any::<u64>().prop_map(|value| value.max(1)).boxed()
+        }
+
+        fn arb_fitting(low: Self, high: Self) -> BoxedStrategy<Self> {
+            assert!(low <= high);
+            (low..=high).boxed()
+        }
+    }
+
+    crate::uint_fuzz_tests!(u64, U64MathFuzzEngineBuilder);
+}
