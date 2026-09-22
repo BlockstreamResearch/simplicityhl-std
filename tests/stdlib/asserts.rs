@@ -11,6 +11,7 @@ use simplicityhl_std::artifacts::tests::asserts::derived_asserts::{
 // simf/tests/asserts.simf.
 use FunctionToTest::*;
 
+#[derive(Clone, Copy)]
 enum FunctionToTest {
     AssertEq1,
     AssertEq8,
@@ -38,7 +39,7 @@ const DEFAULT_SOME_U128: Option<u128> = Some(0);
 const DEFAULT_SOME_U256: Option<[u8; 32]> = Some([0; 32]);
 
 fn program() -> AssertsTestProgram {
-    AssertsTestProgram::new(&AssertsTestArguments {})
+    AssertsTestProgram::new(AssertsTestArguments {})
 }
 
 /// Returns two values in `[min, max]` that are equal when `same`, distinct otherwise.
@@ -63,11 +64,9 @@ pub fn generate_uints_in_one_range(same: bool, min_val: u128, max_val: u128) -> 
     (some_u, other_u)
 }
 
-/// Builds the witness for one assert call. `same` controls the two `assert_eq`
-/// args; `none` makes the single `assert_none` arg `None`.
-fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTestWitness {
-    let mut witness = AssertsTestWitness {
-        function_index: 0,
+fn default_witness(function_index: u8) -> AssertsTestWitness {
+    AssertsTestWitness {
+        function_index,
         first_arg_u1: DEFAULT_SOME_U8, // u1 in Simplicity is represented as u8
         second_arg_u1: DEFAULT_SOME_U8,
         first_arg_u8: DEFAULT_SOME_U8,
@@ -82,7 +81,13 @@ fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTes
         second_arg_u128: DEFAULT_SOME_U128,
         first_arg_u256: DEFAULT_SOME_U256,
         second_arg_u256: DEFAULT_SOME_U256,
-    };
+    }
+}
+
+/// Builds the witness for one assert call. `same` controls the two `assert_eq`
+/// args; `none` makes the single `assert_none` arg `None`.
+fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTestWitness {
+    let mut witness = default_witness(function as u8);
 
     match function {
         FunctionToTest::AssertEq1 => {
@@ -155,7 +160,6 @@ fn build_witness(function: FunctionToTest, same: bool, none: bool) -> AssertsTes
         }
     }
 
-    witness.function_index = function as u8;
     witness
 }
 
@@ -349,4 +353,661 @@ fn assert_none_256_happy_path(context: simplex::TestContext) -> anyhow::Result<(
 #[simplex::test]
 fn assert_none_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result<()> {
     case(AssertNone256).expecting(&context, Expect::AssertFailed)
+}
+
+mod asserts_test_fuzz {
+    use super::*;
+
+    use std::fmt::Debug;
+
+    use crate::common::core::FuzzExecutionCheck;
+    use simplex::fuzz;
+    use simplex::fuzz::FuzzEngineBuilder;
+    use simplex::fuzz::builders::{FinalTransactionBuilder, ProgramTarget};
+    use simplex::fuzz::engine::FuzzStrategyBuilder;
+    use simplex::fuzz::proptest::prelude::any;
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+    use simplex::transaction::{FinalTransaction, PartialInput, RequiredSignature, UTXO};
+
+    const PROGRAM_TARGET: ProgramTarget = ProgramTarget::Input(0);
+
+    type AssertsFuzzEngineBuilder =
+        FuzzEngineBuilder<AssertsTestProgram, AssertsTestArguments, AssertsTestWitness>;
+
+    fn arb_u1() -> impl Strategy<Value = u8> {
+        any::<bool>().prop_map(u8::from)
+    }
+
+    fn arb_bool() -> impl Strategy<Value = bool> {
+        any::<bool>()
+    }
+
+    fn arb_u8() -> impl Strategy<Value = u8> {
+        any::<u8>()
+    }
+
+    fn arb_u16() -> impl Strategy<Value = u16> {
+        any::<u16>()
+    }
+
+    fn arb_u32() -> impl Strategy<Value = u32> {
+        any::<u32>()
+    }
+
+    fn arb_u64() -> impl Strategy<Value = u64> {
+        any::<u64>()
+    }
+
+    fn arb_u128() -> impl Strategy<Value = u128> {
+        any::<u128>()
+    }
+
+    fn arb_u256() -> impl Strategy<Value = [u8; 32]> {
+        any::<[u8; 32]>()
+    }
+
+    type ArgumentFields<T> = fn(&mut AssertsTestWitness) -> (&mut Option<T>, &mut Option<T>);
+
+    fn equal_values_strategy<T, V>(
+        function_index: u8,
+        values: impl Strategy<Value = T> + 'static,
+        fields: ArgumentFields<V>,
+    ) -> BoxedStrategy<AssertsTestWitness>
+    where
+        T: Clone + Debug + Into<V> + 'static,
+        V: 'static,
+    {
+        values
+            .prop_map(move |value| {
+                let mut witness = default_witness(function_index);
+                let first: V = value.clone().into();
+                let second: V = value.into();
+
+                Case::set_arguments(fields(&mut witness), first, second);
+                witness
+            })
+            .boxed()
+    }
+
+    fn distinct_values_strategy<T, V>(
+        function_index: u8,
+        values: impl Strategy<Value = T> + 'static,
+        fields: ArgumentFields<V>,
+    ) -> BoxedStrategy<AssertsTestWitness>
+    where
+        T: PartialEq + Debug + Into<V> + 'static,
+        V: 'static,
+    {
+        let values = values.boxed();
+
+        (values.clone(), values)
+            .prop_filter("assert_eq arguments must be distinct", |(first, second)| {
+                first != second
+            })
+            .prop_map(move |(first, second)| {
+                let mut witness = default_witness(function_index);
+                let first: V = first.into();
+                let second: V = second.into();
+
+                Case::set_arguments(fields(&mut witness), first, second);
+                witness
+            })
+            .boxed()
+    }
+
+    fn none_strategy<T: Default + Debug + 'static>(
+        none: bool,
+        function_index: u8,
+        values: impl Strategy<Value = T> + 'static,
+        fields: ArgumentFields<T>,
+    ) -> BoxedStrategy<AssertsTestWitness> {
+        values
+            .prop_map(move |value| {
+                let mut witness = default_witness(function_index);
+
+                let (first, second) = if none {
+                    (None, Some(value))
+                } else {
+                    (Some(value), Some(T::default()))
+                };
+
+                Case::set_arguments(fields(&mut witness), first, second);
+                witness
+            })
+            .boxed()
+    }
+
+    impl Case {
+        fn set_arguments<T>(
+            fields: (&mut Option<T>, &mut Option<T>),
+            first: impl Into<Option<T>>,
+            second: impl Into<Option<T>>,
+        ) {
+            *fields.0 = first.into();
+            *fields.1 = second.into();
+        }
+
+        fn u1_arguments(witness: &mut AssertsTestWitness) -> (&mut Option<u8>, &mut Option<u8>) {
+            (&mut witness.first_arg_u1, &mut witness.second_arg_u1)
+        }
+
+        fn u8_arguments(witness: &mut AssertsTestWitness) -> (&mut Option<u8>, &mut Option<u8>) {
+            (&mut witness.first_arg_u8, &mut witness.second_arg_u8)
+        }
+
+        fn u16_arguments(witness: &mut AssertsTestWitness) -> (&mut Option<u16>, &mut Option<u16>) {
+            (&mut witness.first_arg_u16, &mut witness.second_arg_u16)
+        }
+
+        fn u32_arguments(witness: &mut AssertsTestWitness) -> (&mut Option<u32>, &mut Option<u32>) {
+            (&mut witness.first_arg_u32, &mut witness.second_arg_u32)
+        }
+
+        fn u64_arguments(witness: &mut AssertsTestWitness) -> (&mut Option<u64>, &mut Option<u64>) {
+            (&mut witness.first_arg_u64, &mut witness.second_arg_u64)
+        }
+
+        fn u128_arguments(
+            witness: &mut AssertsTestWitness,
+        ) -> (&mut Option<u128>, &mut Option<u128>) {
+            (&mut witness.first_arg_u128, &mut witness.second_arg_u128)
+        }
+
+        fn u256_arguments(
+            witness: &mut AssertsTestWitness,
+        ) -> (&mut Option<[u8; 32]>, &mut Option<[u8; 32]>) {
+            (&mut witness.first_arg_u256, &mut witness.second_arg_u256)
+        }
+
+        fn strategy(self) -> BoxedStrategy<AssertsTestWitness> {
+            match (self.function, self.same) {
+                (
+                    AssertNone1 | AssertNone8 | AssertNone16 | AssertNone32 | AssertNone64
+                    | AssertNone128 | AssertNone256,
+                    _,
+                ) => self.strategy_with_none_values(),
+                (_, true) => self.strategy_with_same_values(),
+                (_, false) => self.strategy_with_distinct_values(),
+            }
+        }
+
+        fn strategy_with_none_values(&self) -> BoxedStrategy<AssertsTestWitness> {
+            let function_index = self.function as u8;
+
+            match self.function {
+                AssertNone1 => {
+                    none_strategy(self.none, function_index, arb_u1(), Self::u1_arguments)
+                }
+                AssertNone8 => {
+                    none_strategy(self.none, function_index, arb_u8(), Self::u8_arguments)
+                }
+                AssertNone16 => {
+                    none_strategy(self.none, function_index, arb_u16(), Self::u16_arguments)
+                }
+                AssertNone32 => {
+                    none_strategy(self.none, function_index, arb_u32(), Self::u32_arguments)
+                }
+                AssertNone64 => {
+                    none_strategy(self.none, function_index, arb_u64(), Self::u64_arguments)
+                }
+                AssertNone128 => {
+                    none_strategy(self.none, function_index, arb_u128(), Self::u128_arguments)
+                }
+                AssertNone256 => {
+                    none_strategy(self.none, function_index, arb_u256(), Self::u256_arguments)
+                }
+                _ => unreachable!("assert_eq cases aren't handled"),
+            }
+        }
+
+        fn strategy_with_same_values(&self) -> BoxedStrategy<AssertsTestWitness> {
+            let function_index = self.function as u8;
+
+            match self.function {
+                AssertEq1 => equal_values_strategy(function_index, arb_u1(), Self::u1_arguments),
+                AssertEq8 => equal_values_strategy(function_index, arb_u8(), Self::u8_arguments),
+                AssertEq16 => equal_values_strategy(function_index, arb_u16(), Self::u16_arguments),
+                AssertEq32 => equal_values_strategy(function_index, arb_u32(), Self::u32_arguments),
+                AssertEq64 => equal_values_strategy(function_index, arb_u64(), Self::u64_arguments),
+                AssertEq128 => {
+                    equal_values_strategy(function_index, arb_u128(), Self::u128_arguments)
+                }
+                AssertEq256 => {
+                    equal_values_strategy(function_index, arb_u256(), Self::u256_arguments)
+                }
+                AssertEqBool => {
+                    equal_values_strategy(function_index, arb_bool(), Self::u1_arguments)
+                }
+                _ => unreachable!("assert_none cases aren't handled"),
+            }
+        }
+
+        fn strategy_with_distinct_values(&self) -> BoxedStrategy<AssertsTestWitness> {
+            let function_index = self.function as u8;
+
+            match self.function {
+                AssertEq1 => distinct_values_strategy(function_index, arb_u1(), Self::u1_arguments),
+                AssertEq8 => distinct_values_strategy(function_index, arb_u8(), Self::u8_arguments),
+                AssertEq16 => {
+                    distinct_values_strategy(function_index, arb_u16(), Self::u16_arguments)
+                }
+                AssertEq32 => {
+                    distinct_values_strategy(function_index, arb_u32(), Self::u32_arguments)
+                }
+                AssertEq64 => {
+                    distinct_values_strategy(function_index, arb_u64(), Self::u64_arguments)
+                }
+                AssertEq128 => {
+                    distinct_values_strategy(function_index, arb_u128(), Self::u128_arguments)
+                }
+                AssertEq256 => {
+                    distinct_values_strategy(function_index, arb_u256(), Self::u256_arguments)
+                }
+                AssertEqBool => {
+                    distinct_values_strategy(function_index, arb_bool(), Self::u1_arguments)
+                }
+                _ => unreachable!("assert_none cases aren't handled"),
+            }
+        }
+    }
+
+    struct CaseFuzz {
+        case: Case,
+        builder: AssertsFuzzEngineBuilder,
+        test_name: &'static str,
+        expect: Expect,
+    }
+
+    fn case_fuzz(
+        function: FunctionToTest,
+        builder: AssertsFuzzEngineBuilder,
+        test_name: &'static str,
+    ) -> CaseFuzz {
+        CaseFuzz {
+            case: case(function),
+            builder,
+            test_name,
+            expect: Expect::Ok,
+        }
+    }
+
+    impl CaseFuzz {
+        fn equal(mut self) -> Self {
+            self.case = self.case.equal();
+            self
+        }
+
+        fn none(mut self) -> Self {
+            self.case = self.case.none();
+            self
+        }
+
+        fn expect(mut self, expect: Expect) -> Self {
+            self.expect = expect;
+            self
+        }
+
+        fn build_initial_tx() -> FinalTransaction {
+            let mut tx = FinalTransaction::new();
+            tx.add_input(PartialInput::new(UTXO::default()), RequiredSignature::None);
+            tx
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let strategy = self
+                .case
+                .strategy()
+                .prop_map(|witness| {
+                    let arguments: Arguments = AssertsTestArguments {}.into();
+                    let witness: WitnessValues = witness.into();
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            let strategy =
+                FuzzStrategyBuilder::<AssertsTestArguments, AssertsTestWitness, _>::new()
+                    .with_custom_strategy(strategy)
+                    .build();
+            let transaction_builder =
+                FinalTransactionBuilder::new(CaseFuzz::build_initial_tx(), [PROGRAM_TARGET])?;
+
+            self.builder
+                .build(strategy, transaction_builder)
+                .run_with_check(FuzzExecutionCheck::new(self.test_name, self.expect));
+
+            Ok(())
+        }
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_1_happy_path(fuzz_engine_builder: AssertsFuzzEngineBuilder) -> anyhow::Result<()> {
+        case_fuzz(AssertEq1, fuzz_engine_builder, "assert_eq_1_happy_path")
+            .equal()
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_1_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertEq1, fuzz_engine_builder, "assert_eq_1_unhappy_path")
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_8_happy_path(fuzz_engine_builder: AssertsFuzzEngineBuilder) -> anyhow::Result<()> {
+        case_fuzz(AssertEq8, fuzz_engine_builder, "assert_eq_8_happy_path")
+            .equal()
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_8_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertEq8, fuzz_engine_builder, "assert_eq_8_unhappy_path")
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_16_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertEq16, fuzz_engine_builder, "assert_eq_16_happy_path")
+            .equal()
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_16_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertEq16, fuzz_engine_builder, "assert_eq_16_unhappy_path")
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_32_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertEq32, fuzz_engine_builder, "assert_eq_32_happy_path")
+            .equal()
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_32_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertEq32, fuzz_engine_builder, "assert_eq_32_unhappy_path")
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_64_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertEq64, fuzz_engine_builder, "assert_eq_64_happy_path")
+            .equal()
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_64_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertEq64, fuzz_engine_builder, "assert_eq_64_unhappy_path")
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_128_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertEq128, fuzz_engine_builder, "assert_eq_128_happy_path")
+            .equal()
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_128_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertEq128,
+            fuzz_engine_builder,
+            "assert_eq_128_unhappy_path",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_256_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertEq256, fuzz_engine_builder, "assert_eq_256_happy_path")
+            .equal()
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_256_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertEq256,
+            fuzz_engine_builder,
+            "assert_eq_256_unhappy_path",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_bool_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertEqBool,
+            fuzz_engine_builder,
+            "assert_eq_bool_happy_path",
+        )
+        .equal()
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_eq_bool_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertEqBool,
+            fuzz_engine_builder,
+            "assert_eq_bool_unhappy_path",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_1_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertNone1, fuzz_engine_builder, "assert_none_1_happy_path")
+            .none()
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_1_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone1,
+            fuzz_engine_builder,
+            "assert_none_1_unhappy_path",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_8_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(AssertNone8, fuzz_engine_builder, "assert_none_8_happy_path")
+            .none()
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_8_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone8,
+            fuzz_engine_builder,
+            "assert_none_8_unhappy_path",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_16_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone16,
+            fuzz_engine_builder,
+            "assert_none_16_happy_path",
+        )
+        .none()
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_16_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone16,
+            fuzz_engine_builder,
+            "assert_none_16_unhappy_path",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_32_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone32,
+            fuzz_engine_builder,
+            "assert_none_32_happy_path",
+        )
+        .none()
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_32_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone32,
+            fuzz_engine_builder,
+            "assert_none_32_unhappy_path",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_64_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone64,
+            fuzz_engine_builder,
+            "assert_none_64_happy_path",
+        )
+        .none()
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_64_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone64,
+            fuzz_engine_builder,
+            "assert_none_64_unhappy_path",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_128_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone128,
+            fuzz_engine_builder,
+            "assert_none_128_happy_path",
+        )
+        .none()
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_128_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone128,
+            fuzz_engine_builder,
+            "assert_none_128_unhappy_path",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_256_happy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone256,
+            fuzz_engine_builder,
+            "assert_none_256_happy_path",
+        )
+        .none()
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn assert_none_256_unhappy_path(
+        fuzz_engine_builder: AssertsFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        case_fuzz(
+            AssertNone256,
+            fuzz_engine_builder,
+            "assert_none_256_unhappy_path",
+        )
+        .expect(Expect::AssertFailed)
+        .run()
+    }
 }

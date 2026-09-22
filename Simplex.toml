@@ -29,3 +29,6 @@
 # url = "<rpc url>"
 # username = "<rpc username>"
 # password = "<rpc password>"
+
+# [test.fuzz]
+# cases = 256

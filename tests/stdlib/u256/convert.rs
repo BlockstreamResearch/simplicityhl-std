@@ -24,7 +24,7 @@ enum FunctionToTest {
 }
 
 fn program() -> U256ConvertTestProgram {
-    U256ConvertTestProgram::new(&U256ConvertTestArguments {})
+    U256ConvertTestProgram::new(U256ConvertTestArguments {})
 }
 
 /// One dispatch arm of the contract, plus the witness it reads.
@@ -236,4 +236,354 @@ fn safe_u256_to_u128_overflow(context: simplex::TestContext) -> anyhow::Result<(
         .arg(a.to_big_endian())
         .expect(a.to_big_endian())
         .expecting(&context, Expect::AssertFailed)
+}
+
+mod convert_tests_fuzz {
+    use super::*;
+
+    use crate::common::core::FuzzExecutionCheck;
+    use simplex::fuzz;
+    use simplex::fuzz::FuzzEngineBuilder;
+    use simplex::fuzz::builders::{FinalTransactionBuilder, ProgramTarget};
+    use simplex::fuzz::engine::FuzzStrategyBuilder;
+    use simplex::fuzz::proptest::prelude::any;
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+    use simplex::transaction::{FinalTransaction, PartialInput, RequiredSignature, UTXO};
+
+    const PROGRAM_TARGET: ProgramTarget = ProgramTarget::Input(0);
+    type U256ConvertFuzzEngineBuilder =
+        FuzzEngineBuilder<U256ConvertTestProgram, U256ConvertTestArguments, U256ConvertTestWitness>;
+
+    // (A, Result)
+    type ConvertInputs = (U256, U256);
+
+    fn arb_u256() -> impl Strategy<Value = U256> {
+        any::<[u8; 32]>().prop_map(|bytes| U256::from_big_endian(&bytes))
+    }
+
+    fn arb_u256_in_range(low: U256, high: U256) -> impl Strategy<Value = U256> {
+        assert!(low <= high);
+
+        let range = high - low;
+
+        arb_u256().prop_map(move |value| {
+            if range == U256::MAX {
+                value
+            } else {
+                low + value % (range + U256::one())
+            }
+        })
+    }
+
+    #[inline]
+    fn split_number<T: Clone>(n: T) -> (T, T) {
+        (n.clone(), n)
+    }
+
+    fn u256_duplicated_strategy() -> impl Strategy<Value = ConvertInputs> {
+        arb_u256().prop_map(split_number)
+    }
+
+    fn safe_u256_to_u1_strategy() -> impl Strategy<Value = U256> {
+        any::<bool>().prop_map(|x| U256::from(x as u8))
+    }
+
+    fn safe_u256_to_u8_strategy() -> impl Strategy<Value = U256> {
+        any::<u8>().prop_map(U256::from)
+    }
+
+    fn safe_u256_to_u16_strategy() -> impl Strategy<Value = U256> {
+        any::<u16>().prop_map(U256::from)
+    }
+
+    fn safe_u256_to_u32_strategy() -> impl Strategy<Value = U256> {
+        any::<u32>().prop_map(U256::from)
+    }
+
+    fn safe_u256_to_u64_strategy() -> impl Strategy<Value = U256> {
+        any::<u64>().prop_map(U256::from)
+    }
+
+    fn safe_u256_to_u128_strategy() -> impl Strategy<Value = U256> {
+        any::<u128>().prop_map(U256::from)
+    }
+
+    fn overflow_strategy(max: U256) -> impl Strategy<Value = U256> {
+        arb_u256_in_range(max + U256::one(), U256::MAX)
+    }
+
+    struct CaseFuzz {
+        case: Case,
+        builder: U256ConvertFuzzEngineBuilder,
+        inputs: Option<BoxedStrategy<ConvertInputs>>,
+        test_name: &'static str,
+        expect: Expect,
+    }
+
+    fn case_fuzz(
+        function: FunctionToTest,
+        builder: U256ConvertFuzzEngineBuilder,
+        test_name: &'static str,
+    ) -> CaseFuzz {
+        CaseFuzz {
+            case: case(function),
+            builder,
+            inputs: None,
+            test_name,
+            expect: Expect::Ok,
+        }
+    }
+
+    impl CaseFuzz {
+        fn strategy(mut self, inputs: impl Strategy<Value = ConvertInputs> + 'static) -> Self {
+            self.inputs = Some(inputs.boxed());
+            self
+        }
+
+        fn expect(mut self, expect: Expect) -> Self {
+            self.expect = expect;
+            self
+        }
+
+        fn build_initial_tx() -> FinalTransaction {
+            let mut tx = FinalTransaction::new();
+            tx.add_input(PartialInput::new(UTXO::default()), RequiredSignature::None);
+            tx
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let Case { witness } = self.case;
+            let inputs = self.inputs.expect("a fuzz strategy must be specified");
+
+            let strategy = inputs
+                .prop_map(move |(a, expected)| (a.to_big_endian(), expected.to_big_endian()))
+                .prop_map(move |(a, expected)| {
+                    let arguments: Arguments = U256ConvertTestArguments {}.into();
+                    let witness: WitnessValues = Case {
+                        witness: witness.clone(),
+                    }
+                    .arg(a)
+                    .expect(expected)
+                    .witness
+                    .into();
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            let strategy =
+                FuzzStrategyBuilder::<U256ConvertTestArguments, U256ConvertTestWitness, _>::new()
+                    .with_custom_strategy(strategy)
+                    .build();
+
+            let transaction_builder =
+                FinalTransactionBuilder::new(Self::build_initial_tx(), [PROGRAM_TARGET])?;
+
+            self.builder
+                .build(strategy, transaction_builder)
+                .run_with_check(FuzzExecutionCheck::new(self.test_name, self.expect));
+
+            Ok(())
+        }
+    }
+
+    #[simplex::fuzz]
+    fn u256_into_u8(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = u256_duplicated_strategy();
+
+        case_fuzz(SplitU256IntoU8, fuzz_engine_builder, "u256 split into u8")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn u256_into_u16(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = u256_duplicated_strategy();
+
+        case_fuzz(SplitU256IntoU16, fuzz_engine_builder, "u256 split into u16")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn u256_into_u32(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = u256_duplicated_strategy();
+
+        case_fuzz(SplitU256IntoU32, fuzz_engine_builder, "u256 split into u32")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn u256_into_u64(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = u256_duplicated_strategy();
+
+        case_fuzz(SplitU256IntoU64, fuzz_engine_builder, "u256 split into u64")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn u256_into_u128(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = u256_duplicated_strategy();
+
+        case_fuzz(
+            SplitU256IntoU128,
+            fuzz_engine_builder,
+            "u256 split into u128",
+        )
+        .strategy(strategy)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u1(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = safe_u256_to_u1_strategy().prop_map(split_number);
+
+        case_fuzz(SafeU256ToU1, fuzz_engine_builder, "safe u256 to u1")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u1_overflow(
+        fuzz_engine_builder: U256ConvertFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        let strategy = overflow_strategy(U256::one()).prop_map(split_number);
+
+        case_fuzz(
+            SafeU256ToU1,
+            fuzz_engine_builder,
+            "safe u256 to u1 overflow",
+        )
+        .strategy(strategy)
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u8(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = safe_u256_to_u8_strategy().prop_map(split_number);
+
+        case_fuzz(SafeU256ToU8, fuzz_engine_builder, "safe u256 to u8")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u8_overflow(
+        fuzz_engine_builder: U256ConvertFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        let strategy = overflow_strategy(u8::MAX.into()).prop_map(split_number);
+
+        case_fuzz(
+            SafeU256ToU8,
+            fuzz_engine_builder,
+            "safe u256 to u8 overflow",
+        )
+        .strategy(strategy)
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u16(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = safe_u256_to_u16_strategy().prop_map(split_number);
+
+        case_fuzz(SafeU256ToU16, fuzz_engine_builder, "safe u256 to u16")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u16_overflow(
+        fuzz_engine_builder: U256ConvertFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        let strategy = overflow_strategy(u16::MAX.into()).prop_map(split_number);
+
+        case_fuzz(
+            SafeU256ToU16,
+            fuzz_engine_builder,
+            "safe u256 to u16 overflow",
+        )
+        .strategy(strategy)
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u32(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = safe_u256_to_u32_strategy().prop_map(split_number);
+
+        case_fuzz(SafeU256ToU32, fuzz_engine_builder, "safe u256 to u32")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u32_overflow(
+        fuzz_engine_builder: U256ConvertFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        let strategy = overflow_strategy(u32::MAX.into()).prop_map(split_number);
+
+        case_fuzz(
+            SafeU256ToU32,
+            fuzz_engine_builder,
+            "safe u256 to u32 overflow",
+        )
+        .strategy(strategy)
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u64(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = safe_u256_to_u64_strategy().prop_map(split_number);
+
+        case_fuzz(SafeU256ToU64, fuzz_engine_builder, "safe u256 to u64")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u64_overflow(
+        fuzz_engine_builder: U256ConvertFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        let strategy = overflow_strategy(u64::MAX.into()).prop_map(split_number);
+
+        case_fuzz(
+            SafeU256ToU64,
+            fuzz_engine_builder,
+            "safe u256 to u64 overflow",
+        )
+        .strategy(strategy)
+        .expect(Expect::AssertFailed)
+        .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u128(fuzz_engine_builder: U256ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
+        let strategy = safe_u256_to_u128_strategy().prop_map(split_number);
+
+        case_fuzz(SafeU256ToU128, fuzz_engine_builder, "safe u256 to u128")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u256_to_u128_overflow(
+        fuzz_engine_builder: U256ConvertFuzzEngineBuilder,
+    ) -> anyhow::Result<()> {
+        let strategy = overflow_strategy(u128::MAX.into()).prop_map(split_number);
+
+        case_fuzz(
+            SafeU256ToU128,
+            fuzz_engine_builder,
+            "safe u256 to u128 overflow",
+        )
+        .strategy(strategy)
+        .expect(Expect::AssertFailed)
+        .run()
+    }
 }
