@@ -376,6 +376,7 @@ mod mul_div_tests_fuzz {
         fn run(self) -> anyhow::Result<()> {
             let Case { witness } = self.case;
             let inputs = self.inputs.expect("a fuzz strategy must be specified");
+            let expect_failure = matches!(self.expect, Expect::AssertFailed);
 
             let strategy = inputs
                 .prop_map(move |(a, b, c, expected)| {
@@ -388,13 +389,16 @@ mod mul_div_tests_fuzz {
                 })
                 .prop_map(move |(a, b, c, expected)| {
                     let arguments: Arguments = U256MulDivTestArguments {}.into();
-                    let witness: WitnessValues = Case {
+                    let case = Case {
                         witness: witness.clone(),
                     }
-                    .args(a, b, c)
-                    .expect(expected)
-                    .witness
-                    .into();
+                    .args(a, b, c);
+                    let case = if expect_failure {
+                        case
+                    } else {
+                        case.expect(expected)
+                    };
+                    let witness: WitnessValues = case.witness.into();
 
                     (arguments, witness)
                 })
@@ -474,7 +478,8 @@ mod mul_div_tests_fuzz {
             let b = Just(U256::MAX);
 
             (a, b).prop_flat_map(|(a, b)| {
-                arb_u256_in_range(U256::one(), a).prop_map(move |c| (a, b, c, U256::zero()))
+                arb_u256_in_range(U256::one(), a - U256::one())
+                    .prop_map(move |c| (a, b, c, U256::zero()))
             })
         };
 

@@ -161,16 +161,22 @@ mod mul_div_tests_fuzz {
             self
         }
 
-        fn into_witness(self, witness: U32MulDivTestWitness) -> WitnessValues {
-            Case { witness }
-                .args(
-                    self.first_numerator.expect("no first arg in witness"),
-                    self.second_numerator.expect("no second arg in witness"),
-                    self.divisor.expect("no third arg in witness"),
-                )
-                .expect(self.expected.expect("no expected arg in witness"))
-                .witness
-                .into()
+        fn into_witness(
+            self,
+            witness: U32MulDivTestWitness,
+            expect_failure: bool,
+        ) -> WitnessValues {
+            let case = Case { witness }.args(
+                self.first_numerator.expect("no first arg in witness"),
+                self.second_numerator.expect("no second arg in witness"),
+                self.divisor.expect("no divisor in witness"),
+            );
+            let case = if expect_failure {
+                case
+            } else {
+                case.expect(self.expected.expect("no expected arg in witness"))
+            };
+            case.witness.into()
         }
     }
 
@@ -212,10 +218,12 @@ mod mul_div_tests_fuzz {
         fn run(self) -> anyhow::Result<()> {
             let Case { witness } = self.case;
             let inputs = self.inputs.expect("a fuzz strategy must be specified");
+            let expect_failure = matches!(self.expect, Expect::AssertFailed);
             let strategy = inputs
-                .prop_map(move |(fuzz_case)| {
+                .prop_map(move |fuzz_case| {
                     let arguments: Arguments = U32MulDivTestArguments {}.into();
-                    let witness: WitnessValues = fuzz_case.into_witness(witness.clone());
+                    let witness: WitnessValues =
+                        fuzz_case.into_witness(witness.clone(), expect_failure);
 
                     (arguments, witness)
                 })
@@ -273,12 +281,7 @@ mod mul_div_tests_fuzz {
     #[simplex::fuzz]
     fn mul_div_32_result_overflow(builder: MulDivFuzzEngineBuilder) -> anyhow::Result<()> {
         let strategy = (2u32..=u32::MAX).prop_flat_map(|a| {
-            (1u32..a).prop_map(move |c| {
-                FuzzCase::first_arg(a)
-                    .second_arg(u32::MAX)
-                    .third_arg(c)
-                    .expect(0)
-            })
+            (1u32..a).prop_map(move |c| FuzzCase::first_arg(a).second_arg(u32::MAX).third_arg(c))
         });
 
         case_fuzz(builder, "mul_div_32_result_overflow")

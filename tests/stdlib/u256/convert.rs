@@ -282,7 +282,7 @@ mod convert_tests_fuzz {
     }
 
     fn u256_duplicated_strategy() -> impl Strategy<Value = ConvertInputs> {
-        arb_u256().prop_map(|a| split_number(a))
+        arb_u256().prop_map(split_number)
     }
 
     fn safe_u256_to_u1_strategy() -> impl Strategy<Value = U256> {

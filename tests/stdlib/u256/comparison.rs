@@ -267,7 +267,7 @@ mod comparison_tests_fuzz {
             let a = arb_u256_in_range(U256::zero(), U256::MAX - 1);
 
             a.prop_flat_map(|a| {
-                let b = arb_u256_in_range(a, U256::MAX);
+                let b = arb_u256_in_range(a + U256::one(), U256::MAX);
 
                 b.prop_map(move |b| (a, b, EXPECTED_TRUE))
             })
@@ -293,7 +293,7 @@ mod comparison_tests_fuzz {
             let a = arb_non_zero_u256();
 
             a.prop_flat_map(|a| {
-                let b = arb_u256_in_range(U256::zero(), a);
+                let b = arb_u256_in_range(U256::zero(), a - U256::one());
 
                 b.prop_map(move |b| (a, b, EXPECTED_FALSE))
             })
@@ -310,7 +310,7 @@ mod comparison_tests_fuzz {
             let a = arb_u256_in_range(U256::zero(), U256::MAX - 1);
 
             a.prop_flat_map(|a| {
-                let b = arb_u256_in_range(a, U256::MAX);
+                let b = arb_u256_in_range(a + U256::one(), U256::MAX);
 
                 b.prop_map(move |b| (a, b, EXPECTED_TRUE))
             })
@@ -336,7 +336,7 @@ mod comparison_tests_fuzz {
             let a = arb_non_zero_u256();
 
             a.prop_flat_map(|a| {
-                let b = arb_u256_in_range(U256::zero(), a);
+                let b = arb_u256_in_range(U256::zero(), a - U256::one());
 
                 b.prop_map(move |b| (a, b, EXPECTED_FALSE))
             })

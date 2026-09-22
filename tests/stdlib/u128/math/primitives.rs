@@ -666,18 +666,6 @@ mod primitives_tests_fuzz {
     const EXPECT_BORROW: bool = true;
     const NORMALIZER_U128_DIVISOR: bool = true;
 
-    fn arb_u16() -> impl Strategy<Value = u16> {
-        any::<u16>()
-    }
-
-    fn arb_non_zero_u32() -> impl Strategy<Value = u32> {
-        any::<u32>().prop_filter("u32 should not be zero", |index| *index != 0)
-    }
-
-    fn arb_u32() -> impl Strategy<Value = u32> {
-        any::<u32>()
-    }
-
     fn arb_u64() -> impl Strategy<Value = u64> {
         any::<u64>()
     }
@@ -1195,7 +1183,8 @@ mod primitives_tests_fuzz {
     #[simplex::fuzz]
     fn div_mod_a_less_than_b(builder: Builder) -> anyhow::Result<()> {
         let strategy = {
-            arb_u128().prop_flat_map(|a| (a + 1..=u128::MAX).prop_map(move |b| div_mod_case(a, b)))
+            (0u128..u128::MAX)
+                .prop_flat_map(|a| (a + 1..=u128::MAX).prop_map(move |b| div_mod_case(a, b)))
         };
 
         case_fuzz(DivMod128, builder, "div_mod_a_less_than_b")
@@ -1300,7 +1289,7 @@ mod primitives_tests_fuzz {
     #[simplex::fuzz]
     fn sub_overflow(builder: Builder) -> anyhow::Result<()> {
         let strategy = {
-            arb_u128().prop_map(|a| {
+            (0u128..u128::MAX).prop_map(|a| {
                 FuzzCase::first_argument(a)
                     .second_argument(u128::MAX)
                     .expect(a + 1)

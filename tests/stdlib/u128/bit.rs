@@ -181,7 +181,6 @@ fn right_shift_128_out_of_range(context: simplex::TestContext) -> anyhow::Result
 mod bit_tests_fuzz {
     use super::*;
     use crate::common::core::FuzzExecutionCheck;
-    use primitive_types::U256;
     use simplex::fuzz;
     use simplex::fuzz::FuzzEngineBuilder;
     use simplex::fuzz::builders::{FinalTransactionBuilder, ProgramTarget};
@@ -193,6 +192,8 @@ mod bit_tests_fuzz {
 
     type Builder =
         FuzzEngineBuilder<U128TestBitsProgram, U128TestBitsArguments, U128TestBitsWitness>;
+
+    const EXPECTED_FALSE: bool = false;
 
     fn arb_u8() -> impl Strategy<Value = u8> {
         any::<u8>()
@@ -299,8 +300,12 @@ mod bit_tests_fuzz {
     #[simplex::fuzz]
     fn and(builder: Builder) -> anyhow::Result<()> {
         let strategy = {
-            (arb_u128(), arb_u128())
-                .prop_map(|(a, b)| FuzzCase::first_arg(a).second_arg(b).expect(a & b))
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                FuzzCase::first_arg(a)
+                    .second_arg(b)
+                    .expect(a & b)
+                    .flag(false)
+            })
         };
 
         case_fuzz(And128, builder, "u128 bitwise and")
@@ -311,8 +316,12 @@ mod bit_tests_fuzz {
     #[simplex::fuzz]
     fn or(builder: Builder) -> anyhow::Result<()> {
         let strategy = {
-            (arb_u128(), arb_u128())
-                .prop_map(|(a, b)| FuzzCase::first_arg(a).second_arg(b).expect(a | b))
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                FuzzCase::first_arg(a)
+                    .second_arg(b)
+                    .expect(a | b)
+                    .flag(false)
+            })
         };
 
         case_fuzz(Or128, builder, "u128 bitwise or")
@@ -324,7 +333,7 @@ mod bit_tests_fuzz {
     fn eq(builder: Builder) -> anyhow::Result<()> {
         let strategy = {
             (arb_u128(), arb_u128())
-                .prop_map(|(a, b)| FuzzCase::first_arg(a).second_arg(b).flag(a == b))
+                .prop_map(|(a, b)| FuzzCase::first_arg(a).second_arg(b).flag(a == b).expect(0))
         };
 
         case_fuzz(Eq128, builder, "u128 equality")
@@ -334,8 +343,14 @@ mod bit_tests_fuzz {
 
     #[simplex::fuzz]
     fn eq_same(builder: Builder) -> anyhow::Result<()> {
-        let strategy =
-            { arb_u128().prop_map(|a| FuzzCase::first_arg(a).second_arg(a).flag(EXPECT_EQUAL)) };
+        let strategy = {
+            arb_u128().prop_map(|a| {
+                FuzzCase::first_arg(a)
+                    .second_arg(a)
+                    .expect(0)
+                    .flag(EXPECT_EQUAL)
+            })
+        };
 
         case_fuzz(Eq128, builder, "u128 equality with equal operands")
             .strategy(strategy)
@@ -348,6 +363,7 @@ mod bit_tests_fuzz {
             arb_u128().prop_map(|a| {
                 FuzzCase::first_arg(a)
                     .second_arg(a.wrapping_add(1))
+                    .expect(0)
                     .flag(EXPECT_NOT_EQUAL)
             })
         };
@@ -365,6 +381,7 @@ mod bit_tests_fuzz {
                 FuzzCase::first_arg(shift as u128)
                     .second_arg(value)
                     .expect(expected)
+                    .flag(EXPECTED_FALSE)
             })
         };
 
@@ -381,6 +398,7 @@ mod bit_tests_fuzz {
                 FuzzCase::first_arg(shift as u128)
                     .second_arg(value)
                     .expect(expected)
+                    .flag(EXPECTED_FALSE)
             })
         };
 
@@ -391,8 +409,14 @@ mod bit_tests_fuzz {
 
     #[simplex::fuzz]
     fn left_shift_by_zero(builder: Builder) -> anyhow::Result<()> {
-        let strategy =
-            { arb_u128().prop_map(|value| FuzzCase::first_arg(0).second_arg(value).expect(value)) };
+        let strategy = {
+            arb_u128().prop_map(|value| {
+                FuzzCase::first_arg(0)
+                    .second_arg(value)
+                    .expect(value)
+                    .flag(EXPECTED_FALSE)
+            })
+        };
 
         case_fuzz(LeftShift128, builder, "u128 left shift by zero")
             .strategy(strategy)
@@ -401,8 +425,14 @@ mod bit_tests_fuzz {
 
     #[simplex::fuzz]
     fn right_shift_by_zero(builder: Builder) -> anyhow::Result<()> {
-        let strategy =
-            { arb_u128().prop_map(|value| FuzzCase::first_arg(0).second_arg(value).expect(value)) };
+        let strategy = {
+            arb_u128().prop_map(|value| {
+                FuzzCase::first_arg(0)
+                    .second_arg(value)
+                    .expect(value)
+                    .flag(EXPECTED_FALSE)
+            })
+        };
 
         case_fuzz(RightShift128, builder, "u128 right shift by zero")
             .strategy(strategy)
@@ -416,6 +446,7 @@ mod bit_tests_fuzz {
                 FuzzCase::first_arg(shift as u128)
                     .second_arg(value)
                     .expect(0)
+                    .flag(EXPECTED_FALSE)
             })
         };
 
@@ -431,6 +462,7 @@ mod bit_tests_fuzz {
                 FuzzCase::first_arg(shift as u128)
                     .second_arg(value)
                     .expect(0)
+                    .flag(EXPECTED_FALSE)
             })
         };
 

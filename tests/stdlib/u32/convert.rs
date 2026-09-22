@@ -192,7 +192,7 @@ mod convert_tests_fuzz {
         FuzzEngineBuilder<U32ConvertTestProgram, U32ConvertTestArguments, U32ConvertTestWitness>;
 
     // (first_arg)
-    type ConvertInputs = (u32);
+    type ConvertInputs = u32;
 
     struct FuzzCaseBuilder {
         case: Case,
@@ -265,7 +265,7 @@ mod convert_tests_fuzz {
             let Case { witness } = self.case;
             let inputs = self.inputs.expect("a fuzz strategy must be specified");
             let strategy = inputs
-                .prop_map(move |(a)| {
+                .prop_map(move |a| {
                     let arguments: Arguments = U32ConvertTestArguments {}.into();
                     let witness: WitnessValues = Case {
                         witness: witness.clone(),
@@ -338,7 +338,7 @@ mod convert_tests_fuzz {
     #[simplex::fuzz]
     fn safe_u32_to_u1_overflow(builder: ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
         case_fuzz(SafeU32ToU1, builder, "safe_u32_to_u1_overflow")
-            .strategy((2u32..=u32::MAX))
+            .strategy(2u32..=u32::MAX)
             .expect(Expect::AssertFailed)
             .run()
     }
@@ -353,7 +353,7 @@ mod convert_tests_fuzz {
     #[simplex::fuzz]
     fn safe_u32_to_u8_overflow(builder: ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
         case_fuzz(SafeU32ToU8, builder, "safe_u32_to_u8_overflow")
-            .strategy((u8::MAX as u32 + 1..=u32::MAX))
+            .strategy(u8::MAX as u32 + 1..=u32::MAX)
             .expect(Expect::AssertFailed)
             .run()
     }
@@ -368,7 +368,7 @@ mod convert_tests_fuzz {
     #[simplex::fuzz]
     fn safe_u32_to_u16_overflow(builder: ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
         case_fuzz(SafeU32ToU16, builder, "safe_u32_to_u16_overflow")
-            .strategy((u16::MAX as u32 + 1..=u32::MAX))
+            .strategy(u16::MAX as u32 + 1..=u32::MAX)
             .expect(Expect::AssertFailed)
             .run()
     }

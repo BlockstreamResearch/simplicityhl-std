@@ -225,7 +225,7 @@ mod comparison_tests_fuzz {
             let strategy = self
                 .inputs
                 .expect("a fuzz strategy must be specified")
-                .prop_map(move |(fuzz_case)| {
+                .prop_map(move |fuzz_case| {
                     let arguments: Arguments = U128TestCompareArguments {}.into();
                     let witness: WitnessValues = fuzz_case.into_witness(witness.clone());
                     (arguments, witness)
@@ -298,10 +298,10 @@ mod comparison_tests_fuzz {
     #[simplex::fuzz]
     fn lt_strict(builder: Builder) -> anyhow::Result<()> {
         case_fuzz(Lt128, builder, "u128 strict less than")
-            .strategy(arb_u128().prop_map(|a|
-
-                // TODO: fix (add generated value from range a..)
-                FuzzCase::first_arg(a).second_arg(a+1).expect(EXPECTED_TRUE)))
+            .strategy((0u128..u128::MAX).prop_flat_map(|a| {
+                (a + 1..=u128::MAX)
+                    .prop_map(move |b| FuzzCase::first_arg(a).second_arg(b).expect(EXPECTED_TRUE))
+            }))
             .run()
     }
 
@@ -318,11 +318,9 @@ mod comparison_tests_fuzz {
     #[simplex::fuzz]
     fn lt_greater(builder: Builder) -> anyhow::Result<()> {
         case_fuzz(Lt128, builder, "u128 less than with greater first operand")
-            .strategy(arb_non_zero_u128().prop_map(|value| {
-                // TODO: add correct rando genration lesser than a value
-                FuzzCase::first_arg(value)
-                    .second_arg(value - 1)
-                    .expect(EXPECTED_FALSE)
+            .strategy(arb_non_zero_u128().prop_flat_map(|a| {
+                (0u128..a)
+                    .prop_map(move |b| FuzzCase::first_arg(a).second_arg(b).expect(EXPECTED_FALSE))
             }))
             .run()
     }
@@ -330,23 +328,19 @@ mod comparison_tests_fuzz {
     #[simplex::fuzz]
     fn le_strict_less(builder: Builder) -> anyhow::Result<()> {
         case_fuzz(Le128, builder, "u128 strict less than or equal")
-            .strategy((0..u128::MAX).prop_map(|a|
-
-                // TODO: add generation from a and bigger
-                FuzzCase::first_arg(a).second_arg(a+1).expect(EXPECTED_TRUE)))
+            .strategy((0u128..u128::MAX).prop_flat_map(|a| {
+                (a + 1..=u128::MAX)
+                    .prop_map(move |b| FuzzCase::first_arg(a).second_arg(b).expect(EXPECTED_TRUE))
+            }))
             .run()
     }
 
     #[simplex::fuzz]
     fn le_strict_greater(builder: Builder) -> anyhow::Result<()> {
         case_fuzz(Le128, builder, "u128 strict greater than")
-            .strategy(any::<u128>().prop_map(|value| {
-                let a = value.max(1);
-
-                // TODO: add correct generation values that are less than a
-                FuzzCase::first_arg(a)
-                    .second_arg(a - 1)
-                    .expect(EXPECTED_FALSE)
+            .strategy((1u128..=u128::MAX).prop_flat_map(|a| {
+                (0u128..a)
+                    .prop_map(move |b| FuzzCase::first_arg(a).second_arg(b).expect(EXPECTED_FALSE))
             }))
             .run()
     }

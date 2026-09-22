@@ -154,16 +154,18 @@ mod mul_div_tests_fuzz {
             self
         }
 
-        fn into_witness(self, witness: U8MulDivTestWitness) -> WitnessValues {
-            Case { witness }
-                .args(
-                    self.first_arg.expect("no first arg in witness"),
-                    self.second_arg.expect("no second arg in witness"),
-                    self.denominator.expect("no second arg in witness"),
-                )
-                .expect(self.expected.expect("no expected arg in witness"))
-                .witness
-                .into()
+        fn into_witness(self, witness: U8MulDivTestWitness, expect_failure: bool) -> WitnessValues {
+            let case = Case { witness }.args(
+                self.first_arg.expect("no first arg in witness"),
+                self.second_arg.expect("no second arg in witness"),
+                self.denominator.expect("no denominator in witness"),
+            );
+            let case = if expect_failure {
+                case
+            } else {
+                case.expect(self.expected.expect("no expected arg in witness"))
+            };
+            case.witness.into()
         }
     }
 
@@ -205,10 +207,12 @@ mod mul_div_tests_fuzz {
         fn run(self) -> anyhow::Result<()> {
             let Case { witness } = self.case;
             let inputs = self.inputs.expect("a fuzz strategy must be specified");
+            let expect_failure = matches!(self.expect, Expect::AssertFailed);
             let strategy = inputs
-                .prop_map(move |(fuzz_case)| {
+                .prop_map(move |fuzz_case| {
                     let arguments: Arguments = U8MulDivTestArguments {}.into();
-                    let witness: WitnessValues = fuzz_case.into_witness(witness.clone());
+                    let witness: WitnessValues =
+                        fuzz_case.into_witness(witness.clone(), expect_failure);
 
                     (arguments, witness)
                 })
@@ -269,7 +273,6 @@ mod mul_div_tests_fuzz {
                 FuzzCase::first_numerator(a)
                     .second_numerator(u8::MAX)
                     .denominator(c)
-                    .expect(0)
             })
         });
 

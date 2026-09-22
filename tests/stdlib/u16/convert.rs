@@ -236,7 +236,7 @@ mod convert_tests_fuzz {
             let Case { witness } = self.case;
             let inputs = self.inputs.expect("a fuzz strategy must be specified");
             let strategy = inputs
-                .prop_map(move |(a)| {
+                .prop_map(move |a| {
                     let arguments: Arguments = U16ConvertTestArguments {}.into();
                     let witness: WitnessValues = Case {
                         witness: witness.clone(),
@@ -309,7 +309,7 @@ mod convert_tests_fuzz {
     #[simplex::fuzz]
     fn safe_u16_to_u1_overflow(builder: ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
         case_fuzz(SafeU16ToU1, builder, "safe_u16_to_u1_overflow")
-            .strategy((2u16..=u16::MAX))
+            .strategy(2u16..=u16::MAX)
             .expect(Expect::AssertFailed)
             .run()
     }
@@ -324,7 +324,7 @@ mod convert_tests_fuzz {
     #[simplex::fuzz]
     fn safe_u16_to_u8_overflow(builder: ConvertFuzzEngineBuilder) -> anyhow::Result<()> {
         case_fuzz(SafeU16ToU8, builder, "safe_u16_to_u8_overflow")
-            .strategy((u8::MAX as u16 + 1..=u16::MAX))
+            .strategy(u8::MAX as u16 + 1..=u16::MAX)
             .expect(Expect::AssertFailed)
             .run()
     }

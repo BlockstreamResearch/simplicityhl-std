@@ -95,7 +95,6 @@ fn mul_div_128_result_overflow(context: simplex::TestContext) -> anyhow::Result<
 
     case(MulDiv)
         .args(a, b, c)
-        .expect(0)
         .expecting(&context, Expect::AssertFailed)
 }
 
@@ -164,16 +163,22 @@ mod mul_div_tests_fuzz {
             self
         }
 
-        fn into_witness(self, witness: U128MulDivTestWitness) -> WitnessValues {
-            Case { witness }
-                .args(
-                    self.first_arg.expect("no first arg in witness"),
-                    self.second_arg.expect("no second arg in witness"),
-                    self.divisor.expect("no divisor in witness"),
-                )
-                .expect(self.expected.expect("no expected result in witness"))
-                .witness
-                .into()
+        fn into_witness(
+            self,
+            witness: U128MulDivTestWitness,
+            expect_failure: bool,
+        ) -> WitnessValues {
+            let case = Case { witness }.args(
+                self.first_arg.expect("no first arg in witness"),
+                self.second_arg.expect("no second arg in witness"),
+                self.divisor.expect("no divisor in witness"),
+            );
+            let case = if expect_failure {
+                case
+            } else {
+                case.expect(self.expected.expect("no expected result in witness"))
+            };
+            case.witness.into()
         }
     }
 
@@ -215,11 +220,12 @@ mod mul_div_tests_fuzz {
         fn run(self) -> anyhow::Result<()> {
             let Case { witness } = self.case;
             let inputs = self.inputs.expect("a fuzz strategy must be specified");
+            let expect_failure = matches!(self.expect, Expect::AssertFailed);
 
             let strategy = inputs
                 .prop_map(move |case| {
                     let arguments: Arguments = U128MulDivTestArguments {}.into();
-                    let witness = case.into_witness(witness.clone());
+                    let witness = case.into_witness(witness.clone(), expect_failure);
 
                     (arguments, witness)
                 })
@@ -282,12 +288,7 @@ mod mul_div_tests_fuzz {
     fn result_overflow(builder: Builder) -> anyhow::Result<()> {
         let strategy = {
             (2u128..=u128::MAX).prop_flat_map(|a| {
-                (1..a).prop_map(move |c| {
-                    FuzzCase::first_arg(a)
-                        .second_arg(u128::MAX)
-                        .divisor(c)
-                        .expect(0)
-                })
+                (1..a).prop_map(move |c| FuzzCase::first_arg(a).second_arg(u128::MAX).divisor(c))
             })
         };
 
