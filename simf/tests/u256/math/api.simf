@@ -6,7 +6,7 @@ use crate::lib::u256::math::{
     checked_mul_256,
     safe_mul_256,
     checked_div_256,
-    safe_div_256
+    div_256
 };
 use crate::lib::u256::comparison::{gt_256, ge_256};
 use crate::lib::asserts::assert_eq_256;
@@ -74,7 +74,7 @@ fn main() {
     };
     match is_selected(7, fn_idx) {
         true => {
-            assert_eq_256(safe_div_256(a, b), unwrap(expected));
+            assert_eq_256(div_256(a, b), unwrap(expected));
         },
         false => (),
     };
