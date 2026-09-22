@@ -340,14 +340,14 @@
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "Option<u8>",
-    "description": "Subtract the second `u8` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u8`."
+    "description": "Subtract the second `u8` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u8`."
   },
   {
     "simplicityhl_name": "safe_sub_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "u8",
-    "description": "Subtract the second `u8` value from the first.\n\n## Panics\nPanics if the result would underflow `u8`."
+    "description": "Subtract the second `u8` value from the first.\n\n## Panics\nPanics if the result would overflow `u8`."
   },
   {
     "simplicityhl_name": "checked_mul_8",
@@ -466,14 +466,14 @@
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "Option<u16>",
-    "description": "Subtract the second `u16` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u16`."
+    "description": "Subtract the second `u16` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u16`."
   },
   {
     "simplicityhl_name": "safe_sub_16",
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "u16",
-    "description": "Subtract the second `u16` value from the first.\n\n## Panics\nPanics if the result would underflow `u16`."
+    "description": "Subtract the second `u16` value from the first.\n\n## Panics\nPanics if the result would overflow `u16`."
   },
   {
     "simplicityhl_name": "checked_mul_16",
@@ -592,14 +592,14 @@
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "Option<u32>",
-    "description": "Subtract the second `u32` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u32`."
+    "description": "Subtract the second `u32` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u32`."
   },
   {
     "simplicityhl_name": "safe_sub_32",
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "u32",
-    "description": "Subtract the second `u32` value from the first.\n\n## Panics\nPanics if the result would underflow `u32`."
+    "description": "Subtract the second `u32` value from the first.\n\n## Panics\nPanics if the result would overflow `u32`."
   },
   {
     "simplicityhl_name": "checked_mul_32",
@@ -725,14 +725,14 @@
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "Option<u64>",
-    "description": "Subtract the second `u64` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u64`."
+    "description": "Subtract the second `u64` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u64`."
   },
   {
     "simplicityhl_name": "safe_sub_64",
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "u64",
-    "description": "Subtract the second `u64` value from the first.\n\n## Panics\nPanics if the result would underflow `u64`."
+    "description": "Subtract the second `u64` value from the first.\n\n## Panics\nPanics if the result would overflow `u64`."
   },
   {
     "simplicityhl_name": "checked_mul_64",
@@ -886,14 +886,14 @@
     "section": "`u128` arithmetic",
     "input_type": "u128, u128",
     "output_type": "Option<u128>",
-    "description": "Subtract the second `u128` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u128`."
+    "description": "Subtract the second `u128` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u128`."
   },
   {
     "simplicityhl_name": "safe_sub_128",
     "section": "`u128` arithmetic",
     "input_type": "u128, u128",
     "output_type": "u128",
-    "description": "Subtract the second `u128` value from the first.\n\n## Panics\nPanics if the result would underflow `u128`."
+    "description": "Subtract the second `u128` value from the first.\n\n## Panics\nPanics if the result would overflow `u128`."
   },
   {
     "simplicityhl_name": "mul_128",
@@ -1173,14 +1173,14 @@
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
     "output_type": "Option<u256>",
-    "description": "Subtract the second `u256` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u256`."
+    "description": "Subtract the second `u256` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u256`."
   },
   {
     "simplicityhl_name": "safe_sub_256",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
     "output_type": "u256",
-    "description": "Subtract the second `u256` value from the first.\n\n## Panics\nPanics if the result would underflow `u256`."
+    "description": "Subtract the second `u256` value from the first.\n\n## Panics\nPanics if the result would overflow `u256`."
   },
   {
     "simplicityhl_name": "mul_256",
@@ -1274,11 +1274,11 @@
     "description": "Divide the first `u256` value by the second, returning the quotient.\n\n## Panics\nPanics if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_256",
+    "simplicityhl_name": "checked_div_256",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
-    "output_type": "u256",
-    "description": "Divide the first `u256` value by the second.\n\n## Panics\nPanics if the divisor is zero."
+    "output_type": "Option<u256>",
+    "description": "Divide the first `u256` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
     "simplicityhl_name": "mul_div_256",

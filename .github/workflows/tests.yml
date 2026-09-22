@@ -61,4 +61,4 @@ jobs:
 
       - name: Test
         run: |
-          simplex test --test-threads 4
+          simplex test --test-threads 4 -v

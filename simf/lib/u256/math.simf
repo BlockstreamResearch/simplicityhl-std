@@ -463,7 +463,7 @@ pub fn div_mod_256(a: u256, b: u256) -> (u256, u256) {
                     match eq_128(a_high, b_high) {
                         true => {
                             // safe: !lt_256(a, b) and a_high == b_high, so a_low >= b_low,
-                            // and the subtraction can not underflow
+                            // and the subtraction can not overflow
                             let (_, diff): (bool, u128) = sub_128(a_low, b_low);
                             (1, u128_to_u256(diff))
                         },

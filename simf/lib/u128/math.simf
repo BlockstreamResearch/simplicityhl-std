@@ -351,7 +351,7 @@ pub fn div_mod_128(a: u128, b: u128) -> (u128, u128) {
                     match jet::eq_64(a_high, b_high) {
                         true => {
                             // safe: !lt_128(a, b) and a_high == b_high, so a_low >= b_low,
-                            // and the subtraction can not underflow
+                            // and the subtraction can not overflow
                             let (_, diff): (bool, u64) = jet::subtract_64(a_low, b_low);
                             (1, u64_to_u128(diff))
                         },
