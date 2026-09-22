@@ -396,7 +396,7 @@
     "section": "`u8` arithmetic",
     "input_type": "u8, u8, u8",
     "output_type": "u8",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u8."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u8 or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u8_to_u16",
@@ -522,7 +522,7 @@
     "section": "`u16` arithmetic",
     "input_type": "u16, u16, u16",
     "output_type": "u16",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u16."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u16 or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u16_to_u32",
@@ -648,7 +648,7 @@
     "section": "`u32` arithmetic",
     "input_type": "u32, u32, u32",
     "output_type": "u32",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u32."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u32 or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u32_to_u64",
@@ -781,7 +781,7 @@
     "section": "`u64` arithmetic",
     "input_type": "u64, u64, u64",
     "output_type": "u64",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u64."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u64 or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u64_to_u128",
@@ -945,13 +945,6 @@
     "description": "Divide the first `u128` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "u128",
-    "description": "Divide the first `u128` value by the second.\n\n## Panics\nPanics if the divisor is zero."
-  },
-  {
     "simplicityhl_name": "full_add_128",
     "section": "`u128` arithmetic",
     "input_type": "bool, u128, u128",
@@ -991,7 +984,7 @@
     "section": "`u128` arithmetic",
     "input_type": "u128, u128, u128",
     "output_type": "u128",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u128."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u128 or if the denominator is zero."
   },
   {
     "simplicityhl_name": "and_128",
@@ -1281,13 +1274,6 @@
     "description": "Divide the first `u256` value by the second, returning the quotient.\n\n## Panics\nPanics if the divisor is zero."
   },
   {
-    "simplicityhl_name": "checked_div_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "Option<u256>",
-    "description": "Divide the first `u256` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
-  },
-  {
     "simplicityhl_name": "safe_div_256",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
@@ -1299,7 +1285,7 @@
     "section": "`u256` arithmetic",
     "input_type": "u256, u256, u256",
     "output_type": "u256",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u256."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u256 or if the denominator is zero."
   },
   {
     "simplicityhl_name": "and_256",
