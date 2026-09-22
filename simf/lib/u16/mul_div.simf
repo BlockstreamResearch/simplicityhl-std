@@ -1,9 +1,12 @@
+use crate::lib::binary::not;
 use crate::lib::u16::convert::u16_to_u32;
 use crate::lib::u32::convert::safe_u32_to_u16;
 
 /// Calculates `floor(a * b / denominator)` with full precision.
-/// Panics if the result overflows a u16
+/// Panics if the result overflows a u16 or if the denominator is zero
 pub fn mul_div_16(a: u16, b: u16, denominator: u16) -> u16 {
+    assert!(not(jet::is_zero_16(denominator)));
+
     let denominator_32: u32 = u16_to_u32(denominator);
 
     let result_32: u32 = jet::divide_32(jet::multiply_16(a, b), denominator_32);
