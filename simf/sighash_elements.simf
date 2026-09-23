@@ -1,0 +1,130 @@
+
+/// sha256("SimplicityHL/sighash/v1/all")
+fn tag_all() -> u256 {
+    0x0e8e05b1734bb78560eec1e2153340c5da8a5d7dc936253996d70aeacc26923a
+}
+
+/// sha256("SimplicityHL/sighash/v1/none")
+fn tag_none() -> u256 {
+    0x23ec67ac4f3c0762d9f8b5966a067d1f871d3068fb23325022ea1c6545eb52ea
+}
+
+/// sha256("SimplicityHL/sighash/v1/single")
+fn tag_single() -> u256 {
+    0x1d20b67e40936bfa4472f96707752a4694bff7f699cd2efbc27d10bfa8ae97ed
+}
+
+/// sha256("SimplicityHL/sighash/v1/all_anyonecanpay")
+fn tag_all_anyonecanpay() -> u256 {
+    0x7b8e176217cf4be9d5ade17ac856ebfad72b2be99fc3199db092b08642bd4333
+}
+
+/// sha256("SimplicityHL/sighash/v1/none_anyonecanpay")
+fn tag_none_anyonecanpay() -> u256 {
+    0xde3aea875d6db910ca2ce189cda1d67c7e1ceacde2f36fd95cb52aa17de7f23b
+}
+
+/// sha256("SimplicityHL/sighash/v1/single_anyonecanpay")
+fn tag_single_anyonecanpay() -> u256 {
+    0xac1b092763ce7c385be49d56642802f8b21ddd81deeca183f894f52879b9a981
+}
+
+/// Start a mode's hash, seeded with its tag twice (BIP-340 tagged-hash style).
+fn mode_ctx(tag: u256) -> Ctx8 {
+    let ctx: Ctx8 = jet::sha_256_ctx_8_init();
+    let ctx: Ctx8 = jet::sha_256_ctx_8_add_32(ctx, tag);
+    jet::sha_256_ctx_8_add_32(ctx, tag)
+}
+
+/// nVersion and nLockTime, committed to by every mode — as in BIP-341, where both appear in
+/// the message regardless of the flag.
+fn add_common(ctx: Ctx8) -> Ctx8 {
+    let ctx: Ctx8 = jet::sha_256_ctx_8_add_4(ctx, jet::version());
+    jet::sha_256_ctx_8_add_4(ctx, jet::tx_lock_time())
+}
+
+/// Every input: outpoints, sequences, and the UTXOs they spend (values, assets, scripts).
+/// The non-ANYONECANPAY case — no input may be added, removed or reordered after signing.
+fn add_all_inputs(ctx: Ctx8) -> Ctx8 {
+    let ctx: Ctx8 = jet::sha_256_ctx_8_add_32(ctx, jet::inputs_hash());
+    jet::sha_256_ctx_8_add_32(ctx, jet::input_utxos_hash())
+}
+
+/// This input alone. The ANYONECANPAY case — others may be added freely afterwards, which is
+/// what lets a fee input be attached to a signature made months earlier.
+fn add_current_input(ctx: Ctx8) -> Ctx8 {
+    let i: u32 = jet::current_index();
+    let ctx: Ctx8 = match jet::input_hash(i) {
+        Some(h: u256) => jet::sha_256_ctx_8_add_32(ctx, h),
+        None => panic!(),
+    };
+    match jet::input_utxo_hash(i) {
+        Some(h: u256) => jet::sha_256_ctx_8_add_32(ctx, h),
+        None => panic!(),
+    }
+}
+
+/// Every output. On Elements this covers assets, amounts, nonces and the range and surjection
+/// proofs as well as the scripts.
+fn add_all_outputs(ctx: Ctx8) -> Ctx8 {
+    jet::sha_256_ctx_8_add_32(ctx, jet::outputs_hash())
+}
+
+/// The output at this input's index — SIGHASH_SINGLE's pairing rule. Aborts when there is no
+/// such output, rather than signing a fixed digest the way legacy Bitcoin does.
+fn add_current_output(ctx: Ctx8) -> Ctx8 {
+    match jet::output_hash(jet::current_index()) {
+        Some(h: u256) => jet::sha_256_ctx_8_add_32(ctx, h),
+        None => panic!(),
+    }
+}
+
+/// Close a mode: bind the transaction digest to this chain, this tapleaf, and this input's
+/// position. Mirrors the outer structure of `jet::sig_all_hash`.
+///
+/// `genesis_block_hash` is the Elements-only part — it stops a signature made for one Elements
+/// chain from being replayed on another. The Bitcoin edition of this module omits it, because
+/// Bitcoin's own sighash does not commit to a genesis hash either.
+fn finish(ctx: Ctx8) -> u256 {
+    let tx: u256 = jet::sha_256_ctx_8_finalize(ctx);
+    let outer: Ctx8 = jet::sha_256_ctx_8_init();
+    let outer: Ctx8 = jet::sha_256_ctx_8_add_32(outer, jet::genesis_block_hash());
+    let outer: Ctx8 = jet::sha_256_ctx_8_add_32(outer, tx);
+    let outer: Ctx8 = jet::sha_256_ctx_8_add_32(outer, jet::tap_env_hash());
+    let outer: Ctx8 = jet::sha_256_ctx_8_add_4(outer, jet::current_index());
+    jet::sha_256_ctx_8_finalize(outer)
+}
+
+/// All inputs, all outputs. The equivalent of `jet::sig_all_hash` — prefer that jet, which is
+/// cheaper; this exists so all six modes read the same way.
+pub fn sighash_all() -> u256 {
+    finish(add_all_outputs(add_all_inputs(add_common(mode_ctx(tag_all())))))
+}
+
+/// All inputs, no outputs. Authorises spending this input into any transaction with these
+/// inputs. Rarely what you want on its own.
+pub fn sighash_none() -> u256 {
+    finish(add_all_inputs(add_common(mode_ctx(tag_none()))))
+}
+
+/// All inputs, and only the output at this input's index.
+pub fn sighash_single() -> u256 {
+    finish(add_current_output(add_all_inputs(add_common(mode_ctx(tag_single())))))
+}
+
+/// This input only, all outputs. The fee-attachment mode: destinations are fixed, but anyone
+/// may add inputs
+pub fn sighash_all_anyonecanpay() -> u256 {
+    finish(add_all_outputs(add_current_input(add_common(mode_ctx(tag_all_anyonecanpay())))))
+}
+
+/// This input only, no outputs. A blank cheque for this input.
+pub fn sighash_none_anyonecanpay() -> u256 {
+    finish(add_current_input(add_common(mode_ctx(tag_none_anyonecanpay()))))
+}
+
+/// This input only, and only the output at its index. The offer primitive: "I put in this
+/// input and I want that output; build whatever else you like around it."
+pub fn sighash_single_anyonecanpay() -> u256 {
+    finish(add_current_output(add_current_input(add_common(mode_ctx(tag_single_anyonecanpay())))))
+}

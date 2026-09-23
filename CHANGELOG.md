@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Add `sighash_elements` module with the six sighash modes (`ALL`, `NONE`, `SINGLE`, and their `ANYONECANPAY` variants).
+
 ## [0.0.1]
 
 The initial release with checked arithmetic operations for `u8`, `u16`, `u32`, `u64`, and `u128`; 
