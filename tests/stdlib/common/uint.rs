@@ -2,12 +2,15 @@
 // part of it, so per-crate dead-code analysis would warn about the rest.
 #![allow(dead_code)]
 
+use std::any::TypeId;
 use std::ops::{Add, Div, Mul, Sub};
 
 use rand::Rng;
 use rand::distributions::uniform::SampleUniform;
 
 use simplex::program::{Program, WitnessTrait};
+
+use crate::common::u256_wrapper::U256Wrapper;
 
 use super::core::{Expect, run};
 
@@ -244,14 +247,24 @@ pub fn safe_div_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::R
     )
 }
 
-pub fn safe_div_by_zero<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
+pub fn safe_div_by_zero<T: TestUint + 'static>(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
+
+    let expect = if TypeId::of::<T>() == TypeId::of::<u128>()
+        || TypeId::of::<T>() == TypeId::of::<U256Wrapper>()
+    {
+        Expect::AssertFailed
+    } else {
+        Expect::PrunedBranch
+    };
 
     run(
         &context,
         T::program(),
         T::witness(op(CommonOp::SafeDiv), a, T::ZERO, None),
-        Expect::PrunedBranch,
+        expect,
     )
 }
 

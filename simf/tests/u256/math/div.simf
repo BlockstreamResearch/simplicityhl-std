@@ -3,8 +3,7 @@ use crate::lib::u256::math::{
     div_mod_256_64,
     algorithm_d_256_128,
     div_mod_256_128,
-    div_mod_256,
-    div_256
+    div_mod_256
 };
 use crate::lib::u256::convert::split_u256_into_u64;
 use crate::lib::asserts::{assert_eq_128, assert_eq_256};
@@ -78,13 +77,6 @@ fn main() {
 
             assert_eq_256(q, unwrap(expected));
             assert_eq_256(r, second_expected);
-        },
-        false => (),
-    };
-
-    match is_selected(5, fn_idx) {
-        true => {
-            assert_eq_256(div_256(a, b), unwrap(expected));
         },
         false => (),
     };

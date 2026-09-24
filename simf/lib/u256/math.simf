@@ -296,6 +296,7 @@ fn normalize_to_threshold_256_127(a: u256, b: u256) -> (u128, u256, u256) {
 
 /// Divides the 256-bit integer by the 64-bit integer,
 /// returns a tuple of the u256 quotient and the u64 remainder
+/// Panics if the divisor is zero
 pub fn div_mod_256_64(dividend: u256, divisor: u64) -> (u256, u64) {
     let (u3, u2, u1, u0): (u64, u64, u64, u64) = split_u256_into_u64(dividend);
 
@@ -374,6 +375,7 @@ pub fn algorithm_d_256_128(dividend: u256, divisor: u128) -> (u256, u128) {
 
 /// Divides the 256-bit integer by the 128-bit integer,
 /// returns a tuple of the u256 quotient and the u128 remainder
+/// Panics if the divisor is zero 
 pub fn div_mod_256_128(dividend: u256, divisor: u128) -> (u256, u128) {
     let (divisor_high, divisor_low): (u64, u64) = split_u128_into_u64(divisor);
 
@@ -441,11 +443,14 @@ fn algorithm_d_256_256(dividend: u256, divisor: u256) -> (u128, u256) {
 
 /// Divides the first integer by the second integer,
 /// returns the quotient and the remainder
+/// Panics if the divisor is zero
 pub fn div_mod_256(a: u256, b: u256) -> (u256, u256) {
+    assert!(not(is_zero_256(b)));
+
     let (a_high, a_low): (u128, u128) = split_u256_into_u128(a);
     let (b_high, b_low): (u128, u128) = split_u256_into_u128(b);
 
-    match or(is_zero_256(b), lt_256(a, b)) {
+    match lt_256(a, b) {
         true => (0, a),
         false => {
             match and(is_zero_128(a_high), is_zero_128(b_high)) {
@@ -458,7 +463,7 @@ pub fn div_mod_256(a: u256, b: u256) -> (u256, u256) {
                     match eq_128(a_high, b_high) {
                         true => {
                             // safe: !lt_256(a, b) and a_high == b_high, so a_low >= b_low,
-                            // and the subtraction can not underflow
+                            // and the subtraction can not overflow
                             let (_, diff): (bool, u128) = sub_128(a_low, b_low);
                             (1, u128_to_u256(diff))
                         },
@@ -480,21 +485,17 @@ pub fn div_mod_256(a: u256, b: u256) -> (u256, u256) {
 }
 
 /// Divide the first integer by the second integer, returns the quotient
+/// Panics if the divisor is zero
 pub fn div_256(a: u256, b: u256) -> u256 {
     let (q, _): (u256, u256) = div_mod_256(a, b);
 
     q
 }
 
-/// Returns the quotient of two u256 values wrapped in Some, or None if the result overflows u256
+/// Returns the quotient of two u256 values wrapped in Some, or None if b is zero
 pub fn checked_div_256(a: u256, b: u256) -> Option<u256> {
     match is_zero_256(b) {
         true => None,
         false => Some(div_256(a, b)),
     }
-}
-
-/// Returns the quotient of two u256 values, panics if the result overflows u256
-pub fn safe_div_256(a: u256, b: u256) -> u256 {
-    unwrap(checked_div_256(a, b))
 }

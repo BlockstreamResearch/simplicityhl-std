@@ -9,8 +9,7 @@ use crate::lib::u128::math::{
     calculate_normalizer_base_64,
     estimate_quotient_digit_base_64,
     div_mod_128_64,
-    div_mod_128,
-    div_128
+    div_mod_128
 };
 use crate::lib::u128::bit::eq_128;
 
@@ -140,13 +139,6 @@ fn main() {
 
             assert!(eq_128(q, unwrap(expected)));
             assert!(eq_128(r, second_expected));
-        },
-        false => (),
-    };
-
-    match is_selected(11, fn_idx) {
-        true => {
-            assert!(eq_128(div_128(a, b), unwrap(expected)));
         },
         false => (),
     };

@@ -6,7 +6,7 @@ use crate::lib::u128::math::{
     checked_mul_128,
     safe_mul_128,
     checked_div_128,
-    safe_div_128
+    div_128
 };
 use crate::lib::u128::comparison::{gt_128, ge_128};
 use crate::lib::asserts::assert_eq_128;
@@ -74,7 +74,7 @@ fn main() {
     };
     match is_selected(7, fn_idx) {
         true => {
-            assert_eq_128(safe_div_128(a, b), unwrap(expected));
+            assert_eq_128(div_128(a, b), unwrap(expected));
         },
         false => (),
     };
