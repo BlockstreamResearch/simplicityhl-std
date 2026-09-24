@@ -45,7 +45,7 @@ pub fn safe_mul_64(a: u64, b: u64) -> u64 {
     unwrap(checked_mul_64(a, b))
 }
 
-/// Returns the quotient of two u64 values wrapped in Some, or None if the result overflows u64
+/// Returns the quotient of two u64 values wrapped in Some, or None if b is zero
 pub fn checked_div_64(a: u64, b: u64) -> Option<u64> {
     match jet::is_zero_64(b) {
         true => None,

@@ -492,7 +492,7 @@ pub fn div_256(a: u256, b: u256) -> u256 {
     q
 }
 
-/// Returns the quotient of two u256 values wrapped in Some, or None if the result overflows u256
+/// Returns the quotient of two u256 values wrapped in Some, or None if b is zero
 pub fn checked_div_256(a: u256, b: u256) -> Option<u256> {
     match is_zero_256(b) {
         true => None,

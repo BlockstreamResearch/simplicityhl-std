@@ -381,7 +381,7 @@ pub fn div_128(a: u128, b: u128) -> u128 {
     q
 }
 
-/// Returns the quotient of two u128 values wrapped in Some, or None if the result overflows u128
+/// Returns the quotient of two u128 values wrapped in Some, or None if b is zero
 pub fn checked_div_128(a: u128, b: u128) -> Option<u128> {
     match is_zero_128(b) {
         true => None,
