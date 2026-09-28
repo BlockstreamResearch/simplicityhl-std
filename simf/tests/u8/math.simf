@@ -6,7 +6,7 @@ use crate::lib::u8::math::{
     checked_mul_8,
     safe_mul_8,
     checked_div_8,
-    safe_div_8,
+    div_8,
     gt_8,
     ge_8
 };
@@ -72,7 +72,7 @@ fn main() {
     };
     match is_selected(7, fn_idx) {
         true => {
-            assert!(jet::eq_8(safe_div_8(a, b), unwrap(expected)));
+            assert!(jet::eq_8(div_8(a, b), unwrap(expected)));
         },
         false => (),
     };

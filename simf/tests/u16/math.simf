@@ -6,7 +6,7 @@ use crate::lib::u16::math::{
     checked_mul_16,
     safe_mul_16,
     checked_div_16,
-    safe_div_16,
+    div_16,
     gt_16,
     ge_16
 };
@@ -72,7 +72,7 @@ fn main() {
     };
     match is_selected(7, fn_idx) {
         true => {
-            assert!(jet::eq_16(safe_div_16(a, b), unwrap(expected)));
+            assert!(jet::eq_16(div_16(a, b), unwrap(expected)));
         },
         false => (),
     };

@@ -371,7 +371,7 @@
     "description": "Divide the first `u8` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_8",
+    "simplicityhl_name": "div_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "u8",
@@ -497,7 +497,7 @@
     "description": "Divide the first `u16` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_16",
+    "simplicityhl_name": "div_16",
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "u16",
@@ -623,7 +623,7 @@
     "description": "Divide the first `u32` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_32",
+    "simplicityhl_name": "div_32",
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "u32",
@@ -756,7 +756,7 @@
     "description": "Divide the first `u64` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_64",
+    "simplicityhl_name": "div_64",
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "u64",

@@ -25,7 +25,7 @@ pub enum CommonOp {
     CheckedMul,
     SafeMul,
     CheckedDiv,
-    SafeDiv,
+    Div,
     Gt,
     Ge,
 }
@@ -235,21 +235,19 @@ pub fn checked_div_by_zero<T: TestUint>(context: simplex::TestContext) -> anyhow
     )
 }
 
-pub fn safe_div_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
+pub fn div_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
     let b = rand::thread_rng().gen_range(T::ONE..=T::MAX);
 
     run(
         &context,
         T::program(),
-        T::witness(op(CommonOp::SafeDiv), a, b, Some(a / b)),
+        T::witness(op(CommonOp::Div), a, b, Some(a / b)),
         Expect::Ok,
     )
 }
 
-pub fn safe_div_by_zero<T: TestUint + 'static>(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+pub fn div_by_zero<T: TestUint + 'static>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
 
     let expect = if TypeId::of::<T>() == TypeId::of::<u128>()
@@ -263,7 +261,7 @@ pub fn safe_div_by_zero<T: TestUint + 'static>(
     run(
         &context,
         T::program(),
-        T::witness(op(CommonOp::SafeDiv), a, T::ZERO, None),
+        T::witness(op(CommonOp::Div), a, T::ZERO, None),
         expect,
     )
 }
@@ -378,7 +376,7 @@ macro_rules! uint_tests {
             checked_mul_fitting checked_mul_overflow
             safe_mul_fitting    safe_mul_overflow
             checked_div_fitting checked_div_by_zero
-            safe_div_fitting    safe_div_by_zero
+            div_fitting         div_by_zero
             gt_greater          gt_equal
             gt_less             ge_greater
             ge_equal            ge_less
