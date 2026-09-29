@@ -164,7 +164,7 @@ fn mul_div_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> 
     case(MulDiv)
         .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
         .expect([0; 32])
-        .run(&context)
+        .expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]

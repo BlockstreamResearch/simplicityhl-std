@@ -16,8 +16,8 @@ enum FunctionToTest {
     AlgorithmD256_128,
     DivMod256_128,
     DivMod256,
-    Div256,
 }
+// div_256 is already tested through safe_div_fitting and safe_div_by_zero in api.rs
 
 fn program() -> U256TestDivProgram {
     U256TestDivProgram::new(&U256TestDivArguments {})
@@ -176,7 +176,7 @@ fn div_mod_256_64(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn div_mod_256_64_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_64_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = [0; 32];
 
@@ -217,7 +217,7 @@ fn algorithm_d_256_128_fail_b_fits_into_u64(context: simplex::TestContext) -> an
 }
 
 #[simplex::test]
-fn algorithm_d_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn algorithm_d_256_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = [0; 32];
 
@@ -272,7 +272,7 @@ fn div_mod_256_128_b_fits_into_u64(context: simplex::TestContext) -> anyhow::Res
 }
 
 #[simplex::test]
-fn div_mod_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = [0; 32];
 
@@ -430,24 +430,12 @@ fn div_mod_256_edge_case(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn div_256(context: simplex::TestContext) -> anyhow::Result<()> {
-    let a = generate_u256(U256::zero(), U256::MAX);
-    let b = generate_u256(U256::one(), U256::MAX);
-    let result = (a / b).to_big_endian();
-
-    case(Div256)
-        .args(a.to_big_endian(), b.to_big_endian())
-        .expect(result)
-        .run(&context)
-}
-
-#[simplex::test]
-fn div_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX);
     let b = [0; 32];
 
-    case(Div256)
+    case(DivMod256)
         .args(a.to_big_endian(), b)
         .expect([0; 32])
-        .run(&context)
+        .expecting(&context, Expect::AssertFailed)
 }

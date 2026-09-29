@@ -128,7 +128,7 @@ fn mul_and_sub_128(q: u128, u2: u128, u1: u128, u0: u128, v: u256) -> (u128, u12
 /// Divides a 512-bit integer by a 256-bit integer and returns a `u256` quotient.
 /// Implements Algorithm D by Donald Knuth.
 /// Requires the upper half of the divisor to be non-zero (`divisor >= 2^128`)
-/// and the quotient to fit into `u256`.
+/// and the quotient to fit into `u256`
 fn algorithm_d_512_256(dividend_high: u256, dividend_low: u256, divisor: u256) -> u256 {
     let (
         _,
@@ -152,56 +152,50 @@ fn algorithm_d_512_256(dividend_high: u256, dividend_low: u256, divisor: u256) -
 }
 
 /// Calculates `floor(a * b / denominator)` with full precision.
-/// Panics if the result overflows a u256
+/// Panics if the result overflows a u256 or if the denominator is zero
 pub fn mul_div_256(a: u256, b: u256, denominator: u256) -> u256 {
-    match is_zero_256(denominator) {
-        true => 0,
+    assert!(not(is_zero_256(denominator)));
+
+    let (result_high, result_low): (u256, u256) = mul_256(a, b);
+
+    match is_zero_256(result_high) {
+        true => div_256(result_low, denominator),
         false => {
-            let (result_high, result_low): (u256, u256) = mul_256(a, b);
+            // if result_high >= denominator, result will overflow u256
+            assert!(lt_256(result_high, denominator));
 
-            match is_zero_256(result_high) {
-                true => div_256(result_low, denominator),
-                false => {
-                    // if result_high >= denominator, result will overflow u256
-                    assert!(lt_256(result_high, denominator));
+            let (denom_high, denom_low): (u128, u128) = split_u256_into_u128(denominator);
 
-                    let (denom_high, denom_low): (u128, u128) = split_u256_into_u128(denominator);
+            match is_zero_128(denom_high) {
+                true => {
+                    // result_high < denominator, denominator fits into u128, so result_high fits too.
+                    // split_u256_into_u128 is used instead of safe_u256_to_u128 to avoid the unnecessary check
+                    let (_, result_2): (u128, u128) = split_u256_into_u128(result_high);
+                    let (result_1, result_0): (u128, u128) = split_u256_into_u128(result_low);
 
-                    match is_zero_128(denom_high) {
-                        true => {
-                            // result_high < denominator, denominator fits into u128, so result_high fits too.
-                            // split_u256_into_u128 is used instead of safe_u256_to_u128 to avoid the unnecessary check
-                            let (_, result_2): (u128, u128) = split_u256_into_u128(result_high);
-                            let (
-                                result_1,
-                                result_0
-                            ): (u128, u128) = split_u256_into_u128(result_low);
+                    // result_high < denominator, so result_2 < denom_low and q1 fits into u128
+                    let (
+                        q1,
+                        r
+                    ): (u256, u128) = div_mod_256_128(
+                        <(u128, u128)>::into((result_2, result_1)),
+                        denom_low
+                    );
+                    let (_, q1): (u128, u128) = split_u256_into_u128(q1);
 
-                            // result_high < denominator, so result_2 < denom_low and q1 fits into u128
-                            let (
-                                q1,
-                                r
-                            ): (u256, u128) = div_mod_256_128(
-                                <(u128, u128)>::into((result_2, result_1)),
-                                denom_low
-                            );
-                            let (_, q1): (u128, u128) = split_u256_into_u128(q1);
+                    // r < denom_low, so q0 fits into u128
+                    let (
+                        q0,
+                        _
+                    ): (u256, u128) = div_mod_256_128(
+                        <(u128, u128)>::into((r, result_0)),
+                        denom_low
+                    );
+                    let (_, q0): (u128, u128) = split_u256_into_u128(q0);
 
-                            // r < denom_low, so q0 fits into u128
-                            let (
-                                q0,
-                                _
-                            ): (u256, u128) = div_mod_256_128(
-                                <(u128, u128)>::into((r, result_0)),
-                                denom_low
-                            );
-                            let (_, q0): (u128, u128) = split_u256_into_u128(q0);
-
-                            <(u128, u128)>::into((q1, q0))
-                        },
-                        false => algorithm_d_512_256(result_high, result_low, denominator),
-                    }
+                    <(u128, u128)>::into((q1, q0))
                 },
+                false => algorithm_d_512_256(result_high, result_low, denominator),
             }
         },
     }

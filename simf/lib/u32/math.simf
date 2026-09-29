@@ -45,7 +45,7 @@ pub fn safe_mul_32(a: u32, b: u32) -> u32 {
     unwrap(checked_mul_32(a, b))
 }
 
-/// Returns the quotient of two u32 values wrapped in Some, or None if the result overflows u32
+/// Returns the quotient of two u32 values wrapped in Some, or None if b is zero
 pub fn checked_div_32(a: u32, b: u32) -> Option<u32> {
     match jet::is_zero_32(b) {
         true => None,

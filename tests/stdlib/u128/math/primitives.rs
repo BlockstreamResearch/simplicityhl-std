@@ -23,8 +23,8 @@ enum FunctionToTest {
     EstimateQuotientDigitBase64,
     DivMod128_64,
     DivMod128,
-    Div128,
 }
+// div_128 is already tested through safe_div_fitting and safe_div_by_zero in api.rs
 
 fn program() -> U128BasicMathTestProgram {
     U128BasicMathTestProgram::new(&U128BasicMathTestArguments {})
@@ -511,7 +511,7 @@ fn div_mod_128_64(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn div_mod_128_64_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_128_64_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
     let b = 0;
 
@@ -628,18 +628,12 @@ fn div_mod_128_eq_high_words_a_less_than_b(context: simplex::TestContext) -> any
 }
 
 #[simplex::test]
-fn div_128(context: simplex::TestContext) -> anyhow::Result<()> {
-    let a = rand::thread_rng().gen_range(0..=u128::MAX);
-    let b = rand::thread_rng().gen_range(1..=u128::MAX);
-    let result = a / b;
-
-    case(Div128).args(a, b).expect(result).run(&context)
-}
-
-#[simplex::test]
-fn div_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
+fn div_mod_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
     let b = 0;
 
-    case(Div128).args(a, b).expect(0).run(&context)
+    case(DivMod128)
+        .args(a, b)
+        .expect(0)
+        .expecting(&context, Expect::AssertFailed)
 }

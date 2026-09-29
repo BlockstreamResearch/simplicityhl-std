@@ -45,7 +45,7 @@ pub fn safe_mul_16(a: u16, b: u16) -> u16 {
     unwrap(checked_mul_16(a, b))
 }
 
-/// Returns the quotient of two u16 values wrapped in Some, or None if the result overflows u16
+/// Returns the quotient of two u16 values wrapped in Some, or None if b is zero
 pub fn checked_div_16(a: u16, b: u16) -> Option<u16> {
     match jet::is_zero_16(b) {
         true => None,

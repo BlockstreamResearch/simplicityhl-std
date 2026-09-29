@@ -105,5 +105,8 @@ fn mul_div_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> 
     let b = rand::thread_rng().gen_range(1..=u128::MAX);
     let c = 0;
 
-    case(MulDiv).args(a, b, c).expect(0).run(&context)
+    case(MulDiv)
+        .args(a, b, c)
+        .expect(0)
+        .expecting(&context, Expect::AssertFailed)
 }
