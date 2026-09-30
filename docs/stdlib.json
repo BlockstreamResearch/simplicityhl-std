@@ -105,6 +105,174 @@
     "description": "Assert that two `bool` values are equal.\n\n## Panics\nThe assertion fails."
   },
   {
+    "simplicityhl_name": "get_explicit_amount",
+    "section": "Amount getters",
+    "input_type": "u32, bool",
+    "output_type": "u64",
+    "description": "Returns the explicit amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_amount",
+    "section": "Amount getters",
+    "input_type": "u32, bool",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_input_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "u64",
+    "description": "Returns the explicit amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_input_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_output_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "u64",
+    "description": "Returns the explicit amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_output_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_current_explicit_amount",
+    "section": "Amount getters",
+    "input_type": "()",
+    "output_type": "u64",
+    "description": "Returns the explicit input amount at the current_index.\n\n## Panics\nPanics if amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_current_confidential_amount",
+    "section": "Amount getters",
+    "input_type": "()",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential input amount at the current_index.\n\n## Panics\nPanics if amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32, bool",
+    "output_type": "(u256, u64)",
+    "description": "Returns explicit asset_id and amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id and amount are confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32, bool",
+    "output_type": "(Confidential1, Confidential1)",
+    "description": "Returns confidential asset_id and amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id and amount are explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_input_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32",
+    "output_type": "(u256, u64)",
+    "description": "Returns explicit asset_id and amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id and amount are confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_input_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32",
+    "output_type": "(Confidential1, Confidential1)",
+    "description": "Returns confidential asset_id and amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id and amount are explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_output_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32",
+    "output_type": "(u256, u64)",
+    "description": "Returns explicit asset_id and amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id and amount are confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_output_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32",
+    "output_type": "(Confidential1, Confidential1)",
+    "description": "Returns confidential asset_id and amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id and amount are explicit."
+  },
+  {
+    "simplicityhl_name": "get_current_explicit_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "()",
+    "output_type": "(u256, u64)",
+    "description": "Returns explicit input asset_id and amount at the current_index.\n\n## Panics\nPanics if asset_id and amount are confidential."
+  },
+  {
+    "simplicityhl_name": "get_current_confidential_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "()",
+    "output_type": "(Confidential1, Confidential1)",
+    "description": "Returns confidential input asset_id and amount at the current_index.\n\n## Panics\nPanics if asset_id and amount are explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32, bool",
+    "output_type": "u256",
+    "description": "Returns the explicit asset_id at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32, bool",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential asset_id at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_input_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32",
+    "output_type": "u256",
+    "description": "Returns the explicit asset_id at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_input_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential asset_id at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_output_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32",
+    "output_type": "u256",
+    "description": "Returns the explicit asset_id at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_output_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential asset_id at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id is explicit."
+  },
+  {
+    "simplicityhl_name": "get_current_explicit_asset_id",
+    "section": "AssetId getters",
+    "input_type": "()",
+    "output_type": "u256",
+    "description": "Returns the explicit input asset_id at the current_index.\n\n## Panics\nPanics if asset_id is confidential."
+  },
+  {
+    "simplicityhl_name": "get_current_confidential_asset_id",
+    "section": "AssetId getters",
+    "input_type": "()",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential input asset_id at the current_index.\n\n## Panics\nPanics if asset_id is explicit."
+  },
+  {
     "simplicityhl_name": "not",
     "section": "Binary logic",
     "input_type": "bool",

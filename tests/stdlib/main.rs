@@ -1,6 +1,7 @@
 mod common;
 
 mod asserts;
+mod asset_id_amount;
 mod binary;
 mod op_return;
 mod secp256k1;

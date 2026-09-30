@@ -1,0 +1,162 @@
+use crate::lib::asset_id_amount::asset_id_with_amount::{
+    get_explicit_asset_id_with_amount,
+    get_confidential_asset_id_with_amount,
+    get_explicit_input_asset_id_with_amount,
+    get_confidential_input_asset_id_with_amount,
+    get_explicit_output_asset_id_with_amount,
+    get_confidential_output_asset_id_with_amount,
+    get_current_explicit_asset_id_with_amount,
+    get_current_confidential_asset_id_with_amount
+};
+use crate::lib::u256::convert::{safe_u256_to_u1};
+use crate::lib::u64::convert::{safe_u64_to_u1, u64_to_u256};
+use crate::lib::asserts::{assert_eq_1, assert_eq_64, assert_eq_256};
+
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let index: u32 = witness::INDEX;
+    let is_input_index: bool = witness::IS_INPUT_INDEX;
+
+    let expected_asset_id: u256 = witness::EXPECTED_ASSET;
+    let expected_confidential_asset_id: u256 = witness::EXPECTED_CONF_ASSET;
+
+    let expected_amount: u64 = witness::EXPECTED_AMOUNT;
+    let expected_confidential_amount: u256 = witness::EXPECTED_CONF_AMOUNT;
+
+    match is_selected(0, fn_idx) {
+        true => {
+            let (
+                asset_id,
+                amount
+            ): (u256, u64) = get_explicit_asset_id_with_amount(index, is_input_index);
+
+            assert_eq_256(asset_id, expected_asset_id);
+            assert_eq_64(amount, expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(1, fn_idx) {
+        true => {
+            let (
+                (
+                    parity_bit_asset_id,
+                    confidential_asset_id
+                ),
+                (
+                    parity_bit_amount,
+                    confidential_amount
+                )
+            ): (Confidential1, Confidential1) = get_confidential_asset_id_with_amount(
+                index,
+                is_input_index
+            );
+
+            assert_eq_1(parity_bit_asset_id, safe_u256_to_u1(expected_asset_id));
+            assert_eq_256(confidential_asset_id, expected_confidential_asset_id);
+
+            assert_eq_1(parity_bit_amount, safe_u64_to_u1(expected_amount));
+            assert_eq_256(confidential_amount, expected_confidential_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(2, fn_idx) {
+        true => {
+            let (asset_id, amount): (u256, u64) = get_explicit_input_asset_id_with_amount(index);
+
+            assert_eq_256(asset_id, expected_asset_id);
+            assert_eq_64(amount, expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(3, fn_idx) {
+        true => {
+            let (
+                (
+                    parity_bit_asset_id,
+                    confidential_asset_id
+                ),
+                (
+                    parity_bit_amount,
+                    confidential_amount
+                )
+            ): (Confidential1, Confidential1) = get_confidential_input_asset_id_with_amount(index);
+
+            assert_eq_1(parity_bit_asset_id, safe_u256_to_u1(expected_asset_id));
+            assert_eq_256(confidential_asset_id, expected_confidential_asset_id);
+
+            assert_eq_1(parity_bit_amount, safe_u64_to_u1(expected_amount));
+            assert_eq_256(confidential_amount, expected_confidential_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(4, fn_idx) {
+        true => {
+            let (asset_id, amount): (u256, u64) = get_explicit_output_asset_id_with_amount(index);
+
+            assert_eq_256(asset_id, expected_asset_id);
+            assert_eq_64(amount, expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(5, fn_idx) {
+        true => {
+            let (
+                (
+                    parity_bit_asset_id,
+                    confidential_asset_id
+                ),
+                (
+                    parity_bit_amount,
+                    confidential_amount
+                )
+            ): (Confidential1, Confidential1) = get_confidential_output_asset_id_with_amount(index);
+
+            assert_eq_1(parity_bit_asset_id, safe_u256_to_u1(expected_asset_id));
+            assert_eq_256(confidential_asset_id, expected_confidential_asset_id);
+
+            assert_eq_1(parity_bit_amount, safe_u64_to_u1(expected_amount));
+            assert_eq_256(confidential_amount, expected_confidential_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(6, fn_idx) {
+        true => {
+            let (asset_id, amount): (u256, u64) = get_current_explicit_asset_id_with_amount();
+
+            assert_eq_256(asset_id, expected_asset_id);
+            assert_eq_64(amount, expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(7, fn_idx) {
+        true => {
+            let (
+                (
+                    parity_bit_asset_id,
+                    confidential_asset_id
+                ),
+                (
+                    parity_bit_amount,
+                    confidential_amount
+                )
+            ): (Confidential1, Confidential1) = get_current_confidential_asset_id_with_amount();
+
+            assert_eq_1(parity_bit_asset_id, safe_u256_to_u1(expected_asset_id));
+            assert_eq_256(confidential_asset_id, expected_confidential_asset_id);
+
+            assert_eq_1(parity_bit_amount, safe_u64_to_u1(expected_amount));
+            assert_eq_256(confidential_amount, expected_confidential_amount);
+        },
+        false => (),
+    };
+}
