@@ -9,7 +9,8 @@
  */
 
 use crate::lib::asserts::{assert_eq_64, assert_eq_256};
-use crate::lib::secp256k1::operations::{point_to_ge, point_to_gej, safe_gej_normalize};
+use crate::lib::ct::point::{conf_point_to_ge, conf_point_to_gej};
+use crate::lib::secp256k1::operations::safe_gej_normalize;
 use crate::lib::u64::convert::u64_to_u256;
 
 /// Asserts that `proof` shows knowledge of `x` with `p == x*G`.
@@ -23,25 +24,27 @@ fn assert_dlog(p: Gej, proof: Signature) {
 /// The prover's secret is `x` with `c - v*h == x*G`.
 pub fn assert_exact_value(c: Point, v: u64, h: Ge, proof: Signature) {
     let neg_v_h: Gej = jet::scale(jet::scalar_negate(u64_to_u256(v)), (h, 1));
-    assert_dlog(jet::gej_ge_add(neg_v_h, point_to_ge(c)), proof);
+    assert_dlog(jet::gej_ge_add(neg_v_h, conf_point_to_ge(c)), proof);
 }
 
 /// Asserts that the asset generator `h` blinds `asset_id`.
 /// The prover's secret is `abf`.
 pub fn assert_exact_asset(h: Point, asset_id: u256, proof: Signature) {
     assert_dlog(
-        jet::gej_ge_add(point_to_gej(h), jet::ge_negate(jet::hash_to_curve(asset_id))),
+        jet::gej_ge_add(conf_point_to_gej(h), jet::ge_negate(jet::hash_to_curve(asset_id))),
         proof
     );
 }
 
 /// Asserts that `c` commits to `v` of `asset_id`, where `h` is the asset
 /// generator of `c`. The prover's secret is `(v+1)*abf + vbf`.
-/// Adding `h` keeps the asset bound when `v == 0`.
 pub fn assert_exact_value_and_asset(c: Point, h: Point, asset_id: u256, v: u64, proof: Signature) {
     let v_plus_1: Scalar = jet::scalar_add(u64_to_u256(v), 1);
     let neg_h0: Gej = jet::scale(jet::scalar_negate(v_plus_1), (jet::hash_to_curve(asset_id), 1));
-    assert_dlog(jet::gej_ge_add(jet::gej_ge_add(neg_h0, point_to_ge(c)), point_to_ge(h)), proof);
+    assert_dlog(
+        jet::gej_ge_add(jet::gej_ge_add(neg_h0, conf_point_to_ge(c)), conf_point_to_ge(h)),
+        proof
+    );
 }
 
 /// Asserts that an `(asset, amount)` pair opens to `asset_id` and `v`,
