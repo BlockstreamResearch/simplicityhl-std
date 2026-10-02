@@ -1,12 +1,12 @@
 use crate::lib::u32::math::{
     checked_add_32,
-    safe_add_32,
+    add_32,
     checked_sub_32,
-    safe_sub_32,
+    sub_32,
     checked_mul_32,
-    safe_mul_32,
+    mul_32,
     checked_div_32,
-    safe_div_32,
+    div_32,
     gt_32,
     ge_32
 };
@@ -30,7 +30,7 @@ fn main() {
     };
     match is_selected(1, fn_idx) {
         true => {
-            assert!(jet::eq_32(safe_add_32(a, b), unwrap(expected)));
+            assert!(jet::eq_32(add_32(a, b), unwrap(expected)));
         },
         false => (),
     };
@@ -44,7 +44,7 @@ fn main() {
     };
     match is_selected(3, fn_idx) {
         true => {
-            assert!(jet::eq_32(safe_sub_32(a, b), unwrap(expected)));
+            assert!(jet::eq_32(sub_32(a, b), unwrap(expected)));
         },
         false => (),
     };
@@ -58,7 +58,7 @@ fn main() {
     };
     match is_selected(5, fn_idx) {
         true => {
-            assert!(jet::eq_32(safe_mul_32(a, b), unwrap(expected)));
+            assert!(jet::eq_32(mul_32(a, b), unwrap(expected)));
         },
         false => (),
     };
@@ -72,7 +72,7 @@ fn main() {
     };
     match is_selected(7, fn_idx) {
         true => {
-            assert!(jet::eq_32(safe_div_32(a, b), unwrap(expected)));
+            assert!(jet::eq_32(div_32(a, b), unwrap(expected)));
         },
         false => (),
     };

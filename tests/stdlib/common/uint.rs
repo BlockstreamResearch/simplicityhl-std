@@ -19,13 +19,13 @@ use super::core::{Expect, run};
 /// program under `simf/tests`.
 pub enum CommonOp {
     CheckedAdd,
-    SafeAdd,
+    Add,
     CheckedSub,
-    SafeSub,
+    Sub,
     CheckedMul,
-    SafeMul,
+    Mul,
     CheckedDiv,
-    SafeDiv,
+    Div,
     Gt,
     Ge,
 }
@@ -90,25 +90,25 @@ pub fn checked_add_overflow<T: TestUint>(context: simplex::TestContext) -> anyho
     )
 }
 
-pub fn safe_add_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
+pub fn add_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::HALF_MAX);
     let b = rand::thread_rng().gen_range(T::ZERO..=T::HALF_MAX);
 
     run(
         &context,
         T::program(),
-        T::witness(op(CommonOp::SafeAdd), a, b, Some(a + b)),
+        T::witness(op(CommonOp::Add), a, b, Some(a + b)),
         Expect::Ok,
     )
 }
 
-pub fn safe_add_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
+pub fn add_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let b = rand::thread_rng().gen_range(T::ONE..=T::MAX);
 
     run(
         &context,
         T::program(),
-        T::witness(op(CommonOp::SafeAdd), T::MAX, b, None),
+        T::witness(op(CommonOp::Add), T::MAX, b, None),
         Expect::PrunedBranch,
     )
 }
@@ -138,26 +138,26 @@ pub fn checked_sub_overflow<T: TestUint>(context: simplex::TestContext) -> anyho
     )
 }
 
-pub fn safe_sub_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
+pub fn sub_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
     let b = rand::thread_rng().gen_range(T::ZERO..=a);
 
     run(
         &context,
         T::program(),
-        T::witness(op(CommonOp::SafeSub), a, b, Some(a - b)),
+        T::witness(op(CommonOp::Sub), a, b, Some(a - b)),
         Expect::Ok,
     )
 }
 
-pub fn safe_sub_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
+pub fn sub_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX - T::ONE);
     let b = rand::thread_rng().gen_range(a + T::ONE..=T::MAX);
 
     run(
         &context,
         T::program(),
-        T::witness(op(CommonOp::SafeSub), a, b, None),
+        T::witness(op(CommonOp::Sub), a, b, None),
         Expect::PrunedBranch,
     )
 }
@@ -187,26 +187,26 @@ pub fn checked_mul_overflow<T: TestUint>(context: simplex::TestContext) -> anyho
     )
 }
 
-pub fn safe_mul_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
+pub fn mul_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..T::MUL_BOUND);
     let b = rand::thread_rng().gen_range(T::ZERO..T::MUL_BOUND);
 
     run(
         &context,
         T::program(),
-        T::witness(op(CommonOp::SafeMul), a, b, Some(a * b)),
+        T::witness(op(CommonOp::Mul), a, b, Some(a * b)),
         Expect::Ok,
     )
 }
 
-pub fn safe_mul_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
+pub fn mul_overflow<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let two = T::ONE + T::ONE;
     let b = rand::thread_rng().gen_range(two..=T::MAX);
 
     run(
         &context,
         T::program(),
-        T::witness(op(CommonOp::SafeMul), T::MAX, b, None),
+        T::witness(op(CommonOp::Mul), T::MAX, b, None),
         Expect::PrunedBranch,
     )
 }
@@ -235,21 +235,19 @@ pub fn checked_div_by_zero<T: TestUint>(context: simplex::TestContext) -> anyhow
     )
 }
 
-pub fn safe_div_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
+pub fn div_fitting<T: TestUint>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
     let b = rand::thread_rng().gen_range(T::ONE..=T::MAX);
 
     run(
         &context,
         T::program(),
-        T::witness(op(CommonOp::SafeDiv), a, b, Some(a / b)),
+        T::witness(op(CommonOp::Div), a, b, Some(a / b)),
         Expect::Ok,
     )
 }
 
-pub fn safe_div_by_zero<T: TestUint + 'static>(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
+pub fn div_by_zero<T: TestUint + 'static>(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(T::ZERO..=T::MAX);
 
     let expect = if TypeId::of::<T>() == TypeId::of::<u128>()
@@ -263,7 +261,7 @@ pub fn safe_div_by_zero<T: TestUint + 'static>(
     run(
         &context,
         T::program(),
-        T::witness(op(CommonOp::SafeDiv), a, T::ZERO, None),
+        T::witness(op(CommonOp::Div), a, T::ZERO, None),
         expect,
     )
 }
@@ -372,13 +370,13 @@ macro_rules! uint_tests {
     ($t:ty) => {
         $crate::uint_tests!(@stub $t;
             checked_add_fitting checked_add_overflow
-            safe_add_fitting    safe_add_overflow
+            add_fitting    add_overflow
             checked_sub_fitting checked_sub_overflow
-            safe_sub_fitting    safe_sub_overflow
+            sub_fitting    sub_overflow
             checked_mul_fitting checked_mul_overflow
-            safe_mul_fitting    safe_mul_overflow
+            mul_fitting    mul_overflow
             checked_div_fitting checked_div_by_zero
-            safe_div_fitting    safe_div_by_zero
+            div_fitting         div_by_zero
             gt_greater          gt_equal
             gt_less             ge_greater
             ge_equal            ge_less

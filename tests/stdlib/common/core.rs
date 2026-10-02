@@ -14,7 +14,7 @@ pub enum Expect {
     Ok,
     /// A failed `assert!` in the contract.
     AssertFailed,
-    /// Execution reached a pruned branch (e.g. `unwrap(None)`, a `safe_*` overflow).
+    /// Execution reached a pruned branch (e.g. `unwrap(None)`).
     PrunedBranch,
 }
 

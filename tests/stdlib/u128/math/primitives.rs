@@ -12,19 +12,18 @@ use simplicityhl_std::artifacts::tests::u128::math::primitives::derived_primitiv
 use FunctionToTest::*;
 
 enum FunctionToTest {
-    Add128,
-    Add128_64,
+    Add128Carry,
+    Add128_64Carry,
     FullAdd128,
-    Sub128,
+    Sub128Borrow,
     FullSub128,
-    Mul128,
-    Mul128_64,
+    Mul128Wide,
+    Mul128_64Wide,
     CalculateNormalizerBase64,
     EstimateQuotientDigitBase64,
     DivMod128_64,
     DivMod128,
 }
-// div_128 is already tested through safe_div_fitting and safe_div_by_zero in api.rs
 
 fn program() -> U128BasicMathTestProgram {
     U128BasicMathTestProgram::new(&U128BasicMathTestArguments {})
@@ -95,21 +94,21 @@ fn split_helper(a: U256) -> (u128, u128) {
 }
 
 #[simplex::test]
-fn add_128_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_128_carry_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX / 2);
     let b = rand::thread_rng().gen_range(0..=u128::MAX / 2);
     let result = a + b;
 
-    case(Add128).args(a, b).expect(result).run(&context)
+    case(Add128Carry).args(a, b).expect(result).run(&context)
 }
 
 #[simplex::test]
-fn add_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_128_carry_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = u128::MAX;
     let b = rand::thread_rng().gen_range(1..=u128::MAX);
     let result = b - 1;
 
-    case(Add128)
+    case(Add128Carry)
         .args(a, b)
         .expect(result)
         .flag(true)
@@ -117,21 +116,21 @@ fn add_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn add_128_64_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_128_64_carry_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX / 2);
     let b = rand::thread_rng().gen_range(0..=u64::MAX) as u128;
     let result = a + b;
 
-    case(Add128_64).args(a, b).expect(result).run(&context)
+    case(Add128_64Carry).args(a, b).expect(result).run(&context)
 }
 
 #[simplex::test]
-fn add_128_64_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_128_64_carry_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = u128::MAX;
     let b = rand::thread_rng().gen_range(1..=u64::MAX) as u128;
     let result = b - 1;
 
-    case(Add128_64)
+    case(Add128_64Carry)
         .args(a, b)
         .expect(result)
         .flag(true)
@@ -203,23 +202,23 @@ fn full_add_128_overflow_carry_low_true(context: simplex::TestContext) -> anyhow
 }
 
 #[simplex::test]
-fn sub_128_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_128_borrow_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
     let b = rand::thread_rng().gen_range(0..=a);
     let result = a - b;
 
-    case(Sub128).args(a, b).expect(result).run(&context)
+    case(Sub128Borrow).args(a, b).expect(result).run(&context)
 }
 
 #[simplex::test]
-fn sub_128_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_128_borrow_a_eq_b(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
 
-    case(Sub128).args(a, a).expect(0).run(&context)
+    case(Sub128Borrow).args(a, a).expect(0).run(&context)
 }
 
 #[simplex::test]
-fn sub_128_a_low_eq_b_low(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_128_borrow_a_low_eq_b_low(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..=u128::MAX);
     let b_high = rand::thread_rng().gen_range(0..=u64::MAX);
 
@@ -229,7 +228,7 @@ fn sub_128_a_low_eq_b_low(context: simplex::TestContext) -> anyhow::Result<()> {
     let carry = a < b;
     let result = a.wrapping_sub(b);
 
-    case(Sub128)
+    case(Sub128Borrow)
         .args(a, b)
         .expect(result)
         .flag(carry)
@@ -237,7 +236,7 @@ fn sub_128_a_low_eq_b_low(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn sub_128_diff_is_u64_max(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_128_borrow_diff_is_u64_max(context: simplex::TestContext) -> anyhow::Result<()> {
     let a_low: u64 = u64::MAX;
 
     let a_high = rand::thread_rng().gen_range(0..=u64::MAX);
@@ -249,7 +248,7 @@ fn sub_128_diff_is_u64_max(context: simplex::TestContext) -> anyhow::Result<()> 
     let carry = a < b;
     let result = a.wrapping_sub(b);
 
-    case(Sub128)
+    case(Sub128Borrow)
         .args(a, b)
         .expect(result)
         .flag(carry)
@@ -257,20 +256,20 @@ fn sub_128_diff_is_u64_max(context: simplex::TestContext) -> anyhow::Result<()> 
 }
 
 #[simplex::test]
-fn sub_128_diff_is_u128_max(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_128_borrow_diff_is_u128_max(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = u128::MAX;
     let b = 0;
 
-    case(Sub128).args(a, b).expect(a).run(&context)
+    case(Sub128Borrow).args(a, b).expect(a).run(&context)
 }
 
 #[simplex::test]
-fn sub_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn sub_128_borrow_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..u128::MAX);
     let b = u128::MAX;
     let result = a + 1;
 
-    case(Sub128)
+    case(Sub128Borrow)
         .args(a, b)
         .expect(result)
         .flag(true)
@@ -342,14 +341,14 @@ fn full_sub_128_overflow_borrow_low_true(context: simplex::TestContext) -> anyho
 }
 
 #[simplex::test]
-fn mul_128(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_128_wide(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..u128::MAX);
     let b = rand::thread_rng().gen_range(0..u128::MAX);
     let result = U256::from(a) * U256::from(b);
 
     let (result_high, result_low) = split_helper(result);
 
-    case(Mul128)
+    case(Mul128Wide)
         .args(a, b)
         .expect(result_high)
         .second(result_low)
@@ -357,14 +356,14 @@ fn mul_128(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn mul_128_64(context: simplex::TestContext) -> anyhow::Result<()> {
+fn mul_128_64_wide(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = rand::thread_rng().gen_range(0..u128::MAX);
     let b = rand::thread_rng().gen_range(0..u64::MAX);
     let result = U256::from(a) * U256::from(b);
 
     let (result_high, result_low) = split_helper(result);
 
-    case(Mul128_64)
+    case(Mul128_64Wide)
         .args(a, b as u128)
         .expect(result_high)
         .second(result_low)

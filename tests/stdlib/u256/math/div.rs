@@ -17,7 +17,6 @@ enum FunctionToTest {
     DivMod256_128,
     DivMod256,
 }
-// div_256 is already tested through safe_div_fitting and safe_div_by_zero in api.rs
 
 fn program() -> U256TestDivProgram {
     U256TestDivProgram::new(&U256TestDivArguments {})

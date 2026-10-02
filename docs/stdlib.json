@@ -329,7 +329,7 @@
     "description": "Add two `u8` values. Return `Some` of the sum, or `None` if the result overflows `u8`."
   },
   {
-    "simplicityhl_name": "safe_add_8",
+    "simplicityhl_name": "add_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "u8",
@@ -343,7 +343,7 @@
     "description": "Subtract the second `u8` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u8`."
   },
   {
-    "simplicityhl_name": "safe_sub_8",
+    "simplicityhl_name": "sub_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "u8",
@@ -357,7 +357,7 @@
     "description": "Multiply two `u8` values. Return `Some` of the product, or `None` if the result overflows `u8`."
   },
   {
-    "simplicityhl_name": "safe_mul_8",
+    "simplicityhl_name": "mul_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "u8",
@@ -371,7 +371,7 @@
     "description": "Divide the first `u8` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_8",
+    "simplicityhl_name": "div_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "u8",
@@ -455,7 +455,7 @@
     "description": "Add two `u16` values. Return `Some` of the sum, or `None` if the result overflows `u16`."
   },
   {
-    "simplicityhl_name": "safe_add_16",
+    "simplicityhl_name": "add_16",
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "u16",
@@ -469,7 +469,7 @@
     "description": "Subtract the second `u16` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u16`."
   },
   {
-    "simplicityhl_name": "safe_sub_16",
+    "simplicityhl_name": "sub_16",
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "u16",
@@ -483,7 +483,7 @@
     "description": "Multiply two `u16` values. Return `Some` of the product, or `None` if the result overflows `u16`."
   },
   {
-    "simplicityhl_name": "safe_mul_16",
+    "simplicityhl_name": "mul_16",
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "u16",
@@ -497,7 +497,7 @@
     "description": "Divide the first `u16` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_16",
+    "simplicityhl_name": "div_16",
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "u16",
@@ -581,7 +581,7 @@
     "description": "Add two `u32` values. Return `Some` of the sum, or `None` if the result overflows `u32`."
   },
   {
-    "simplicityhl_name": "safe_add_32",
+    "simplicityhl_name": "add_32",
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "u32",
@@ -595,7 +595,7 @@
     "description": "Subtract the second `u32` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u32`."
   },
   {
-    "simplicityhl_name": "safe_sub_32",
+    "simplicityhl_name": "sub_32",
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "u32",
@@ -609,7 +609,7 @@
     "description": "Multiply two `u32` values. Return `Some` of the product, or `None` if the result overflows `u32`."
   },
   {
-    "simplicityhl_name": "safe_mul_32",
+    "simplicityhl_name": "mul_32",
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "u32",
@@ -623,7 +623,7 @@
     "description": "Divide the first `u32` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_32",
+    "simplicityhl_name": "div_32",
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "u32",
@@ -714,7 +714,7 @@
     "description": "Add two `u64` values. Return `Some` of the sum, or `None` if the result overflows `u64`."
   },
   {
-    "simplicityhl_name": "safe_add_64",
+    "simplicityhl_name": "add_64",
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "u64",
@@ -728,7 +728,7 @@
     "description": "Subtract the second `u64` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u64`."
   },
   {
-    "simplicityhl_name": "safe_sub_64",
+    "simplicityhl_name": "sub_64",
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "u64",
@@ -742,7 +742,7 @@
     "description": "Multiply two `u64` values. Return `Some` of the product, or `None` if the result overflows `u64`."
   },
   {
-    "simplicityhl_name": "safe_mul_64",
+    "simplicityhl_name": "mul_64",
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "u64",
@@ -756,7 +756,7 @@
     "description": "Divide the first `u64` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_64",
+    "simplicityhl_name": "div_64",
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "u64",
@@ -847,14 +847,14 @@
     "description": "Narrow a `u64` value to `u32`.\n\n## Panics\nPanics if the value does not fit in `u32`."
   },
   {
-    "simplicityhl_name": "add_128",
+    "simplicityhl_name": "add_128_carry",
     "section": "`u128` arithmetic",
     "input_type": "u128, u128",
     "output_type": "(bool, u128)",
     "description": "Add two `u128` values. Return the carry bit and the sum."
   },
   {
-    "simplicityhl_name": "add_128_64",
+    "simplicityhl_name": "add_128_64_carry",
     "section": "`u128` arithmetic",
     "input_type": "u128, u64",
     "output_type": "(bool, u128)",
@@ -868,14 +868,14 @@
     "description": "Add two `u128` values. Return `Some` of the sum, or `None` if the result overflows `u128`."
   },
   {
-    "simplicityhl_name": "safe_add_128",
+    "simplicityhl_name": "add_128",
     "section": "`u128` arithmetic",
     "input_type": "u128, u128",
     "output_type": "u128",
     "description": "Add two `u128` values.\n\n## Panics\nPanics if the result overflows `u128`."
   },
   {
-    "simplicityhl_name": "sub_128",
+    "simplicityhl_name": "sub_128_borrow",
     "section": "`u128` arithmetic",
     "input_type": "u128, u128",
     "output_type": "(bool, u128)",
@@ -889,14 +889,14 @@
     "description": "Subtract the second `u128` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u128`."
   },
   {
-    "simplicityhl_name": "safe_sub_128",
+    "simplicityhl_name": "sub_128",
     "section": "`u128` arithmetic",
     "input_type": "u128, u128",
     "output_type": "u128",
     "description": "Subtract the second `u128` value from the first.\n\n## Panics\nPanics if the result would overflow `u128`."
   },
   {
-    "simplicityhl_name": "mul_128",
+    "simplicityhl_name": "mul_128_wide",
     "section": "`u128` arithmetic",
     "input_type": "u128, u128",
     "output_type": "u256",
@@ -910,7 +910,7 @@
     "description": "Multiply two `u128` values. Return `Some` of the product, or `None` if the result overflows `u128`."
   },
   {
-    "simplicityhl_name": "safe_mul_128",
+    "simplicityhl_name": "mul_128",
     "section": "`u128` arithmetic",
     "input_type": "u128, u128",
     "output_type": "u128",
@@ -959,7 +959,7 @@
     "description": "Subtract the second `u128` value from the first, taking an incoming borrow bit. Return the outgoing borrow bit and the difference."
   },
   {
-    "simplicityhl_name": "mul_128_64",
+    "simplicityhl_name": "mul_128_64_wide",
     "section": "`u128` arithmetic",
     "input_type": "u128, u64",
     "output_type": "u256",
@@ -1127,14 +1127,14 @@
     "description": "Narrow a `u128` value to `u64`.\n\n## Panics\nPanics if the value does not fit in `u64`."
   },
   {
-    "simplicityhl_name": "add_256",
+    "simplicityhl_name": "add_256_carry",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
     "output_type": "(bool, u256)",
     "description": "Add two `u256` values. Return the carry bit and the sum."
   },
   {
-    "simplicityhl_name": "add_256_128",
+    "simplicityhl_name": "add_256_128_carry",
     "section": "`u256` arithmetic",
     "input_type": "u256, u128",
     "output_type": "(bool, u256)",
@@ -1155,14 +1155,14 @@
     "description": "Add two `u256` values. Return `Some` of the sum, or `None` if the result overflows `u256`."
   },
   {
-    "simplicityhl_name": "safe_add_256",
+    "simplicityhl_name": "add_256",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
     "output_type": "u256",
     "description": "Add two `u256` values.\n\n## Panics\nPanics if the result overflows `u256`."
   },
   {
-    "simplicityhl_name": "sub_256",
+    "simplicityhl_name": "sub_256_borrow",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
     "output_type": "(bool, u256)",
@@ -1176,35 +1176,35 @@
     "description": "Subtract the second `u256` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u256`."
   },
   {
-    "simplicityhl_name": "safe_sub_256",
+    "simplicityhl_name": "sub_256",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
     "output_type": "u256",
     "description": "Subtract the second `u256` value from the first.\n\n## Panics\nPanics if the result would overflow `u256`."
   },
   {
-    "simplicityhl_name": "mul_256",
+    "simplicityhl_name": "mul_256_wide",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
     "output_type": "(u256, u256)",
     "description": "Multiply two `u256` values. The full, non-truncated product is returned as a pair of `u256` values, most-significant first, so this operation can never overflow."
   },
   {
-    "simplicityhl_name": "mul_256_64",
+    "simplicityhl_name": "mul_256_64_wide",
     "section": "`u256` arithmetic",
     "input_type": "u256, u64",
     "output_type": "(u64, u256)",
     "description": "Multiply a `u256` value by a `u64` value. The full, non-truncated product is returned as a `u64`/`u256` pair, most-significant first, so this operation can never overflow."
   },
   {
-    "simplicityhl_name": "mul_256_128",
+    "simplicityhl_name": "mul_256_128_wide",
     "section": "`u256` arithmetic",
     "input_type": "u256, u128",
     "output_type": "(u128, u256)",
     "description": "Multiply a `u256` value by a `u128` value. The full, non-truncated product is returned as a `u128`/`u256` pair, most-significant first, so this operation can never overflow."
   },
   {
-    "simplicityhl_name": "mul_512_128",
+    "simplicityhl_name": "mul_512_128_wide",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256, u128",
     "output_type": "(u128, u256, u256)",
@@ -1218,14 +1218,14 @@
     "description": "Multiply two `u256` values. Return `Some` of the product, or `None` if the result overflows `u256`."
   },
   {
-    "simplicityhl_name": "safe_mul_256",
+    "simplicityhl_name": "mul_256",
     "section": "`u256` arithmetic",
     "input_type": "u256, u256",
     "output_type": "u256",
     "description": "Multiply two `u256` values.\n\n## Panics\nPanics if the result overflows `u256`."
   },
   {
-    "simplicityhl_name": "safe_mul_256_128",
+    "simplicityhl_name": "mul_256_128",
     "section": "`u256` arithmetic",
     "input_type": "u256, u128",
     "output_type": "u256",

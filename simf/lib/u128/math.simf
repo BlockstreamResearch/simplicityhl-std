@@ -7,7 +7,7 @@ use crate::lib::u128::convert::{u128_to_u256, split_u128_into_u64};
 /// Arithmetic
 
 /// Adds two integers and returns the carry
-pub fn add_128(a: u128, b: u128) -> (bool, u128) {
+pub fn add_128_carry(a: u128, b: u128) -> (bool, u128) {
     let (a_high, a_low): (u64, u64) = split_u128_into_u64(a);
     let (b_high, b_low): (u64, u64) = split_u128_into_u64(b);
 
@@ -19,7 +19,7 @@ pub fn add_128(a: u128, b: u128) -> (bool, u128) {
 }
 
 /// Adds the 128-bit integer with the 64-bit integer and returns the carry
-pub fn add_128_64(a: u128, b: u64) -> (bool, u128) {
+pub fn add_128_64_carry(a: u128, b: u64) -> (bool, u128) {
     let (a_high, a_low): (u64, u64) = split_u128_into_u64(a);
 
     let (carry_low, res_low): (bool, u64) = jet::add_64(a_low, b);
@@ -43,7 +43,7 @@ pub fn full_add_128(carry_in: bool, a: u128, b: u128) -> (bool, u128) {
 
 /// Returns the sum of two u128 values wrapped in Some, or None if the result overflows u128
 pub fn checked_add_128(a: u128, b: u128) -> Option<u128> {
-    let (carry, sum): (bool, u128) = add_128(a, b);
+    let (carry, sum): (bool, u128) = add_128_carry(a, b);
 
     match carry {
         true => None,
@@ -52,12 +52,12 @@ pub fn checked_add_128(a: u128, b: u128) -> Option<u128> {
 }
 
 /// Returns the sum of two u128 values, panics if the result overflows u128
-pub fn safe_add_128(a: u128, b: u128) -> u128 {
+pub fn add_128(a: u128, b: u128) -> u128 {
     unwrap(checked_add_128(a, b))
 }
 
 /// Subtracts the second integer from the first integer, and returns the borrow bit
-pub fn sub_128(a: u128, b: u128) -> (bool, u128) {
+pub fn sub_128_borrow(a: u128, b: u128) -> (bool, u128) {
     let (a_high, a_low): (u64, u64) = split_u128_into_u64(a);
     let (b_high, b_low): (u64, u64) = split_u128_into_u64(b);
 
@@ -82,7 +82,7 @@ pub fn full_sub_128(borrow_in: bool, a: u128, b: u128) -> (bool, u128) {
 
 /// Returns the difference of two u128 values wrapped in Some, or None if the result overflows u128
 pub fn checked_sub_128(a: u128, b: u128) -> Option<u128> {
-    let (borrow, diff): (bool, u128) = sub_128(a, b);
+    let (borrow, diff): (bool, u128) = sub_128_borrow(a, b);
 
     match borrow {
         true => None,
@@ -91,7 +91,7 @@ pub fn checked_sub_128(a: u128, b: u128) -> Option<u128> {
 }
 
 /// Returns the difference of two u128 values, panics if the result overflows u128
-pub fn safe_sub_128(a: u128, b: u128) -> u128 {
+pub fn sub_128(a: u128, b: u128) -> u128 {
     unwrap(checked_sub_128(a, b))
 }
 
@@ -100,7 +100,7 @@ pub fn safe_sub_128(a: u128, b: u128) -> u128 {
 /// so a = a_high * 2^64 + a_low.
 /// In the same way, b = b_high * 2^64 + b_low.
 /// Therefore, a * b = 2^128 * a_high * b_high + 2^64(a_high * b_low + a_low * b_high) + a_low * b_low.
-pub fn mul_128(a: u128, b: u128) -> u256 {
+pub fn mul_128_wide(a: u128, b: u128) -> u256 {
     let (a_high, a_low): (u64, u64) = split_u128_into_u64(a);
     let (b_high, b_low): (u64, u64) = split_u128_into_u64(b);
 
@@ -111,7 +111,7 @@ pub fn mul_128(a: u128, b: u128) -> u256 {
 
     let product_1: u128 = jet::multiply_64(a_high, b_low);
     let product_2: u128 = jet::multiply_64(b_high, a_low);
-    let (carry_3a, middle): (bool, u128) = add_128(product_1, product_2);
+    let (carry_3a, middle): (bool, u128) = add_128_carry(product_1, product_2);
 
     let (middle_2, middle_1): (u64, u64) = split_u128_into_u64(middle);
 
@@ -124,7 +124,7 @@ pub fn mul_128(a: u128, b: u128) -> u256 {
     // either factor is `u64::MAX`, and even in the extreme case where
     // a == b == u128::MAX, the total product still fits into u256.
     // Therefore, word_3 + carry_3a + carry_3b can not overflow, and `full_add_64`
-    // is used instead of `safe_add_64` to avoid the unnecessary overflow check
+    // is used instead of `add_64` to avoid the unnecessary overflow check
     let (_, res_3a): (bool, u64) = jet::full_add_64(carry_3a, word_3, 0);
     let (_, res_3): (bool, u64) = jet::full_add_64(carry_3b, res_3a, 0);
 
@@ -138,7 +138,7 @@ pub fn mul_128(a: u128, b: u128) -> u256 {
 /// The idea is that u128-bit `a` divides into 64-bit `a_high` and `a_low`,
 /// so a = a_high * 2^64 + a_low.
 /// Therefore, a * b = 2^64 * a_high * b + a_low * b.
-pub fn mul_128_64(a: u128, b: u64) -> u256 {
+pub fn mul_128_64_wide(a: u128, b: u64) -> u256 {
     let (a_high, a_low): (u64, u64) = split_u128_into_u64(a);
 
     let highest: u128 = jet::multiply_64(a_high, b);
@@ -149,7 +149,7 @@ pub fn mul_128_64(a: u128, b: u64) -> u256 {
 
     let (carry_2, res_1): (bool, u64) = jet::add_64(word_1, word_2);
     // a * b fits into u192, so addition below can not overflow and `full_add_64`
-    // is used instead of `safe_add_64` to avoid the unnecessary overflow check
+    // is used instead of `add_64` to avoid the unnecessary overflow check
     let (_, res_2): (bool, u64) = jet::full_add_64(carry_2, word_3, 0);
 
     <(u64, u64, u64, u64)>::into((0, res_2, res_1, word_0))
@@ -157,7 +157,7 @@ pub fn mul_128_64(a: u128, b: u64) -> u256 {
 
 /// Returns the product of two u128 values wrapped in Some, or None if the result overflows u128
 pub fn checked_mul_128(a: u128, b: u128) -> Option<u128> {
-    let result: u256 = mul_128(a, b);
+    let result: u256 = mul_128_wide(a, b);
     let (high, low): (u128, u128) = <u256>::into(result);
 
     match is_zero_128(high) {
@@ -167,7 +167,7 @@ pub fn checked_mul_128(a: u128, b: u128) -> Option<u128> {
 }
 
 /// Returns the product of two u128 values, panics if the result overflows u128
-pub fn safe_mul_128(a: u128, b: u128) -> u128 {
+pub fn mul_128(a: u128, b: u128) -> u128 {
     unwrap(checked_mul_128(a, b))
 }
 
@@ -216,7 +216,7 @@ fn normalize_to_threshold_128_63(a: u128, b: u128, is_b_u128: bool) -> (u256, u1
 
     match jet::eq_64(norm, 1) {
         true => (u128_to_u256(a), b, norm),
-        false => (mul_128(a, norm_128), safe_mul_128(b, norm_128), norm),
+        false => (mul_128_wide(a, norm_128), mul_128(b, norm_128), norm),
     }
 }
 
@@ -295,7 +295,7 @@ fn algorithm_d_128_128(dividend: u128, divisor: u128) -> (u64, u128) {
 
     let q: u64 = estimate_quotient_digit_base_64(u2, u1, u0, v1, v0);
 
-    let remainder: u128 = safe_sub_128(dividend, safe_mul_128(divisor, u64_to_u128(q)));
+    let remainder: u128 = sub_128(dividend, mul_128(divisor, u64_to_u128(q)));
     (q, remainder)
 }
 

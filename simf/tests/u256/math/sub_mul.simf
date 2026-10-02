@@ -1,10 +1,10 @@
 use crate::lib::u256::math::{
-    sub_256,
-    mul_256,
-    mul_256_64,
-    mul_256_128,
-    mul_512_128,
-    safe_mul_256_128
+    sub_256_borrow,
+    mul_256_wide,
+    mul_256_64_wide,
+    mul_256_128_wide,
+    mul_512_128_wide,
+    mul_256_128
 };
 use crate::lib::u256::convert::split_u256_into_u64;
 use crate::lib::asserts::{assert_eq_64, assert_eq_128, assert_eq_256};
@@ -28,14 +28,14 @@ fn main() {
 
     match is_selected(0, fn_idx) {
         true => {
-            assert_eq_uint_bool_256(sub_256(a, b), unwrap(expected), expected_bool);
+            assert_eq_uint_bool_256(sub_256_borrow(a, b), unwrap(expected), expected_bool);
         },
         false => (),
     };
 
     match is_selected(1, fn_idx) {
         true => {
-            let (result_high, result_low): (u256, u256) = mul_256(a, b);
+            let (result_high, result_low): (u256, u256) = mul_256_wide(a, b);
 
             assert_eq_256(result_high, unwrap(expected));
             assert_eq_256(result_low, second_expected);
@@ -48,7 +48,7 @@ fn main() {
             let (_, _, _, b): (u64, u64, u64, u64) = split_u256_into_u64(b);
             let (_, _, _, expected): (u64, u64, u64, u64) = split_u256_into_u64(unwrap(expected));
 
-            let (result_high, result_low): (u64, u256) = mul_256_64(a, b);
+            let (result_high, result_low): (u64, u256) = mul_256_64_wide(a, b);
 
             assert_eq_64(result_high, expected);
             assert_eq_256(result_low, second_expected);
@@ -61,7 +61,7 @@ fn main() {
             let (_, b): (u128, u128) = <u256>::into(b);
             let (_, expected): (u128, u128) = <u256>::into(unwrap(expected));
 
-            let (result_high, result_low): (u128, u256) = mul_256_128(a, b);
+            let (result_high, result_low): (u128, u256) = mul_256_128_wide(a, b);
 
             assert_eq_128(result_high, expected);
             assert_eq_256(result_low, second_expected);
@@ -71,7 +71,7 @@ fn main() {
 
     match is_selected(4, fn_idx) {
         true => {
-            let (result_2, result_1, result_0): (u128, u256, u256) = mul_512_128(a, b, c);
+            let (result_2, result_1, result_0): (u128, u256, u256) = mul_512_128_wide(a, b, c);
 
             let (_, expected): (u128, u128) = <u256>::into(unwrap(expected));
 
@@ -85,7 +85,7 @@ fn main() {
     match is_selected(5, fn_idx) {
         true => {
             let (_, b): (u128, u128) = <u256>::into(b);
-            let result: u256 = safe_mul_256_128(a, b);
+            let result: u256 = mul_256_128(a, b);
 
             assert_eq_256(result, unwrap(expected));
         },

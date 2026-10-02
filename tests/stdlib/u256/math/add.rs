@@ -11,8 +11,8 @@ use simplicityhl_std::artifacts::tests::u256::math::add::derived_add::{
 use FunctionToTest::*;
 
 enum FunctionToTest {
-    Add256,
-    Add256_128,
+    Add256Carry,
+    Add256_128Carry,
     FullAdd256,
 }
 
@@ -77,24 +77,24 @@ impl Case {
 }
 
 #[simplex::test]
-fn add_256_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_256_carry_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX / 2);
     let b = generate_u256(U256::zero(), U256::MAX / 2);
     let result = (a + b).to_big_endian();
 
-    case(Add256)
+    case(Add256Carry)
         .args(a.to_big_endian(), b.to_big_endian())
         .expect(result)
         .run(&context)
 }
 
 #[simplex::test]
-fn add_256_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_256_carry_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = U256::MAX;
     let b = generate_u256(U256::one(), U256::MAX);
     let result = (b - 1).to_big_endian();
 
-    case(Add256)
+    case(Add256Carry)
         .args(a.to_big_endian(), b.to_big_endian())
         .expect(result)
         .flag(true)
@@ -102,24 +102,24 @@ fn add_256_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
-fn add_256_128_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_256_128_carry_not_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = generate_u256(U256::zero(), U256::MAX / 2);
     let b = generate_u256(U256::one(), U256::from(u128::MAX));
     let result = (a + b).to_big_endian();
 
-    case(Add256_128)
+    case(Add256_128Carry)
         .args(a.to_big_endian(), b.to_big_endian())
         .expect(result)
         .run(&context)
 }
 
 #[simplex::test]
-fn add_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
+fn add_256_128_carry_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
     let a = U256::MAX;
     let b = generate_u256(U256::one(), U256::from(u128::MAX));
     let result = (b - 1).to_big_endian();
 
-    case(Add256_128)
+    case(Add256_128Carry)
         .args(a.to_big_endian(), b.to_big_endian())
         .expect(result)
         .flag(true)

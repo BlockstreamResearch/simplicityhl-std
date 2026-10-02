@@ -1,11 +1,11 @@
 use crate::lib::u128::math::{
-    add_128,
-    add_128_64,
+    add_128_carry,
+    add_128_64_carry,
     full_add_128,
-    sub_128,
+    sub_128_borrow,
     full_sub_128,
-    mul_128,
-    mul_128_64,
+    mul_128_wide,
+    mul_128_64_wide,
     calculate_normalizer_base_64,
     estimate_quotient_digit_base_64,
     div_mod_128_64,
@@ -30,14 +30,14 @@ fn main() {
 
     match is_selected(0, fn_idx) {
         true => {
-            assert_eq_uint_bool_128(add_128(a, b), unwrap(expected), expected_bool);
+            assert_eq_uint_bool_128(add_128_carry(a, b), unwrap(expected), expected_bool);
         },
         false => (),
     };
     match is_selected(1, fn_idx) {
         true => {
             let (_, b): (u64, u64) = <u128>::into(b);
-            assert_eq_uint_bool_128(add_128_64(a, b), unwrap(expected), expected_bool);
+            assert_eq_uint_bool_128(add_128_64_carry(a, b), unwrap(expected), expected_bool);
         },
         false => (),
     };
@@ -54,7 +54,7 @@ fn main() {
 
     match is_selected(3, fn_idx) {
         true => {
-            assert_eq_uint_bool_128(sub_128(a, b), unwrap(expected), expected_bool);
+            assert_eq_uint_bool_128(sub_128_borrow(a, b), unwrap(expected), expected_bool);
         },
         false => (),
     };
@@ -71,7 +71,7 @@ fn main() {
 
     match is_selected(5, fn_idx) {
         true => {
-            let result: u256 = mul_128(a, b);
+            let result: u256 = mul_128_wide(a, b);
 
             let (result_high, result_low): (u128, u128) = <u256>::into(result);
 
@@ -84,7 +84,7 @@ fn main() {
     match is_selected(6, fn_idx) {
         true => {
             let (_, b): (u64, u64) = <u128>::into(b);
-            let result: u256 = mul_128_64(a, b);
+            let result: u256 = mul_128_64_wide(a, b);
 
             let (result_high, result_low): (u128, u128) = <u256>::into(result);
 

@@ -9,7 +9,7 @@ pub fn checked_add_8(a: u8, b: u8) -> Option<u8> {
 }
 
 /// Returns the sum of two u8 values, panics if the result overflows u8
-pub fn safe_add_8(a: u8, b: u8) -> u8 {
+pub fn add_8(a: u8, b: u8) -> u8 {
     unwrap(checked_add_8(a, b))
 }
 
@@ -24,7 +24,7 @@ pub fn checked_sub_8(a: u8, b: u8) -> Option<u8> {
 }
 
 /// Returns the difference of two u8 values, panics if the result overflows u8
-pub fn safe_sub_8(a: u8, b: u8) -> u8 {
+pub fn sub_8(a: u8, b: u8) -> u8 {
     unwrap(checked_sub_8(a, b))
 }
 
@@ -41,7 +41,7 @@ pub fn checked_mul_8(a: u8, b: u8) -> Option<u8> {
 }
 
 /// Returns the product of two u8 values, panics if the result overflows u8
-pub fn safe_mul_8(a: u8, b: u8) -> u8 {
+pub fn mul_8(a: u8, b: u8) -> u8 {
     unwrap(checked_mul_8(a, b))
 }
 
@@ -54,7 +54,7 @@ pub fn checked_div_8(a: u8, b: u8) -> Option<u8> {
 }
 
 /// Returns the quotient of two u8 values, panics if the result overflows u8
-pub fn safe_div_8(a: u8, b: u8) -> u8 {
+pub fn div_8(a: u8, b: u8) -> u8 {
     unwrap(checked_div_8(a, b))
 }
 
