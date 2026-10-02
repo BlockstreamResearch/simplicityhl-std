@@ -1,0 +1,5 @@
+use crate::lib::sighash_elements::bip_0340_verify_with_mode;
+
+fn main() {
+    bip_0340_verify_with_mode(witness::PUBKEY, witness::SIG, witness::MODE);
+}

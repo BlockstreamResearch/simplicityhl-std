@@ -1,0 +1,201 @@
+// WARNING: this module has not been audited. Its signatures guard funds, so use it with caution,
+// and read the warnings in docs/sighash_elements.md before relying on it.
+//
+// The signed messages are specified byte for byte in docs/sighash_elements.md.
+
+/// sha256("simplicityhl-std\x1fSighash"), the tag of the signed message.
+fn tag_sighash() -> u256 {
+    0xc8b0db060d9bc330f234d3f17438816834d7b0b3819ba2e9e99b54a5e062a12f
+}
+
+/// sha256("simplicityhl-std\x1fSighash\x1fnone")
+fn tag_none() -> u256 {
+    0x901263cfeb7f58d0db0814d66e05911495cefae6cd3fe4d5300abac5dc75ceff
+}
+
+/// sha256("simplicityhl-std\x1fSighash\x1fsingle")
+fn tag_single() -> u256 {
+    0x6598255e3bf6290815c342018df4159dead0e953fcf39df15b4ec85bd82edfba
+}
+
+/// sha256("simplicityhl-std\x1fSighash\x1fall_anyonecanpay")
+fn tag_all_anyonecanpay() -> u256 {
+    0xc58ee484f801263d0eb40aa98a131125908368fde9e323b200c9a650700b41ac
+}
+
+/// sha256("simplicityhl-std\x1fSighash\x1fnone_anyonecanpay")
+fn tag_none_anyonecanpay() -> u256 {
+    0x899df532df6d769b5e0bfb155ac805ef84011fbf6f7aa3d3cbe1119055f0d6bc
+}
+
+/// sha256("simplicityhl-std\x1fSighash\x1fsingle_anyonecanpay")
+fn tag_single_anyonecanpay() -> u256 {
+    0xcfe3e884cd9186cbc582383e1fd65e577dd6d32ba58d544150d794522332d7bf
+}
+
+/// Starts a BIP-340 style tagged hash.
+fn tagged_ctx(tag: u256) -> Ctx8 {
+    let ctx: Ctx8 = jet::sha_256_ctx_8_init();
+    let ctx: Ctx8 = jet::sha_256_ctx_8_add_32(ctx, tag);
+    jet::sha_256_ctx_8_add_32(ctx, tag)
+}
+
+/// Adds the transaction version and lock time.
+fn add_common(ctx: Ctx8) -> Ctx8 {
+    let ctx: Ctx8 = jet::sha_256_ctx_8_add_4(ctx, jet::version());
+    jet::sha_256_ctx_8_add_4(ctx, jet::lock_time())
+}
+
+/// Adds every input: outpoints, sequences, annexes, spent UTXOs and issuances.
+fn add_all_inputs(ctx: Ctx8) -> Ctx8 {
+    let ctx: Ctx8 = jet::sha_256_ctx_8_add_32(ctx, jet::inputs_hash());
+    let ctx: Ctx8 = jet::sha_256_ctx_8_add_32(ctx, jet::input_utxos_hash());
+    jet::sha_256_ctx_8_add_32(ctx, jet::issuances_hash())
+}
+
+/// Adds the current input: outpoint, sequence, annex, spent UTXO and issuance.
+fn add_current_input(ctx: Ctx8) -> Ctx8 {
+    let i: u32 = jet::current_index();
+    let ctx: Ctx8 = match jet::input_hash(i) {
+        Some(h: u256) => jet::sha_256_ctx_8_add_32(ctx, h),
+        None => panic!(),
+    };
+    let ctx: Ctx8 = match jet::input_utxo_hash(i) {
+        Some(h: u256) => jet::sha_256_ctx_8_add_32(ctx, h),
+        None => panic!(),
+    };
+    match jet::issuance_hash(i) {
+        Some(h: u256) => jet::sha_256_ctx_8_add_32(ctx, h),
+        None => panic!(),
+    }
+}
+
+/// Adds every output: asset, amount, nonce, script and range proof.
+fn add_all_outputs(ctx: Ctx8) -> Ctx8 {
+    jet::sha_256_ctx_8_add_32(ctx, jet::outputs_hash())
+}
+
+/// Adds the output at the current input's index: asset, amount, nonce, script and range
+/// proof. Panics if there is no such output.
+fn add_current_output(ctx: Ctx8) -> Ctx8 {
+    match jet::output_hash(jet::current_index()) {
+        Some(h: u256) => jet::sha_256_ctx_8_add_32(ctx, h),
+        None => panic!(),
+    }
+}
+
+// Surjection proofs depend on the full set of inputs, so only modes that sign every input
+// include them.
+
+/// Adds the surjection proofs of every output.
+fn add_all_surjection_proofs(ctx: Ctx8) -> Ctx8 {
+    jet::sha_256_ctx_8_add_32(ctx, jet::output_surjection_proofs_hash())
+}
+
+/// Adds the surjection proof of the output at the current input's index. Panics if there is
+/// no such output.
+fn add_current_surjection_proof(ctx: Ctx8) -> Ctx8 {
+    match jet::output_surjection_proof(jet::current_index()) {
+        Some(h: u256) => jet::sha_256_ctx_8_add_32(ctx, h),
+        None => panic!(),
+    }
+}
+
+/// Finishes a mode's hash and starts the signed message, which binds it to the chain's genesis
+/// block and the tapleaf. The message's first 64-byte block is the tag and the genesis hash.
+fn finish_outer(ctx: Ctx8) -> Ctx8 {
+    let tx: u256 = jet::sha_256_ctx_8_finalize(ctx);
+    let outer: Ctx8 = jet::sha_256_ctx_8_init();
+    let outer: Ctx8 = jet::sha_256_ctx_8_add_32(outer, tag_sighash());
+    let outer: Ctx8 = jet::sha_256_ctx_8_add_32(outer, jet::genesis_block_hash());
+    let outer: Ctx8 = jet::sha_256_ctx_8_add_32(outer, tx);
+    jet::sha_256_ctx_8_add_32(outer, jet::tap_env_hash())
+}
+
+/// As `finish_outer`, and also binds the hash to the current input's index.
+fn finish(ctx: Ctx8) -> u256 {
+    jet::sha_256_ctx_8_finalize(jet::sha_256_ctx_8_add_4(finish_outer(ctx), jet::current_index()))
+}
+
+/// As `finish_outer`, leaving out the current input's index so that the input can end up at any
+/// position once other inputs are added.
+fn finish_anyonecanpay(ctx: Ctx8) -> u256 {
+    jet::sha_256_ctx_8_finalize(finish_outer(ctx))
+}
+
+/// Unaudited: use with caution. See the warnings in docs/sighash_elements.md.
+///
+/// Returns the SIGHASH_NONE hash: signs every input and no outputs.
+pub fn sighash_none() -> u256 {
+    finish(add_all_inputs(add_common(tagged_ctx(tag_none()))))
+}
+
+/// Unaudited: use with caution. See the warnings in docs/sighash_elements.md.
+///
+/// Returns the SIGHASH_SINGLE hash: signs every input and the output at the current input's
+/// index. Panics if there is no such output.
+pub fn sighash_single() -> u256 {
+    let ctx: Ctx8 = add_all_inputs(add_common(tagged_ctx(tag_single())));
+    finish(add_current_surjection_proof(add_current_output(ctx)))
+}
+
+/// Unaudited: use with caution. See the warnings in docs/sighash_elements.md.
+///
+/// Returns the SIGHASH_ALL|ANYONECANPAY hash: signs the current input and every output. Other
+/// inputs can be added after signing, and the current input can be at any index.
+pub fn sighash_all_anyonecanpay() -> u256 {
+    let ctx: Ctx8 = add_current_input(add_common(tagged_ctx(tag_all_anyonecanpay())));
+    finish_anyonecanpay(add_all_outputs(ctx))
+}
+
+/// Unaudited: use with caution. See the warnings in docs/sighash_elements.md.
+///
+/// Returns the SIGHASH_NONE|ANYONECANPAY hash: signs the current input only, at any index.
+pub fn sighash_none_anyonecanpay() -> u256 {
+    finish_anyonecanpay(add_current_input(add_common(tagged_ctx(tag_none_anyonecanpay()))))
+}
+
+/// Unaudited: use with caution. See the warnings in docs/sighash_elements.md.
+///
+/// Returns the SIGHASH_SINGLE|ANYONECANPAY hash: signs the current input and the output at its
+/// index. Other inputs can be added after signing, as long as that output moves with it.
+/// Panics if there is no such output.
+pub fn sighash_single_anyonecanpay() -> u256 {
+    let ctx: Ctx8 = add_current_input(add_common(tagged_ctx(tag_single_anyonecanpay())));
+    finish_anyonecanpay(add_current_output(ctx))
+}
+
+/// Unaudited: use with caution. See the warnings in docs/sighash_elements.md.
+///
+/// Returns the sighash for a BIP-341 `hash_type` byte: `0x01` ALL (`jet::sig_all_hash`),
+/// `0x02` NONE, `0x03` SINGLE, and `0x81`, `0x82`, `0x83` for the ANYONECANPAY variants.
+/// Panics on any other value, including `0x00`, so that each signature has exactly one valid
+/// mode byte.
+pub fn sighash(mode: u8) -> u256 {
+    match jet::eq_8(mode, 1) {
+        true => jet::sig_all_hash(),
+        false => match jet::eq_8(mode, 2) {
+            true => sighash_none(),
+            false => match jet::eq_8(mode, 3) {
+                true => sighash_single(),
+                false => match jet::eq_8(mode, 129) {
+                    true => sighash_all_anyonecanpay(),
+                    false => match jet::eq_8(mode, 130) {
+                        true => sighash_none_anyonecanpay(),
+                        false => match jet::eq_8(mode, 131) {
+                            true => sighash_single_anyonecanpay(),
+                            false => panic!(),
+                        },
+                    },
+                },
+            },
+        },
+    }
+}
+
+/// Unaudited: use with caution. See the warnings in docs/sighash_elements.md.
+///
+/// Asserts that `sig` is a valid BIP-340 signature by `pk` over `sighash(mode)`.
+pub fn bip_0340_verify_with_mode(pk: Pubkey, sig: Signature, mode: u8) {
+    jet::bip_0340_verify((pk, sighash(mode)), sig)
+}

@@ -50,6 +50,7 @@ pub fn construct_final_tx<W>(
     script: &Script,
     witness: W,
     data: Option<&[u8]>,
+    required_sig: RequiredSignature,
 ) -> anyhow::Result<FinalTransaction>
 where
     W: WitnessTrait + 'static,
@@ -62,7 +63,7 @@ where
     ft.add_program_input(
         PartialInput::new(utxos[0].clone()),
         ProgramInput::new(Box::new(program.as_ref().clone()), Box::new(witness)),
-        RequiredSignature::None,
+        required_sig,
     );
 
     if let Some(data) = data {
@@ -79,11 +80,12 @@ pub fn spend<W>(
     script: &Script,
     witness: W,
     data: Option<&[u8]>,
+    required_sig: RequiredSignature,
 ) -> anyhow::Result<String>
 where
     W: WitnessTrait + 'static,
 {
-    let ft = construct_final_tx(context, program, script, witness, data)?;
+    let ft = construct_final_tx(context, program, script, witness, data, required_sig)?;
 
     Ok(context.get_default_signer().broadcast(&ft)?.to_string())
 }
@@ -101,7 +103,10 @@ pub fn assert_error_msg(
             let err = result
                 .expect_err("expected the spend to fail, but it succeeded")
                 .to_string();
-            assert!(err.contains(expected));
+            assert!(
+                err.contains(expected),
+                "expected an error containing {expected:?}, got: {err}"
+            );
         }
     };
 
@@ -119,7 +124,14 @@ where
     W: WitnessTrait + 'static,
 {
     let script = fund(context, &program)?;
-    let result = spend(context, &program, &script, witness, None);
+    let result = spend(
+        context,
+        &program,
+        &script,
+        witness,
+        None,
+        RequiredSignature::None,
+    );
 
     assert_error_msg(result, expect)
 }
@@ -137,7 +149,39 @@ where
     W: WitnessTrait + 'static,
 {
     let script = fund(context, &program)?;
-    let result = spend(context, &program, &script, witness, Some(data));
+    let result = spend(
+        context,
+        &program,
+        &script,
+        witness,
+        Some(data),
+        RequiredSignature::None,
+    );
+
+    assert_error_msg(result, expect)
+}
+
+/// Fund + spend + assert the outcome.
+/// The default signer signs the program's `sig_all_hash` into the witness named `sig_witness`.
+pub fn run_signed<W>(
+    context: &simplex::TestContext,
+    program: impl AsRef<Program>,
+    witness: W,
+    expect: Expect,
+    sig_witness: &str,
+) -> anyhow::Result<()>
+where
+    W: WitnessTrait + 'static,
+{
+    let script = fund(context, &program)?;
+    let result = spend(
+        context,
+        &program,
+        &script,
+        witness,
+        None,
+        RequiredSignature::Witness(sig_witness.to_string()),
+    );
 
     assert_error_msg(result, expect)
 }

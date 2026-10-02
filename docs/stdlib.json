@@ -147,6 +147,55 @@
     "description": "Assert that the output at the given index is an OP_RETURN (null data) output.\n\n## Panics\nThe assertion fails."
   },
   {
+    "simplicityhl_name": "sighash_none",
+    "section": "Sighash",
+    "input_type": "",
+    "output_type": "u256",
+    "description": "**Unaudited: use with caution.** Return the SIGHASH_NONE message for the current input: it signs every input and no outputs. The exact message is specified in [sighash_elements.md](https://github.com/BlockstreamResearch/simplicityhl-std/blob/master/docs/sighash_elements.md)."
+  },
+  {
+    "simplicityhl_name": "sighash_single",
+    "section": "Sighash",
+    "input_type": "",
+    "output_type": "u256",
+    "description": "**Unaudited: use with caution.** Return the SIGHASH_SINGLE message for the current input: it signs every input and the output at the current input's index, including that output's surjection proof. The exact message is specified in [sighash_elements.md](https://github.com/BlockstreamResearch/simplicityhl-std/blob/master/docs/sighash_elements.md).\n\n## Panics\nPanics if there is no output at the current input's index."
+  },
+  {
+    "simplicityhl_name": "sighash_all_anyonecanpay",
+    "section": "Sighash",
+    "input_type": "",
+    "output_type": "u256",
+    "description": "**Unaudited: use with caution.** Return the SIGHASH_ALL|ANYONECANPAY message for the current input: it signs the current input and every output. Other inputs can be added after signing, and the current input can end up at any index. The exact message is specified in [sighash_elements.md](https://github.com/BlockstreamResearch/simplicityhl-std/blob/master/docs/sighash_elements.md)."
+  },
+  {
+    "simplicityhl_name": "sighash_none_anyonecanpay",
+    "section": "Sighash",
+    "input_type": "",
+    "output_type": "u256",
+    "description": "**Unaudited: use with caution.** Return the SIGHASH_NONE|ANYONECANPAY message for the current input: it signs the current input only, at any index. The exact message is specified in [sighash_elements.md](https://github.com/BlockstreamResearch/simplicityhl-std/blob/master/docs/sighash_elements.md)."
+  },
+  {
+    "simplicityhl_name": "sighash_single_anyonecanpay",
+    "section": "Sighash",
+    "input_type": "",
+    "output_type": "u256",
+    "description": "**Unaudited: use with caution.** Return the SIGHASH_SINGLE|ANYONECANPAY message for the current input: it signs the current input and the output at its index. Other inputs can be added after signing, as long as that output moves with the input. The exact message is specified in [sighash_elements.md](https://github.com/BlockstreamResearch/simplicityhl-std/blob/master/docs/sighash_elements.md).\n\n## Panics\nPanics if there is no output at the current input's index."
+  },
+  {
+    "simplicityhl_name": "sighash",
+    "section": "Sighash",
+    "input_type": "u8",
+    "output_type": "u256",
+    "description": "**Unaudited: use with caution.** Return the message for a BIP-341 `hash_type` byte: `0x01` ALL (`jet::sig_all_hash`), `0x02` NONE, `0x03` SINGLE, and `0x81`, `0x82`, `0x83` for the ANYONECANPAY variants.\n\n## Panics\nPanics on any other byte, including `0x00`, and in the SINGLE modes if there is no output at the current input's index."
+  },
+  {
+    "simplicityhl_name": "bip_0340_verify_with_mode",
+    "section": "Sighash",
+    "input_type": "Pubkey, Signature, u8",
+    "output_type": "()",
+    "description": "**Unaudited: use with caution.** Assert that the signature is a valid BIP-340 signature by the public key over `sighash(mode)`.\n\n## Panics\nThe assertion fails, or `sighash(mode)` panics."
+  },
+  {
     "simplicityhl_name": "ge_to_point",
     "section": "secp256k1 operations",
     "input_type": "Ge",
