@@ -1,0 +1,150 @@
+/*
+ * Verifying that a confidential `(asset, amount)` pair opens to `asset_id` and
+ * `v`: blinding factors `abf`, `vbf` versus an exact value proof (a Schnorr
+ * signature by `c + h - (v+1)*H_0`), with `(v+1)*H_0` computed by `jet::scale`
+ * or by double-and-add. Compared by `tests/bench`.
+ *
+ * Candidates 5 and 6 take `H_0` and `-(v+1)*H_0` from the witness unchecked.
+ * They are UNSOUND and only price both approaches as if `H_0` were embedded
+ * and `(v+1)*H_0` were free: their difference is the most computing
+ * `(v+1)*H_0` may cost for the proof to win.
+ */
+
+use crate::bench::ct::ladder::dbl_add_64;
+use crate::lib::asserts::{assert_eq_64, assert_eq_256};
+use crate::lib::ct::commitment::{
+    asset_generator,
+    assert_x_eq,
+    assert_value_commitment,
+    assert_opens_to
+};
+use crate::lib::ct::point::conf_point_to_ge;
+use crate::lib::ct::proofs::assert_opens_to_proof;
+use crate::lib::secp256k1::operations::safe_gej_normalize;
+use crate::lib::u64::convert::u64_to_u256;
+
+use crate::tests::support::dispatch::is_selected;
+
+/// The former `assert_opens_to`: rebuilds both points and compares x-coordinates.
+fn assert_opens_to_x_only(
+    asset: Asset1,
+    amount: Amount1,
+    expected_asset_id: u256,
+    expected_amount: u64,
+    abf: Scalar,
+    vbf: Scalar
+) {
+    match asset {
+        Left(conf_asset: Point) => {
+            let h: Gej = asset_generator(expected_asset_id, abf);
+            assert_x_eq(conf_asset, h);
+
+            match amount {
+                Left(conf_amount: Point) => {
+                    assert_value_commitment(conf_amount, expected_amount, h, vbf);
+                },
+                Right(explicit_amount: u64) => assert_eq_64(explicit_amount, expected_amount),
+            };
+        },
+        Right(explicit_asset: u256) => {
+            assert_eq_256(explicit_asset, expected_asset_id);
+
+            match amount {
+                Left(conf_amount: Point) => {
+                    let h: Gej = (jet::hash_to_curve(expected_asset_id), 1);
+                    assert_value_commitment(conf_amount, expected_amount, h, vbf);
+                },
+                Right(explicit_amount: u64) => assert_eq_64(explicit_amount, expected_amount),
+            };
+        },
+    };
+}
+
+/// `assert_opens_to` against a given `h0`.
+fn opens_to_linear_verify(asset: Point, amount: Point, h0: Ge, v: u64, abf: Scalar, vbf: Scalar) {
+    let h: Ge = conf_point_to_ge(asset);
+    jet::linear_verify_1(((1, h0), abf), h);
+    jet::linear_verify_1(((u64_to_u256(v), h), vbf), conf_point_to_ge(amount));
+}
+
+/// `proofs::assert_exact_value_and_asset` with `-(v+1)*H_0` given.
+fn opens_to_proof_given(asset: Point, amount: Point, neg_vh0: Gej, proof: Signature) {
+    let p: Gej = jet::gej_ge_add(
+        jet::gej_ge_add(neg_vh0, conf_point_to_ge(amount)),
+        conf_point_to_ge(asset)
+    );
+
+    let (px, _): (Fe, Fe) = safe_gej_normalize(p);
+    jet::bip_0340_verify((px, jet::sig_all_hash()), proof);
+}
+
+/// `proofs::assert_exact_value_and_asset` with `(v+1)*H_0` by double-and-add.
+fn opens_to_proof_ladder(asset: Point, amount: Point, asset_id: u256, v: u64, proof: Signature) {
+    let h0: Ge = jet::hash_to_curve(asset_id);
+    // `v+1` may not fit in a `u64`, so add the last `H_0` separately.
+    let vh0: Gej = jet::gej_ge_add(dbl_add_64(v, h0), h0);
+    opens_to_proof_given(asset, amount, jet::gej_negate(vh0), proof);
+}
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let asset_point: Point = witness::ASSET;
+    let amount_point: Point = witness::AMOUNT;
+    let asset_id: u256 = witness::ASSET_ID;
+    let v: u64 = witness::V;
+
+    // Both alternatives take 64 bytes of witness: `abf` and `vbf`, or one signature.
+    let abf: Scalar = witness::ABF;
+    let vbf: Scalar = witness::VBF;
+    let proof: Signature = witness::PROOF;
+
+    let asset: Asset1 = Left(asset_point);
+    let amount: Amount1 = Left(amount_point);
+
+    // Baseline: everything except the verification.
+    match is_selected(0, fn_idx) {
+        true => {
+            assert!(jet::eq_256(asset_id, asset_id));
+        },
+        false => (),
+    };
+    match is_selected(1, fn_idx) {
+        true => {
+            assert_opens_to(asset, amount, asset_id, v, abf, vbf);
+        },
+        false => (),
+    };
+    match is_selected(2, fn_idx) {
+        true => {
+            assert_opens_to_x_only(asset, amount, asset_id, v, abf, vbf);
+        },
+        false => (),
+    };
+    match is_selected(3, fn_idx) {
+        true => {
+            assert_opens_to_proof(asset, amount, asset_id, v, proof);
+        },
+        false => (),
+    };
+    match is_selected(4, fn_idx) {
+        true => {
+            opens_to_proof_ladder(asset_point, amount_point, asset_id, v, proof);
+        },
+        false => (),
+    };
+    match is_selected(5, fn_idx) {
+        true => {
+            let h0: Ge = witness::H0;
+            opens_to_linear_verify(asset_point, amount_point, h0, v, abf, vbf);
+        },
+        false => (),
+    };
+    match is_selected(6, fn_idx) {
+        true => {
+            let neg_vh0: Ge = witness::NEG_VH0;
+            opens_to_proof_given(asset_point, amount_point, (neg_vh0, 1), proof);
+        },
+        false => (),
+    };
+}

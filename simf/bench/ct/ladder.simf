@@ -1,0 +1,44 @@
+/*
+ * `v*h` by double-and-add, for `simf/bench/ct/opening.simf` and the program
+ * `tests/bench/vh.rs` generates. Free of imports so that program can include it.
+ */
+
+fn dbl_add_1(acc: Gej, b: u1, h: Ge) -> Gej {
+    let acc: Gej = jet::gej_double(acc);
+
+    match <u1>::into(b) {
+        true => jet::gej_ge_add(acc, h),
+        false => acc,
+    }
+}
+
+fn dbl_add_2(acc: Gej, v: u2, h: Ge) -> Gej {
+    let (hi, lo): (u1, u1) = <u2>::into(v);
+    dbl_add_1(dbl_add_1(acc, hi, h), lo, h)
+}
+
+fn dbl_add_4(acc: Gej, v: u4, h: Ge) -> Gej {
+    let (hi, lo): (u2, u2) = <u4>::into(v);
+    dbl_add_2(dbl_add_2(acc, hi, h), lo, h)
+}
+
+fn dbl_add_8(acc: Gej, v: u8, h: Ge) -> Gej {
+    let (hi, lo): (u4, u4) = <u8>::into(v);
+    dbl_add_4(dbl_add_4(acc, hi, h), lo, h)
+}
+
+fn dbl_add_16(acc: Gej, v: u16, h: Ge) -> Gej {
+    let (hi, lo): (u8, u8) = <u16>::into(v);
+    dbl_add_8(dbl_add_8(acc, hi, h), lo, h)
+}
+
+fn dbl_add_32(acc: Gej, v: u32, h: Ge) -> Gej {
+    let (hi, lo): (u16, u16) = <u32>::into(v);
+    dbl_add_16(dbl_add_16(acc, hi, h), lo, h)
+}
+
+/// `v*h` by double-and-add.
+pub fn dbl_add_64(v: u64, h: Ge) -> Gej {
+    let (hi, lo): (u32, u32) = <u64>::into(v);
+    dbl_add_32(dbl_add_32(jet::gej_infinity(), hi, h), lo, h)
+}
