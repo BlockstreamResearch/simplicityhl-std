@@ -1,10 +1,10 @@
 use crate::lib::u128::math::{
     checked_add_128,
-    safe_add_128,
+    add_128,
     checked_sub_128,
-    safe_sub_128,
+    sub_128,
     checked_mul_128,
-    safe_mul_128,
+    mul_128,
     checked_div_128,
     div_128
 };
@@ -32,7 +32,7 @@ fn main() {
     };
     match is_selected(1, fn_idx) {
         true => {
-            assert_eq_128(safe_add_128(a, b), unwrap(expected));
+            assert_eq_128(add_128(a, b), unwrap(expected));
         },
         false => (),
     };
@@ -46,7 +46,7 @@ fn main() {
     };
     match is_selected(3, fn_idx) {
         true => {
-            assert_eq_128(safe_sub_128(a, b), unwrap(expected));
+            assert_eq_128(sub_128(a, b), unwrap(expected));
         },
         false => (),
     };
@@ -60,7 +60,7 @@ fn main() {
     };
     match is_selected(5, fn_idx) {
         true => {
-            assert_eq_128(safe_mul_128(a, b), unwrap(expected));
+            assert_eq_128(mul_128(a, b), unwrap(expected));
         },
         false => (),
     };

@@ -1,10 +1,10 @@
 use crate::lib::u16::math::{
     checked_add_16,
-    safe_add_16,
+    add_16,
     checked_sub_16,
-    safe_sub_16,
+    sub_16,
     checked_mul_16,
-    safe_mul_16,
+    mul_16,
     checked_div_16,
     div_16,
     gt_16,
@@ -30,7 +30,7 @@ fn main() {
     };
     match is_selected(1, fn_idx) {
         true => {
-            assert!(jet::eq_16(safe_add_16(a, b), unwrap(expected)));
+            assert!(jet::eq_16(add_16(a, b), unwrap(expected)));
         },
         false => (),
     };
@@ -44,7 +44,7 @@ fn main() {
     };
     match is_selected(3, fn_idx) {
         true => {
-            assert!(jet::eq_16(safe_sub_16(a, b), unwrap(expected)));
+            assert!(jet::eq_16(sub_16(a, b), unwrap(expected)));
         },
         false => (),
     };
@@ -58,7 +58,7 @@ fn main() {
     };
     match is_selected(5, fn_idx) {
         true => {
-            assert!(jet::eq_16(safe_mul_16(a, b), unwrap(expected)));
+            assert!(jet::eq_16(mul_16(a, b), unwrap(expected)));
         },
         false => (),
     };

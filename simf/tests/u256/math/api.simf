@@ -1,10 +1,10 @@
 use crate::lib::u256::math::{
     checked_add_256,
-    safe_add_256,
+    add_256,
     checked_sub_256,
-    safe_sub_256,
+    sub_256,
     checked_mul_256,
-    safe_mul_256,
+    mul_256,
     checked_div_256,
     div_256
 };
@@ -32,7 +32,7 @@ fn main() {
     };
     match is_selected(1, fn_idx) {
         true => {
-            assert_eq_256(safe_add_256(a, b), unwrap(expected));
+            assert_eq_256(add_256(a, b), unwrap(expected));
         },
         false => (),
     };
@@ -46,7 +46,7 @@ fn main() {
     };
     match is_selected(3, fn_idx) {
         true => {
-            assert_eq_256(safe_sub_256(a, b), unwrap(expected));
+            assert_eq_256(sub_256(a, b), unwrap(expected));
         },
         false => (),
     };
@@ -60,7 +60,7 @@ fn main() {
     };
     match is_selected(5, fn_idx) {
         true => {
-            assert_eq_256(safe_mul_256(a, b), unwrap(expected));
+            assert_eq_256(mul_256(a, b), unwrap(expected));
         },
         false => (),
     };

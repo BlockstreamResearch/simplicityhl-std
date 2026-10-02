@@ -1,4 +1,4 @@
-use crate::lib::u256::math::{add_256, add_256_128, full_add_256};
+use crate::lib::u256::math::{add_256_carry, add_256_128_carry, full_add_256};
 
 use crate::tests::support::expect::assert_eq_uint_bool_256;
 use crate::tests::support::dispatch::is_selected;
@@ -16,7 +16,7 @@ fn main() {
 
     match is_selected(0, fn_idx) {
         true => {
-            assert_eq_uint_bool_256(add_256(a, b), unwrap(expected), expected_bool);
+            assert_eq_uint_bool_256(add_256_carry(a, b), unwrap(expected), expected_bool);
         },
         false => (),
     };
@@ -24,7 +24,7 @@ fn main() {
     match is_selected(1, fn_idx) {
         true => {
             let (_, b): (u128, u128) = <u256>::into(b);
-            assert_eq_uint_bool_256(add_256_128(a, b), unwrap(expected), expected_bool);
+            assert_eq_uint_bool_256(add_256_128_carry(a, b), unwrap(expected), expected_bool);
         },
         false => (),
     };
