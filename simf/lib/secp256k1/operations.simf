@@ -11,9 +11,16 @@ pub fn ge_to_point(p: Ge) -> Point {
     }
 }
 
+/// Decompress a `Point` into affine coordinates.
+/// Panics if `jet::decompress(p)` returns `None`.
+pub fn point_to_ge(p: Point) -> Ge {
+    unwrap(jet::decompress(p))
+}
+
 /// Decompress a `Point` into a Jacobian point with `z = 1`.
+/// Panics if `jet::decompress(p)` returns `None`.
 pub fn point_to_gej(p: Point) -> Gej {
-    (unwrap(jet::decompress(p)), 1)
+    (point_to_ge(p), 1)
 }
 
 /// Convert the point into affine coordinates.
