@@ -8,8 +8,8 @@ use crate::common::utxo_helper::ConfidentialAssetId;
 use crate::common::utxo_helper::create_utxo_for_inputs;
 use crate::common::utxo_helper::from_hex_to_u256_array;
 
-use simplicityhl_std::artifacts::tests::asset_id_amount::asset_id_with_amount::AssetIdWithAmountProgram as TestAssetIdWithAmountProgram;
-use simplicityhl_std::artifacts::tests::asset_id_amount::asset_id_with_amount::derived_asset_id_with_amount::{
+use simplicityhl_std::artifacts::tests::utxo::getters::asset_id_with_amount::AssetIdWithAmountProgram as TestAssetIdWithAmountProgram;
+use simplicityhl_std::artifacts::tests::utxo::getters::asset_id_with_amount::derived_asset_id_with_amount::{
     AssetIdWithAmountArguments as TestAssetIdWithAmountArguments, AssetIdWithAmountWitness as TestAssetIdWithAmountWitness,
 };
 

@@ -1,4 +1,4 @@
-use crate::lib::asset_id_amount::amount::{
+use crate::lib::utxo::getters::amount::{
     get_explicit_amount,
     get_confidential_amount,
     get_explicit_input_amount,
@@ -8,7 +8,7 @@ use crate::lib::asset_id_amount::amount::{
     get_current_explicit_amount,
     get_current_confidential_amount
 };
-use crate::lib::u64::convert::{safe_u64_to_u1, u64_to_u256};
+use crate::lib::u64::convert::safe_u64_to_u1;
 use crate::lib::asserts::{assert_eq_1, assert_eq_64, assert_eq_256};
 
 use crate::tests::support::dispatch::is_selected;
