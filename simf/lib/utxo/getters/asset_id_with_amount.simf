@@ -1,10 +1,9 @@
 /// Functions for retrieving an `AssetId` along with an `Amount`
-/// 
-/// Using `get_explicit_asset_id_with_amount` and `get_confidential_asset_id_with_amount` incurs the overhead. 
-/// These functions should only be used when the input/output selection needs to be determined at runtime; 
-/// otherwise, use the input- or output- specific getter directly.
 
-/// Returns explicit asset_id and amount at the specified input or output
+/// Returns explicit asset_id and amount at the specified input or output.
+/// 
+/// Warning: using this incurs the overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
 pub fn get_explicit_asset_id_with_amount(index: u32, is_input_index: bool) -> (u256, u64) {
     let (
         asset,
@@ -18,6 +17,9 @@ pub fn get_explicit_asset_id_with_amount(index: u32, is_input_index: bool) -> (u
 }
 
 /// Returns confidential asset_id and amount at the specified input or output
+/// 
+/// Warning: using this incurs the overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
 pub fn get_confidential_asset_id_with_amount(
     index: u32,
     is_input_index: bool
@@ -62,14 +64,14 @@ pub fn get_confidential_output_asset_id_with_amount(index: u32) -> (Confidential
 }
 
 /// Returns explicit input asset_id and amount at the current_index
-pub fn get_current_explicit_asset_id_with_amount() -> (u256, u64) {
+pub fn get_explicit_current_asset_id_with_amount() -> (u256, u64) {
     let (asset, amount): (Asset1, Amount1) = jet::current_amount();
 
     (unwrap_right::<(u1, u256)>(asset), unwrap_right::<(u1, u256)>(amount))
 }
 
 /// Returns confidential input asset_id and amount at the current_index
-pub fn get_current_confidential_asset_id_with_amount() -> (Confidential1, Confidential1) {
+pub fn get_confidential_current_asset_id_with_amount() -> (Confidential1, Confidential1) {
     let (asset, amount): (Asset1, Amount1) = jet::current_amount();
 
     (unwrap_left::<u256>(asset), unwrap_left::<u64>(amount))

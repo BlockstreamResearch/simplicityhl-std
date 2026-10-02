@@ -5,8 +5,8 @@ use crate::lib::utxo::getters::asset_id::{
     get_confidential_input_asset_id,
     get_explicit_output_asset_id,
     get_confidential_output_asset_id,
-    get_current_explicit_asset_id,
-    get_current_confidential_asset_id
+    get_explicit_current_asset_id,
+    get_confidential_current_asset_id
 };
 use crate::lib::u256::convert::safe_u256_to_u1;
 use crate::lib::asserts::{assert_eq_1, assert_eq_256};
@@ -84,7 +84,7 @@ fn main() {
 
     match is_selected(6, fn_idx) {
         true => {
-            assert_eq_256(get_current_explicit_asset_id(), expected_asset_id);
+            assert_eq_256(get_explicit_current_asset_id(), expected_asset_id);
         },
         false => (),
     };
@@ -94,7 +94,7 @@ fn main() {
             let (
                 parity_bit,
                 confidential_asset_id
-            ): Confidential1 = get_current_confidential_asset_id();
+            ): Confidential1 = get_confidential_current_asset_id();
 
             assert_eq_1(parity_bit, safe_u256_to_u1(expected_asset_id));
             assert_eq_256(confidential_asset_id, expected_confidential_asset_id);

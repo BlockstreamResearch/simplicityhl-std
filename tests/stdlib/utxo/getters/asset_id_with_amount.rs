@@ -292,7 +292,7 @@ fn get_explicit_output_asset_id_with_amount(context: simplex::TestContext) -> an
 }
 
 #[simplex::test]
-fn get_current_explicit_asset_id_with_amount(context: simplex::TestContext) -> anyhow::Result<()> {
+fn get_explicit_current_asset_id_with_amount(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
@@ -313,7 +313,7 @@ fn get_current_explicit_asset_id_with_amount(context: simplex::TestContext) -> a
 }
 
 #[simplex::test]
-fn get_current_confidential_asset_id_with_amount(
+fn get_confidential_current_asset_id_with_amount(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 0;

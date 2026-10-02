@@ -261,7 +261,7 @@ fn get_explicit_output_amount(context: simplex::TestContext) -> anyhow::Result<(
 }
 
 #[simplex::test]
-fn get_current_explicit_amount(context: simplex::TestContext) -> anyhow::Result<()> {
+fn get_explicit_current_amount(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let is_explicit_input = true;
@@ -281,7 +281,7 @@ fn get_current_explicit_amount(context: simplex::TestContext) -> anyhow::Result<
 }
 
 #[simplex::test]
-fn get_current_confidential_amount(context: simplex::TestContext) -> anyhow::Result<()> {
+fn get_confidential_current_amount(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let is_explicit_input = false;

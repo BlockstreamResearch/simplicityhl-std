@@ -228,7 +228,7 @@ fn get_explicit_output_asset_id(context: simplex::TestContext) -> anyhow::Result
 }
 
 #[simplex::test]
-fn get_current_explicit_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
+fn get_explicit_current_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
     let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
     let is_explicit_input = true;
@@ -242,7 +242,7 @@ fn get_current_explicit_asset_id(context: simplex::TestContext) -> anyhow::Resul
 }
 
 #[simplex::test]
-fn get_current_confidential_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
+fn get_confidential_current_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
     let is_explicit_input = false;
 

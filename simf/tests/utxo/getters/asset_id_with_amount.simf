@@ -5,8 +5,8 @@ use crate::lib::utxo::getters::asset_id_with_amount::{
     get_confidential_input_asset_id_with_amount,
     get_explicit_output_asset_id_with_amount,
     get_confidential_output_asset_id_with_amount,
-    get_current_explicit_asset_id_with_amount,
-    get_current_confidential_asset_id_with_amount
+    get_explicit_current_asset_id_with_amount,
+    get_confidential_current_asset_id_with_amount
 };
 use crate::lib::u256::convert::safe_u256_to_u1;
 use crate::lib::u64::convert::safe_u64_to_u1;
@@ -130,7 +130,7 @@ fn main() {
 
     match is_selected(6, fn_idx) {
         true => {
-            let (asset_id, amount): (u256, u64) = get_current_explicit_asset_id_with_amount();
+            let (asset_id, amount): (u256, u64) = get_explicit_current_asset_id_with_amount();
 
             assert_eq_256(asset_id, expected_asset_id);
             assert_eq_64(amount, expected_amount);
@@ -149,7 +149,7 @@ fn main() {
                     parity_bit_amount,
                     confidential_amount
                 )
-            ): (Confidential1, Confidential1) = get_current_confidential_asset_id_with_amount();
+            ): (Confidential1, Confidential1) = get_confidential_current_asset_id_with_amount();
 
             assert_eq_1(parity_bit_asset_id, safe_u256_to_u1(expected_asset_id));
             assert_eq_256(confidential_asset_id, expected_confidential_asset_id);
