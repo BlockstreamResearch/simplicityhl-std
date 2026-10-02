@@ -32,6 +32,7 @@ pub fn create_utxo_for_inputs(
     context: &simplex::TestContext,
     index: u32,
     is_explicit_input: bool,
+    is_input: bool,
     expected_amount: u64,
     program: impl AsRef<Program>,
 ) -> anyhow::Result<Option<(ConfidentialAssetId, ConfidentialAmount)>> {
@@ -46,10 +47,15 @@ pub fn create_utxo_for_inputs(
             true => program_script,
             false => pubkey_script,
         };
-        let amount_to_send = match index == i {
+        let mut amount_to_send = match index == i {
             true => expected_amount,
             false => DEFAULT_SEND_AMOUNT,
         };
+        // while testing an input amount, input utxo has `amount` and output has `amount - 1`;
+        // if an output amount is tested, input utxo has `amount + 1` and output has `amount`.
+        if !is_input {
+            amount_to_send += 1;
+        }
 
         if index == i && !is_explicit_input {
             receipt_result = Some(send_with_blinding_return_txid(

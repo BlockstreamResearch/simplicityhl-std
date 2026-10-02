@@ -126,12 +126,14 @@ fn create_utxo_for_inputs_wrapper(
     context: &simplex::TestContext,
     index: u32,
     is_explicit_input: bool,
+    is_input: bool,
     expected_amount: u64,
 ) -> anyhow::Result<Option<(ConfidentialAssetId, ConfidentialAmount)>> {
     create_utxo_for_inputs(
         context,
         index,
         is_explicit_input,
+        is_input,
         expected_amount,
         program(),
     )
@@ -146,7 +148,13 @@ fn get_explicit_asset_id_with_amount_for_input(
     let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?;
+    create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
 
     case(Explicit)
         .index(index)
@@ -164,7 +172,13 @@ fn get_explicit_asset_id_with_amount_for_output(
     let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?;
+    create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Output),
+        expected_amount,
+    )?;
 
     case(Explicit)
         .index(index)
@@ -181,9 +195,14 @@ fn get_confidential_asset_id_with_amount_for_input(
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let is_explicit_input = false;
 
-    let (conf_asset, conf_amount) =
-        create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?
-            .unwrap();
+    let (conf_asset, conf_amount) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?
+    .unwrap();
 
     let (asset_parity_bit, asset_conf_amount) = (conf_asset.parity_bit, conf_asset.asset_id);
     let (amount_parity_bit, amount_conf_amount) = (conf_amount.parity_bit, conf_amount.amount);
@@ -207,7 +226,13 @@ fn get_explicit_input_asset_id_with_amount(context: simplex::TestContext) -> any
 
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?;
+    create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
 
     case(ExplicitInput)
         .index(index)
@@ -223,9 +248,14 @@ fn get_confidential_input_asset_id_with_amount(
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let is_explicit_input = false;
 
-    let (conf_asset, conf_amount) =
-        create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?
-            .unwrap();
+    let (conf_asset, conf_amount) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?
+    .unwrap();
 
     let (asset_parity_bit, asset_conf_amount) = (conf_asset.parity_bit, conf_asset.asset_id);
     let (amount_parity_bit, amount_conf_amount) = (conf_amount.parity_bit, conf_amount.amount);
@@ -247,7 +277,13 @@ fn get_explicit_output_asset_id_with_amount(context: simplex::TestContext) -> an
     let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?;
+    create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Output),
+        expected_amount,
+    )?;
 
     case(ExplicitOutput)
         .index(index)
@@ -262,7 +298,13 @@ fn get_current_explicit_asset_id_with_amount(context: simplex::TestContext) -> a
     let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?;
+    create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
 
     case(CurrentExplicit)
         .index(index)
@@ -278,9 +320,14 @@ fn get_current_confidential_asset_id_with_amount(
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let is_explicit_input = false;
 
-    let (conf_asset, conf_amount) =
-        create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?
-            .unwrap();
+    let (conf_asset, conf_amount) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?
+    .unwrap();
 
     let (asset_parity_bit, asset_conf_amount) = (conf_asset.parity_bit, conf_asset.asset_id);
     let (amount_parity_bit, amount_conf_amount) = (conf_amount.parity_bit, conf_amount.amount);

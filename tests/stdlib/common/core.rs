@@ -114,7 +114,8 @@ where
         // it is not an op_return path
         ft.add_output(PartialOutput::new(
             Script::new(),
-            utxo.amount(),
+            // amounts in unput and output on the same index should be different for the test purposes
+            utxo.amount() - 1,
             utxo.asset(),
         ));
     }
@@ -135,7 +136,7 @@ where
 
                 ft.add_output(PartialOutput::new(
                     script_to_send_to.clone(),
-                    utxo.explicit_amount(),
+                    utxo.explicit_amount() - 1,
                     utxo.explicit_asset(),
                 ));
                 // filtering out fund transaction
@@ -143,8 +144,12 @@ where
                 ft.add_input(PartialInput::new(utxo.clone()), RequiredSignature::None);
 
                 ft.add_output(
-                    PartialOutput::new(script_to_send_to.clone(), utxo.amount(), utxo.asset())
-                        .with_blinding_key(signer.get_blinding_public_key()),
+                    PartialOutput::new(
+                        script_to_send_to.clone(),
+                        utxo.unblinded_amount() - 1,
+                        utxo.unblinded_asset(),
+                    )
+                    .with_blinding_key(signer.get_blinding_public_key()),
                 );
             }
         }

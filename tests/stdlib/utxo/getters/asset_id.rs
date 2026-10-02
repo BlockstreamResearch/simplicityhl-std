@@ -123,6 +123,7 @@ fn create_utxo_for_inputs_wrapper(
         context,
         index,
         is_explicit_input,
+        true,
         DEFAULT_SEND_AMOUNT,
         program(),
     )?;

@@ -112,12 +112,14 @@ fn create_utxo_for_inputs_wrapper(
     context: &simplex::TestContext,
     index: u32,
     is_explicit_input: bool,
+    is_input: bool,
     expected_amount: u64,
 ) -> anyhow::Result<Option<(u64, [u8; 32])>> {
     let result = create_utxo_for_inputs(
         context,
         index,
         is_explicit_input,
+        is_input,
         expected_amount,
         program(),
     )?;
@@ -137,7 +139,13 @@ fn get_explicit_amount_for_input(context: simplex::TestContext) -> anyhow::Resul
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?;
+    create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
 
     case(Explicit)
         .index(index)
@@ -152,7 +160,13 @@ fn get_explicit_amount_for_output(context: simplex::TestContext) -> anyhow::Resu
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?;
+    create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Output),
+        expected_amount,
+    )?;
 
     case(Explicit)
         .index(index)
@@ -167,9 +181,14 @@ fn get_confidential_amount_for_input(context: simplex::TestContext) -> anyhow::R
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let is_explicit_input = false;
 
-    let (expected_parity_bit, expected_conf_amount) =
-        create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?
-            .unwrap();
+    let (expected_parity_bit, expected_conf_amount) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?
+    .unwrap();
 
     case(Confidential)
         .index(index)
@@ -185,7 +204,13 @@ fn get_explicit_input_amount(context: simplex::TestContext) -> anyhow::Result<()
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?;
+    create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
 
     case(ExplicitInput)
         .index(index)
@@ -199,9 +224,14 @@ fn get_confidential_input_amount(context: simplex::TestContext) -> anyhow::Resul
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let is_explicit_input = false;
 
-    let (expected_parity_bit, expected_conf_amount) =
-        create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?
-            .unwrap();
+    let (expected_parity_bit, expected_conf_amount) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?
+    .unwrap();
 
     case(ConfidentialInput)
         .index(index)
@@ -216,7 +246,13 @@ fn get_explicit_output_amount(context: simplex::TestContext) -> anyhow::Result<(
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?;
+    create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Output),
+        expected_amount,
+    )?;
 
     case(ExplicitOutput)
         .index(index)
@@ -230,7 +266,13 @@ fn get_current_explicit_amount(context: simplex::TestContext) -> anyhow::Result<
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?;
+    create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
 
     case(CurrentExplicit)
         .index(index)
@@ -244,9 +286,14 @@ fn get_current_confidential_amount(context: simplex::TestContext) -> anyhow::Res
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let is_explicit_input = false;
 
-    let (expected_parity_bit, expected_conf_amount) =
-        create_utxo_for_inputs_wrapper(&context, index, is_explicit_input, expected_amount)?
-            .unwrap();
+    let (expected_parity_bit, expected_conf_amount) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?
+    .unwrap();
 
     case(CurrentConfidential)
         .index(index)
