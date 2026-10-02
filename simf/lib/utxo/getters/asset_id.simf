@@ -1,4 +1,8 @@
 /// Functions for retrieving AssetId
+/// 
+/// Using `get_explicit_asset_id` and `get_confidential_asset_id` incurs the overhead. 
+/// These functions should only be used when the input/output selection needs to be determined at runtime; 
+/// otherwise, use the input- or output- specific getter directly.
 
 /// Returns the explicit asset_id at the specified input or output
 pub fn get_explicit_asset_id(index: u32, is_input_index: bool) -> u256 {
@@ -22,22 +26,30 @@ pub fn get_confidential_asset_id(index: u32, is_input_index: bool) -> Confidenti
 
 /// Returns the explicit asset_id at the specified input
 pub fn get_explicit_input_asset_id(index: u32) -> u256 {
-    get_explicit_asset_id(index, true)
+    let asset: Asset1 = unwrap(jet::input_asset(index));
+
+    unwrap_right::<(u1, u256)>(asset)
 }
 
 /// Returns the confidential asset_id at the specified input
 pub fn get_confidential_input_asset_id(index: u32) -> Confidential1 {
-    get_confidential_asset_id(index, true)
+    let asset: Asset1 = unwrap(jet::input_asset(index));
+
+    unwrap_left::<u256>(asset)
 }
 
 /// Returns the explicit asset_id at the specified output
 pub fn get_explicit_output_asset_id(index: u32) -> u256 {
-    get_explicit_asset_id(index, false)
+    let asset: Asset1 = unwrap(jet::output_asset(index));
+
+    unwrap_right::<(u1, u256)>(asset)
 }
 
 /// Returns the confidential asset_id at the specified output
 pub fn get_confidential_output_asset_id(index: u32) -> Confidential1 {
-    get_confidential_asset_id(index, false)
+    let asset: Asset1 = unwrap(jet::output_asset(index));
+
+    unwrap_left::<u256>(asset)
 }
 
 /// Returns the explicit input asset_id at the current_index
