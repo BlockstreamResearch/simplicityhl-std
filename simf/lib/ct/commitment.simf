@@ -11,6 +11,7 @@
  */
 
 use crate::lib::asserts::{assert_eq_64, assert_eq_256};
+use crate::lib::ct::point::conf_point_to_ge;
 use crate::lib::u64::convert::u64_to_u256;
 
 /// Returns true iff `p` has the same x-coordinate as `expected`, i.e. `p == +/-expected`.
@@ -46,8 +47,19 @@ pub fn assert_value_commitment(c: Point, v: u64, asset_gen: Gej, vbf: Scalar) {
     assert_x_eq(c, value_commitment(v, asset_gen, vbf));
 }
 
+/// Asserts that `c` decodes to exactly `v*h + vbf*G`.
+fn verify_value_commitment(c: Point, v: u64, h: Ge, vbf: Scalar) {
+    jet::linear_verify_1(((u64_to_u256(v), h), vbf), conf_point_to_ge(c));
+}
+
 /// Asserts that an `(asset, amount)` pair opens to `expected_asset_id` and
 /// `expected_amount`.
+///
+/// A confidential amount is checked by decoding its points and verifying them
+/// exactly with `jet::linear_verify_1`. Compared with rebuilding them and
+/// comparing x-coordinates, this costs less but makes a larger program (see
+/// `simf/bench/ct/opening.simf`). It relies on `conf_point_to_ge` decoding the
+/// points correctly.
 pub fn assert_opens_to(
     asset: Asset1,
     amount: Amount1,
@@ -58,14 +70,17 @@ pub fn assert_opens_to(
 ) {
     match asset {
         Left(conf_asset: Point) => {
-            let h: Gej = asset_generator(expected_asset_id, abf);
-            assert_x_eq(conf_asset, h);
-
             match amount {
                 Left(conf_amount: Point) => {
-                    assert_value_commitment(conf_amount, expected_amount, h, vbf);
+                    // `h == H_0 + abf*G`, so `h` is the generator `c` commits against.
+                    let h: Ge = conf_point_to_ge(conf_asset);
+                    jet::linear_verify_1(((1, jet::hash_to_curve(expected_asset_id)), abf), h);
+                    verify_value_commitment(conf_amount, expected_amount, h, vbf);
                 },
-                Right(explicit_amount: u64) => assert_eq_64(explicit_amount, expected_amount),
+                Right(explicit_amount: u64) => {
+                    assert_asset_generator(conf_asset, expected_asset_id, abf);
+                    assert_eq_64(explicit_amount, expected_amount);
+                },
             };
         },
         Right(explicit_asset: u256) => {
@@ -74,8 +89,12 @@ pub fn assert_opens_to(
             match amount {
                 // An explicit asset commits against the unblinded generator.
                 Left(conf_amount: Point) => {
-                    let h: Gej = (jet::hash_to_curve(expected_asset_id), 1);
-                    assert_value_commitment(conf_amount, expected_amount, h, vbf);
+                    verify_value_commitment(
+                        conf_amount,
+                        expected_amount,
+                        jet::hash_to_curve(expected_asset_id),
+                        vbf
+                    );
                 },
                 Right(explicit_amount: u64) => assert_eq_64(explicit_amount, expected_amount),
             };
