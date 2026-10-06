@@ -2,8 +2,17 @@
 
 ## [0.0.1]
 
-The initial release with checked arithmetic operations for `u8`, `u16`, `u32`, `u64`, and `u128`; 
-`OP_RETURN` detection utilities; 
-implementation of `and`, `or`, `not`, and `xor` binary operators; 
-basic numeric assertions; 
-and equality and conversion operators for `secp256k1` points.
+The initial release!
+- Сhecked arithmetic operations for `u8`, `u16`, `u32`, `u64`, and `u128`; 
+- `OP_RETURN` detection utilities.
+- Implementation of `and`, `or`, `not`, and `xor` binary operators.
+- Basic numeric assertions.
+- Equality and conversion operators for `secp256k1` points.
+
+## [Unreleased]
+
+- Added `mul_div` functions.
+- Organized code into modules.
+- Refactored test structure.
+- Removed `safe_` prefixes from math functions, so the default versions are overflow-checked.
+- Added functions for retrieving and asserting `AssetId` and `Amount`.
