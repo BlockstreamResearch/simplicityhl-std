@@ -1,32 +1,22 @@
-use primitive_types::U256;
-
 use simplex::program::Program;
-use simplex::simplicityhl::elements::Script;
-use simplex::simplicityhl::elements::hex::ToHex;
+use simplex::simplicityhl::elements::OutPoint;
+use simplex::simplicityhl::elements::Txid;
 use simplex::simplicityhl::elements::pset::serialize::Serialize;
 use simplex::transaction::UTXO;
-use simplex::{simplicityhl::elements::OutPoint, transaction::TxReceipt};
 
-use crate::common::core::{send_explicit, send_with_blinding_return_txid};
-
-const DEFAULT_SEND_AMOUNT: u64 = 50;
+use crate::common::core::{send_blinded, send_explicit};
+pub const DEFAULT_SEND_AMOUNT: u64 = 50;
 
 pub struct ConfidentialAssetId {
-    pub parity_bit: u64,
+    pub parity_bit: u8,
     pub asset_id: [u8; 32],
 }
 pub struct ConfidentialAmount {
-    pub parity_bit: u64,
+    pub parity_bit: u8,
     pub amount: [u8; 32],
 }
 
-pub fn from_hex_to_u256_array(str: &str) -> anyhow::Result<[u8; 32]> {
-    assert!(str.len() <= 64);
-
-    let result = U256::from_str_radix(str, 16)?;
-
-    Ok(result.to_big_endian())
-}
+pub type ConfidentialAsset = (ConfidentialAssetId, ConfidentialAmount);
 
 pub fn create_utxo_for_inputs(
     context: &simplex::TestContext,
@@ -35,12 +25,12 @@ pub fn create_utxo_for_inputs(
     is_input: bool,
     expected_amount: u64,
     program: impl AsRef<Program>,
-) -> anyhow::Result<Option<(ConfidentialAssetId, ConfidentialAmount)>> {
+) -> anyhow::Result<(Option<ConfidentialAsset>, Vec<Txid>)> {
     let signer = context.get_default_signer();
     let pubkey_script = &signer.get_address().script_pubkey();
     let program_script = &program.as_ref().get_script_pubkey(context.get_network());
 
-    let mut receipt_result: Option<TxReceipt> = None;
+    let mut txids = Vec::new();
 
     for i in 0..=index {
         let script = match i == 0 {
@@ -58,59 +48,48 @@ pub fn create_utxo_for_inputs(
         }
 
         if index == i && !is_explicit_input {
-            receipt_result = Some(send_with_blinding_return_txid(
+            txids.push(send_blinded(
                 signer,
                 script,
                 amount_to_send,
                 context.get_network().policy_asset(),
-            )?);
+            )?)
         } else {
-            send_explicit(signer, script, amount_to_send)?;
+            txids.push(send_explicit(signer, script, amount_to_send)?);
         }
     }
 
     if !is_explicit_input {
-        let receipt = match receipt_result {
-            Some(value) => value,
-            None => panic!("Confidential utxo was not created"),
-        };
-
         let script = match index == 0 {
             true => program_script,
             false => pubkey_script,
         };
 
-        let conf_utxo = get_utxo_by_receipt(context, receipt, script)?;
+        let utxos = context
+            .get_default_provider()
+            .fetch_scripthash_utxos(script)?;
 
-        Ok(Some(get_asset_id_amount_from_conf_utxo(conf_utxo)?))
+        let conf_utxo = search_utxo_by_txid(txids.last().unwrap(), &utxos)?;
+
+        Ok((Some(get_asset_id_amount_from_conf_utxo(conf_utxo)?), txids))
     } else {
-        Ok(None)
+        Ok((None, txids))
     }
 }
 
-fn get_asset_id_amount_from_conf_utxo(
-    conf_utxo: UTXO,
-) -> anyhow::Result<(ConfidentialAssetId, ConfidentialAmount)> {
-    let confidential_asset: String = conf_utxo.txout.asset.serialize().to_hex();
-    let asset_bytes_arr = &confidential_asset[0..2];
+fn get_asset_id_amount_from_conf_utxo(conf_utxo: UTXO) -> anyhow::Result<ConfidentialAsset> {
+    let confidential_asset = conf_utxo.txout.asset.serialize(); // 0x0a | 0x0b
+    let confidential_amount = conf_utxo.txout.value.serialize(); // 0x08 | 0x09
 
-    let asset_parity_bit = match asset_bytes_arr {
-        "0a" => 0_u64,
-        "0b" => 1_u64,
-        _ => panic!("Unknown parity bit, should be 0a or 0b"),
-    };
-    let asset_id = from_hex_to_u256_array(&confidential_asset[2..66])?;
+    // 0x0a = 00001010 & 1 = 0
+    // 0x0b = 00001011 & 1 = 1
+    // 0x08 = 00001000 & 1 = 0
+    // 0x09 = 00001001 & 1 = 1
+    let asset_parity_bit = confidential_asset[0] & 1;
+    let amount_parity_bit = confidential_amount[0] & 1;
 
-    let confidential_amount: String = conf_utxo.txout.value.serialize().to_hex();
-    let amount_bytes_arr = &confidential_amount[0..2];
-    let amount_parity_bit: i32 = amount_bytes_arr.parse().unwrap();
-
-    let amount_parity_bit = match amount_parity_bit {
-        8 => 0_u64,
-        9 => 1_u64,
-        _ => panic!("Unknown parity bit, should be 8 or 9"),
-    };
-    let amount = from_hex_to_u256_array(&confidential_amount[2..66])?;
+    let asset_id: [u8; 32] = confidential_asset[1..33].try_into()?;
+    let amount: [u8; 32] = confidential_amount[1..33].try_into()?;
 
     Ok((
         ConfidentialAssetId {
@@ -124,23 +103,15 @@ fn get_asset_id_amount_from_conf_utxo(
     ))
 }
 
-fn get_utxo_by_receipt(
-    context: &simplex::TestContext,
-    receipt: TxReceipt,
-    script: &Script,
-) -> anyhow::Result<UTXO> {
+pub fn search_utxo_by_txid(txid: &Txid, utxos: &[UTXO]) -> anyhow::Result<UTXO> {
     let outpoint = OutPoint {
-        txid: receipt.txid(),
+        txid: *txid,
         vout: 0,
     };
-
-    let utxos = context
-        .get_default_provider()
-        .fetch_scripthash_utxos(script)?;
 
     utxos
         .iter()
         .find(|utxo| utxo.outpoint == outpoint)
         .cloned()
-        .ok_or_else(|| anyhow::anyhow!("Missing confidential utxo"))
+        .ok_or_else(|| anyhow::anyhow!("Missing utxo with id: {txid}"))
 }

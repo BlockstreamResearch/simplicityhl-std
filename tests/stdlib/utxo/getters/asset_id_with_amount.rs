@@ -1,12 +1,10 @@
-use primitive_types::U256;
 use rand::Rng;
+use simplex::simplicityhl::elements::Txid;
 
 use crate::common::core::Expect;
-use crate::common::core::run_w_inputs_outputs;
-use crate::common::utxo_helper::ConfidentialAmount;
-use crate::common::utxo_helper::ConfidentialAssetId;
+use crate::common::core::run_with_inputs_outputs;
+use crate::common::utxo_helper::ConfidentialAsset;
 use crate::common::utxo_helper::create_utxo_for_inputs;
-use crate::common::utxo_helper::from_hex_to_u256_array;
 
 use simplicityhl_std::artifacts::tests::utxo::getters::asset_id_with_amount::AssetIdWithAmountProgram as TestAssetIdWithAmountProgram;
 use simplicityhl_std::artifacts::tests::utxo::getters::asset_id_with_amount::derived_asset_id_with_amount::{
@@ -21,8 +19,7 @@ enum FunctionToTest {
     ExplicitInput,
     ConfidentialInput,
     ExplicitOutput,
-    // Currently, the getters for the confidential amount and asset_id of an output index cannot be tested
-    #[allow(dead_code)]
+    // Currently, the getters happy path for the confidential amount and asset_id of an output index cannot be tested
     ConfidentialOutput,
     CurrentExplicit,
     CurrentConfidential,
@@ -38,8 +35,6 @@ fn is_input(o: IndexType) -> bool {
     o == IndexType::Input
 }
 
-const DEFAULT_ASSET_ID: &str = "25b251070e29ca19043cf33ccd7324e2ddab03ecc4ae0b5e77c4fc0e5cf6c95a";
-
 fn program() -> TestAssetIdWithAmountProgram {
     TestAssetIdWithAmountProgram::new(&TestAssetIdWithAmountArguments {})
 }
@@ -47,8 +42,6 @@ fn program() -> TestAssetIdWithAmountProgram {
 /// One dispatch arm of the contract, plus the witness it reads.
 struct Case {
     witness: TestAssetIdWithAmountWitness,
-    index: u32,
-    explicit: bool,
 }
 
 fn case(function: FunctionToTest) -> Case {
@@ -58,12 +51,12 @@ fn case(function: FunctionToTest) -> Case {
             index: 0,
             is_input_index: false,
             expected_asset: [0; 32],
+            expected_asset_parity: 0,
             expected_conf_asset: [0; 32],
             expected_amount: 0,
+            expected_amount_parity: 0,
             expected_conf_amount: [0; 32],
         },
-        index: 0,
-        explicit: true,
     }
 }
 
@@ -71,7 +64,6 @@ impl Case {
     /// `index`: the input/output the arm inspects.
     fn index(mut self, index: u32) -> Self {
         self.witness.index = index;
-        self.index = index;
         self
     }
 
@@ -88,6 +80,13 @@ impl Case {
         self
     }
 
+    /// `expected_parity`: value the arm should produce.
+    fn expected_parity(mut self, expected_asset_parity: u8, expected_amount_parity: u8) -> Self {
+        self.witness.expected_asset_parity = expected_asset_parity;
+        self.witness.expected_amount_parity = expected_amount_parity;
+        self
+    }
+
     /// `expected_conf_asset` and `expected_conf_amount`.
     fn confidentials(
         mut self,
@@ -99,26 +98,19 @@ impl Case {
         self
     }
 
-    fn explicit(mut self, explicit: bool) -> Self {
-        self.explicit = explicit;
-        self
-    }
-
     /// Fund, spend, and expect the spend to succeed.
-    fn run(self, context: &simplex::TestContext) -> anyhow::Result<()> {
-        self.expecting(context, Expect::Ok)
+    fn run(self, context: &simplex::TestContext, txids: Vec<Txid>) -> anyhow::Result<()> {
+        self.expecting(context, Expect::Ok, txids)
     }
 
     /// Fund, spend, and expect `expect`.
-    fn expecting(self, context: &simplex::TestContext, expect: Expect) -> anyhow::Result<()> {
-        run_w_inputs_outputs(
-            context,
-            program(),
-            self.witness,
-            expect,
-            self.index,
-            self.explicit,
-        )
+    fn expecting(
+        self,
+        context: &simplex::TestContext,
+        expect: Expect,
+        txids: Vec<Txid>,
+    ) -> anyhow::Result<()> {
+        run_with_inputs_outputs(context, program(), self.witness, expect, txids)
     }
 }
 
@@ -128,7 +120,7 @@ fn create_utxo_for_inputs_wrapper(
     is_explicit_input: bool,
     is_input: bool,
     expected_amount: u64,
-) -> anyhow::Result<Option<(ConfidentialAssetId, ConfidentialAmount)>> {
+) -> anyhow::Result<(Option<ConfidentialAsset>, Vec<Txid>)> {
     create_utxo_for_inputs(
         context,
         index,
@@ -145,10 +137,10 @@ fn get_explicit_asset_id_with_amount_for_input(
 ) -> anyhow::Result<()> {
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
+    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxo_for_inputs_wrapper(
         &context,
         index,
         is_explicit_input,
@@ -160,7 +152,31 @@ fn get_explicit_asset_id_with_amount_for_input(
         .index(index)
         .index_type(IndexType::Input)
         .expect(expected_asset_id, expected_amount)
-        .run(&context)
+        .run(&context, txids)
+}
+
+#[simplex::test]
+fn get_explicit_asset_id_with_amount_for_random_input(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = rand::thread_rng().gen_range(0..=20) as u32;
+    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
+    let is_explicit_input = true;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
+
+    case(Explicit)
+        .index(index)
+        .index_type(IndexType::Input)
+        .expect(expected_asset_id, expected_amount)
+        .run(&context, txids)
 }
 
 #[simplex::test]
@@ -169,10 +185,10 @@ fn get_explicit_asset_id_with_amount_for_output(
 ) -> anyhow::Result<()> {
     let index = 1;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
+    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxo_for_inputs_wrapper(
         &context,
         index,
         is_explicit_input,
@@ -184,7 +200,75 @@ fn get_explicit_asset_id_with_amount_for_output(
         .index(index)
         .index_type(IndexType::Output)
         .expect(expected_asset_id, expected_amount)
-        .run(&context)
+        .run(&context, txids)
+}
+
+#[simplex::test]
+fn get_explicit_asset_id_with_amount_for_random_output(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = rand::thread_rng().gen_range(0..=20) as u32;
+    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
+    let is_explicit_input = true;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Output),
+        expected_amount,
+    )?;
+
+    case(Explicit)
+        .index(index)
+        .index_type(IndexType::Output)
+        .expect(expected_asset_id, expected_amount)
+        .run(&context, txids)
+}
+
+#[simplex::test]
+fn get_explicit_asset_id_with_amount_for_confidential_input_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = 0;
+    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+    let is_explicit_input = false;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
+
+    case(Explicit)
+        .index(index)
+        .index_type(IndexType::Input)
+        .expecting(&context, Expect::PrunedBranch, txids)
+}
+
+#[simplex::test]
+fn get_explicit_asset_id_with_amount_for_confidential_output_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = 1;
+    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let is_explicit_input = false;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Output),
+        expected_amount,
+    )?;
+
+    case(Explicit)
+        .index(index)
+        .index_type(IndexType::Output)
+        .expecting(&context, Expect::PrunedBranch, txids)
 }
 
 #[simplex::test]
@@ -195,14 +279,15 @@ fn get_confidential_asset_id_with_amount_for_input(
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let is_explicit_input = false;
 
-    let (conf_asset, conf_amount) = create_utxo_for_inputs_wrapper(
+    let (expected, txids) = create_utxo_for_inputs_wrapper(
         &context,
         index,
         is_explicit_input,
         is_input(IndexType::Input),
         expected_amount,
-    )?
-    .unwrap();
+    )?;
+
+    let (conf_asset, conf_amount) = expected.unwrap();
 
     let (asset_parity_bit, asset_conf_amount) = (conf_asset.parity_bit, conf_asset.asset_id);
     let (amount_parity_bit, amount_conf_amount) = (conf_amount.parity_bit, conf_amount.amount);
@@ -210,23 +295,64 @@ fn get_confidential_asset_id_with_amount_for_input(
     case(Confidential)
         .index(index)
         .index_type(IndexType::Input)
-        .expect(
-            U256::from(asset_parity_bit).to_big_endian(),
-            amount_parity_bit,
-        )
+        .expected_parity(asset_parity_bit, amount_parity_bit)
         .confidentials(asset_conf_amount, amount_conf_amount)
-        .run(&context)
+        .run(&context, txids)
+}
+
+#[simplex::test]
+fn get_confidential_asset_id_with_amount_for_explicit_input_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = 2;
+    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let is_explicit_input = true;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
+
+    case(Confidential)
+        .index(index)
+        .index_type(IndexType::Input)
+        .expecting(&context, Expect::PrunedBranch, txids)
+}
+
+#[simplex::test]
+fn get_confidential_asset_id_with_amount_for_explicit_output_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = 2;
+    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let is_explicit_input = true;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Output),
+        expected_amount,
+    )?;
+
+    case(Confidential)
+        .index(index)
+        .index_type(IndexType::Output)
+        .expecting(&context, Expect::PrunedBranch, txids)
 }
 
 #[simplex::test]
 fn get_explicit_input_asset_id_with_amount(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
+    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
 
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxo_for_inputs_wrapper(
         &context,
         index,
         is_explicit_input,
@@ -237,7 +363,29 @@ fn get_explicit_input_asset_id_with_amount(context: simplex::TestContext) -> any
     case(ExplicitInput)
         .index(index)
         .expect(expected_asset_id, expected_amount)
-        .run(&context)
+        .run(&context, txids)
+}
+
+#[simplex::test]
+fn get_explicit_input_asset_id_with_amount_for_confidential_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = 0;
+    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+
+    let is_explicit_input = false;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
+
+    case(ExplicitInput)
+        .index(index)
+        .expecting(&context, Expect::PrunedBranch, txids)
 }
 
 #[simplex::test]
@@ -248,36 +396,55 @@ fn get_confidential_input_asset_id_with_amount(
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let is_explicit_input = false;
 
-    let (conf_asset, conf_amount) = create_utxo_for_inputs_wrapper(
+    let (expected, txids) = create_utxo_for_inputs_wrapper(
         &context,
         index,
         is_explicit_input,
         is_input(IndexType::Input),
         expected_amount,
-    )?
-    .unwrap();
+    )?;
+
+    let (conf_asset, conf_amount) = expected.unwrap();
 
     let (asset_parity_bit, asset_conf_amount) = (conf_asset.parity_bit, conf_asset.asset_id);
     let (amount_parity_bit, amount_conf_amount) = (conf_amount.parity_bit, conf_amount.amount);
 
     case(ConfidentialInput)
         .index(index)
-        .expect(
-            U256::from(asset_parity_bit).to_big_endian(),
-            amount_parity_bit,
-        )
+        .expected_parity(asset_parity_bit, amount_parity_bit)
         .confidentials(asset_conf_amount, amount_conf_amount)
-        .run(&context)
+        .run(&context, txids)
+}
+
+#[simplex::test]
+fn get_confidential_input_asset_id_with_amount_for_explicit_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = 1;
+    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let is_explicit_input = true;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
+
+    case(ConfidentialInput)
+        .index(index)
+        .expecting(&context, Expect::PrunedBranch, txids)
 }
 
 #[simplex::test]
 fn get_explicit_output_asset_id_with_amount(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 1;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
+    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxo_for_inputs_wrapper(
         &context,
         index,
         is_explicit_input,
@@ -288,17 +455,59 @@ fn get_explicit_output_asset_id_with_amount(context: simplex::TestContext) -> an
     case(ExplicitOutput)
         .index(index)
         .expect(expected_asset_id, expected_amount)
-        .run(&context)
+        .run(&context, txids)
+}
+
+#[simplex::test]
+fn get_explicit_output_asset_id_with_amount_for_confidential_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = 1;
+    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let is_explicit_input = false;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Output),
+        expected_amount,
+    )?;
+
+    case(ExplicitOutput)
+        .index(index)
+        .expecting(&context, Expect::PrunedBranch, txids)
+}
+
+#[simplex::test]
+fn get_confidential_output_asset_id_with_amount_for_explicit_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = 2;
+    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let is_explicit_input = true;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Output),
+        expected_amount,
+    )?;
+
+    case(ConfidentialOutput)
+        .index(index)
+        .expecting(&context, Expect::PrunedBranch, txids)
 }
 
 #[simplex::test]
 fn get_explicit_current_asset_id_with_amount(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let expected_asset_id: [u8; 32] = from_hex_to_u256_array(DEFAULT_ASSET_ID)?;
+    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
     let is_explicit_input = true;
 
-    create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxo_for_inputs_wrapper(
         &context,
         index,
         is_explicit_input,
@@ -309,7 +518,28 @@ fn get_explicit_current_asset_id_with_amount(context: simplex::TestContext) -> a
     case(CurrentExplicit)
         .index(index)
         .expect(expected_asset_id, expected_amount)
-        .run(&context)
+        .run(&context, txids)
+}
+
+#[simplex::test]
+fn get_explicit_current_asset_id_with_amount_for_confidential_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = 0;
+    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+    let is_explicit_input = false;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
+
+    case(CurrentExplicit)
+        .index(index)
+        .expecting(&context, Expect::PrunedBranch, txids)
 }
 
 #[simplex::test]
@@ -320,25 +550,43 @@ fn get_confidential_current_asset_id_with_amount(
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let is_explicit_input = false;
 
-    let (conf_asset, conf_amount) = create_utxo_for_inputs_wrapper(
+    let (expected, txids) = create_utxo_for_inputs_wrapper(
         &context,
         index,
         is_explicit_input,
         is_input(IndexType::Input),
         expected_amount,
-    )?
-    .unwrap();
+    )?;
+
+    let (conf_asset, conf_amount) = expected.unwrap();
 
     let (asset_parity_bit, asset_conf_amount) = (conf_asset.parity_bit, conf_asset.asset_id);
     let (amount_parity_bit, amount_conf_amount) = (conf_amount.parity_bit, conf_amount.amount);
 
     case(CurrentConfidential)
         .index(index)
-        .expect(
-            U256::from(asset_parity_bit).to_big_endian(),
-            amount_parity_bit,
-        )
+        .expected_parity(asset_parity_bit, amount_parity_bit)
         .confidentials(asset_conf_amount, amount_conf_amount)
-        .explicit(is_explicit_input)
-        .run(&context)
+        .run(&context, txids)
+}
+
+#[simplex::test]
+fn get_confidential_current_asset_id_with_amount_for_explicit_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let index = 0;
+    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+    let is_explicit_input = true;
+
+    let (_, txids) = create_utxo_for_inputs_wrapper(
+        &context,
+        index,
+        is_explicit_input,
+        is_input(IndexType::Input),
+        expected_amount,
+    )?;
+
+    case(CurrentConfidential)
+        .index(index)
+        .expecting(&context, Expect::PrunedBranch, txids)
 }

@@ -8,7 +8,6 @@ use crate::lib::utxo::getters::asset_id::{
     get_explicit_current_asset_id,
     get_confidential_current_asset_id
 };
-use crate::lib::u256::convert::safe_u256_to_u1;
 use crate::lib::asserts::{assert_eq_1, assert_eq_256};
 
 use crate::tests::support::dispatch::is_selected;
@@ -20,7 +19,8 @@ fn main() {
     let is_input_index: bool = witness::IS_INPUT_INDEX;
 
     let expected_asset_id: u256 = witness::EXPECTED;
-    let expected_confidential_asset_id: u256 = witness::SECOND_EXPECTED;
+    let expected_parity: u1 = witness::EXPECTED_PARITY;
+    let expected_confidential_asset_id: u256 = witness::EXPECTED_CONF;
 
     match is_selected(0, fn_idx) {
         true => {
@@ -36,7 +36,7 @@ fn main() {
                 confidential_asset_id
             ): Confidential1 = get_confidential_asset_id(index, is_input_index);
 
-            assert_eq_1(parity_bit, safe_u256_to_u1(expected_asset_id));
+            assert_eq_1(parity_bit, expected_parity);
             assert_eq_256(confidential_asset_id, expected_confidential_asset_id);
         },
         false => (),
@@ -56,7 +56,7 @@ fn main() {
                 confidential_asset_id
             ): Confidential1 = get_confidential_input_asset_id(index);
 
-            assert_eq_1(parity_bit, safe_u256_to_u1(expected_asset_id));
+            assert_eq_1(parity_bit, expected_parity);
             assert_eq_256(confidential_asset_id, expected_confidential_asset_id);
         },
         false => (),
@@ -76,7 +76,7 @@ fn main() {
                 confidential_asset_id
             ): Confidential1 = get_confidential_output_asset_id(index);
 
-            assert_eq_1(parity_bit, safe_u256_to_u1(expected_asset_id));
+            assert_eq_1(parity_bit, expected_parity);
             assert_eq_256(confidential_asset_id, expected_confidential_asset_id);
         },
         false => (),
@@ -96,7 +96,7 @@ fn main() {
                 confidential_asset_id
             ): Confidential1 = get_confidential_current_asset_id();
 
-            assert_eq_1(parity_bit, safe_u256_to_u1(expected_asset_id));
+            assert_eq_1(parity_bit, expected_parity);
             assert_eq_256(confidential_asset_id, expected_confidential_asset_id);
         },
         false => (),
