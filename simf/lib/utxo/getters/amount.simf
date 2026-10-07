@@ -1,0 +1,80 @@
+/// Functions for retrieving Amount
+///
+/// If you need both `Amount` and `AssetId`, it is recommended to use the corresponding
+/// function from the `asset_id_with_amount` file, because all `get_amount` functions
+/// also return the `AssetId`. Using `get_amount` and `get_asset_id` together results
+/// in unnecessary overhead.
+
+/// Returns the explicit amount at the specified input or output.
+/// 
+/// Warning: using this incurs the overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+pub fn get_explicit_amount(index: u32, is_input_index: bool) -> u64 {
+    let (
+        _,
+        amount
+    ): (Asset1, Amount1) = match is_input_index {
+        true => unwrap(jet::input_amount(index)),
+        false => unwrap(jet::output_amount(index)),
+    };
+
+    unwrap_right::<(u1, u256)>(amount)
+}
+
+/// Returns the confidential amount at the specified input or output
+/// 
+/// Warning: using this incurs the overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+pub fn get_confidential_amount(index: u32, is_input_index: bool) -> Confidential1 {
+    let (
+        _,
+        amount
+    ): (Asset1, Amount1) = match is_input_index {
+        true => unwrap(jet::input_amount(index)),
+        false => unwrap(jet::output_amount(index)),
+    };
+
+    unwrap_left::<u64>(amount)
+}
+
+/// Returns the explicit amount at the specified input
+pub fn get_explicit_input_amount(index: u32) -> u64 {
+    let (_, amount): (Asset1, Amount1) = unwrap(jet::input_amount(index));
+
+    unwrap_right::<(u1, u256)>(amount)
+}
+
+/// Returns the confidential amount at the specified input
+pub fn get_confidential_input_amount(index: u32) -> Confidential1 {
+    let (_, amount): (Asset1, Amount1) = unwrap(jet::input_amount(index));
+
+    unwrap_left::<u64>(amount)
+}
+
+/// Returns the explicit amount at the specified output
+pub fn get_explicit_output_amount(index: u32) -> u64 {
+    let (_, amount): (Asset1, Amount1) = unwrap(jet::output_amount(index));
+
+    unwrap_right::<(u1, u256)>(amount)
+}
+
+/// Returns the confidential amount at the specified output
+pub fn get_confidential_output_amount(index: u32) -> Confidential1 {
+    let (_, amount): (Asset1, Amount1) = unwrap(jet::output_amount(index));
+
+    unwrap_left::<u64>(amount)
+}
+
+/// Returns the explicit input amount at the current_index
+pub fn get_explicit_current_amount() -> u64 {
+    let (_, amount): (Asset1, Amount1) = jet::current_amount();
+
+    unwrap_right::<(u1, u256)>(amount)
+}
+
+/// Returns the confidential input amount at the current_index
+pub fn get_confidential_current_amount() -> Confidential1 {
+    let (_, amount): (Asset1, Amount1) = jet::current_amount();
+
+    unwrap_left::<u64>(amount)
+}
