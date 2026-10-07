@@ -6,6 +6,7 @@ use secp256k1_zkp::Secp256k1;
 use simplex::program::{Program, WitnessTrait};
 use simplex::signer::Signer;
 use simplex::simplicityhl::elements::{AssetId, Script, Txid};
+use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
     FinalTransaction, PartialInput, PartialOutput, ProgramInput, RequiredSignature, UTXO,
 };
@@ -69,6 +70,36 @@ pub fn send_blinded(
     Ok(signer.broadcast(&ft)?.txid())
 }
 
+/// Issue `amount_to_send` of a new asset to the specified script, so the UTXO holds an asset that
+/// nothing else in the wallet has. Returns the funding txid and the new asset id.
+pub fn send_issued(
+    context: &simplex::TestContext,
+    to: &Script,
+    amount_to_send: u64,
+) -> anyhow::Result<(Txid, AssetId)> {
+    let signer = context.get_default_signer();
+    // The largest UTXO, so the issuance never spends one of the small UTXOs a test created.
+    let funding = signer
+        .get_utxos_asset(context.get_network().policy_asset())?
+        .into_iter()
+        .max_by_key(UTXO::amount)
+        .ok_or_else(|| anyhow::anyhow!("no policy asset UTXO to attach the issuance to"))?;
+
+    let mut ft = FinalTransaction::new();
+    let issued = ft.add_issuance_input(
+        PartialInput::new(funding),
+        IssuanceInput::new_issuance(amount_to_send, 0, rand::random()),
+        RequiredSignature::NativeEcdsa,
+    );
+    ft.add_output(PartialOutput::new(
+        to.clone(),
+        amount_to_send,
+        issued.asset_id,
+    ));
+
+    Ok((signer.broadcast(&ft)?.txid(), issued.asset_id))
+}
+
 /// Construct the funded UTXO with `witness`.
 pub fn construct_final_tx<W>(
     context: &simplex::TestContext,
@@ -83,6 +114,12 @@ where
 {
     let signer = context.get_default_signer();
     let script_to_send_to = signer.get_address().script_pubkey();
+    let policy_asset = context.get_network().policy_asset();
+
+    // Every input goes back to the signer one unit short, so that an input and the output at the
+    // same index differ. The signer only adds change in the policy asset, so the other
+    // asset gets its own output after all tested ones.
+    let mut leftover_asset = policy_asset;
 
     let utxos = context
         .get_default_provider()
@@ -122,6 +159,10 @@ where
         }
 
         ft.add_output(output);
+
+        if program_utxo.asset() != policy_asset {
+            leftover_asset = program_utxo.asset();
+        }
     }
 
     if txids.len() > 1 {
@@ -138,6 +179,10 @@ where
                     utxo.explicit_amount() - 1,
                     utxo.explicit_asset(),
                 ));
+
+                if utxo.explicit_asset() != policy_asset {
+                    leftover_asset = utxo.asset();
+                }
                 // filtering out fund transaction
             } else {
                 ft.add_input(PartialInput::new(utxo.clone()), RequiredSignature::None);
@@ -152,6 +197,14 @@ where
                 );
             }
         }
+    }
+
+    if leftover_asset != policy_asset {
+        ft.add_output(PartialOutput::new(
+            script_to_send_to.clone(),
+            1,
+            leftover_asset,
+        ));
     }
 
     if let Some(data) = data {

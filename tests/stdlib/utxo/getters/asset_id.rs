@@ -6,7 +6,7 @@ use crate::common::core::Expect;
 use crate::common::core::run_with_inputs_outputs;
 use crate::common::utxo_helper::ConfidentialAssetId;
 use crate::common::utxo_helper::DEFAULT_SEND_AMOUNT;
-use crate::common::utxo_helper::create_utxos;
+use crate::common::utxo_helper::{create_utxos, create_utxos_with_new_asset};
 
 use simplicityhl_std::artifacts::tests::utxo::getters::asset_id::AssetIdProgram as TestAssetIdProgram;
 use simplicityhl_std::artifacts::tests::utxo::getters::asset_id::derived_asset_id::{
@@ -108,6 +108,19 @@ impl Case {
     }
 }
 
+/// `failing` must fail, and `passing`, the getter of the other kind, must then succeed on the same
+/// UTXOs. A missing input or output also gives `Expect::PrunedBranch`, so this shows the failure
+/// comes from the content of the UTXO. A failed spend is not broadcast, so both can use the same UTXOs.
+fn fail_and_pass_cases(
+    context: &simplex::TestContext,
+    failing: Case,
+    passing: Case,
+    txids: Vec<Txid>,
+) -> anyhow::Result<()> {
+    failing.expecting(context, Expect::PrunedBranch, txids.clone())?;
+    passing.run(context, txids)
+}
+
 fn create_utxos_wrapper(
     context: &simplex::TestContext,
     index: u32,
@@ -138,25 +151,23 @@ fn create_utxos_wrapper(
 #[simplex::test]
 fn get_explicit_asset_id_for_input(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 1;
-    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit = true;
+    let (expected_asset_id, txids) =
+        create_utxos_with_new_asset(&context, index, true, DEFAULT_SEND_AMOUNT, program())?;
 
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
-
-    case(Explicit)
+    let failing = case(Confidential).index(index).index_type(IndexType::Input);
+    let passing = case(Explicit)
         .index(index)
         .index_type(IndexType::Input)
-        .expect(expected_asset_id)
-        .run(&context, txids)
+        .expect(expected_asset_id);
+
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_explicit_asset_id_for_random_input(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = rand::thread_rng().gen_range(0..=20) as u32; // not a big value to not to slow down tests
-    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit = true;
-
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
+    let (expected_asset_id, txids) =
+        create_utxos_with_new_asset(&context, index, true, DEFAULT_SEND_AMOUNT, program())?;
 
     case(Explicit)
         .index(index)
@@ -168,46 +179,26 @@ fn get_explicit_asset_id_for_random_input(context: simplex::TestContext) -> anyh
 #[simplex::test]
 fn get_explicit_asset_id_for_output(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
-    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit = true;
+    let (expected_asset_id, txids) =
+        create_utxos_with_new_asset(&context, index, true, DEFAULT_SEND_AMOUNT, program())?;
 
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
+    let failing = case(Confidential).index(index);
+    let passing = case(Explicit).index(index).expect(expected_asset_id);
 
-    case(Explicit)
-        .index(index)
-        .index_type(IndexType::Output)
-        .expect(expected_asset_id)
-        .run(&context, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_explicit_asset_id_for_random_output(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = rand::thread_rng().gen_range(0..=20) as u32;
-    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit = true;
-
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
+    let (expected_asset_id, txids) =
+        create_utxos_with_new_asset(&context, index, true, DEFAULT_SEND_AMOUNT, program())?;
 
     case(Explicit)
         .index(index)
         .index_type(IndexType::Output)
         .expect(expected_asset_id)
         .run(&context, txids)
-}
-
-#[simplex::test]
-fn get_explicit_asset_id_for_confidential_input_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 1;
-    let is_explicit = false;
-
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
-
-    case(Explicit)
-        .index(index)
-        .index_type(IndexType::Input)
-        .expecting(&context, Expect::PrunedBranch, txids)
 }
 
 #[simplex::test]
@@ -217,12 +208,19 @@ fn get_explicit_asset_id_for_confidential_output_fail(
     let index = 0;
     let is_explicit = false;
 
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
+    let (conf, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
+    let conf = conf.unwrap();
 
-    case(Explicit)
+    let failing = case(Explicit).index(index).index_type(IndexType::Output);
+    // Output `index` is blinded because input `index` is confidential, and its commitment
+    // is only made when the spend is blinded, so check the input instead.
+    let passing = case(Confidential)
         .index(index)
-        .index_type(IndexType::Output)
-        .expecting(&context, Expect::PrunedBranch, txids)
+        .index_type(IndexType::Input)
+        .expected_parity(conf.parity_bit)
+        .confidential_asset_id(conf.asset_id);
+
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
@@ -233,69 +231,26 @@ fn get_confidential_asset_id_for_input(context: simplex::TestContext) -> anyhow:
     let (conf_asset, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
     let expected = conf_asset.unwrap();
 
-    case(Confidential)
+    let failing = case(Explicit).index(index).index_type(IndexType::Input);
+    let passing = case(Confidential)
         .index(index)
         .index_type(IndexType::Input)
         .expected_parity(expected.parity_bit)
-        .confidential_asset_id(expected.asset_id)
-        .run(&context, txids)
-}
+        .confidential_asset_id(expected.asset_id);
 
-#[simplex::test]
-fn get_confidential_asset_id_for_explicit_input_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 2;
-    let is_explicit = true;
-
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
-
-    case(Confidential)
-        .index(index)
-        .index_type(IndexType::Input)
-        .expecting(&context, Expect::PrunedBranch, txids)
-}
-
-#[simplex::test]
-fn get_confidential_asset_id_for_explicit_output_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 2;
-    let is_explicit = true;
-
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
-
-    case(Confidential)
-        .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_explicit_input_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
-    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit = true;
+    let (expected_asset_id, txids) =
+        create_utxos_with_new_asset(&context, index, true, DEFAULT_SEND_AMOUNT, program())?;
 
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
+    let failing = case(ConfidentialInput).index(index);
+    let passing = case(ExplicitInput).index(index).expect(expected_asset_id);
 
-    case(ExplicitInput)
-        .index(index)
-        .expect(expected_asset_id)
-        .run(&context, txids)
-}
-
-#[simplex::test]
-fn get_explicit_input_asset_id_for_confidential_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 0;
-    let is_explicit = false;
-
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
-
-    case(ExplicitInput)
-        .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
@@ -306,39 +261,25 @@ fn get_confidential_input_asset_id(context: simplex::TestContext) -> anyhow::Res
     let (conf_asset, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
     let expected = conf_asset.unwrap();
 
-    case(ConfidentialInput)
+    let failing = case(ExplicitInput).index(index);
+    let passing = case(ConfidentialInput)
         .index(index)
         .expected_parity(expected.parity_bit)
-        .confidential_asset_id(expected.asset_id)
-        .run(&context, txids)
-}
+        .confidential_asset_id(expected.asset_id);
 
-#[simplex::test]
-fn get_confidential_input_asset_id_for_explicit_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 1;
-    let is_explicit = true;
-
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
-
-    case(ConfidentialInput)
-        .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_explicit_output_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 2;
-    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit = true;
+    let (expected_asset_id, txids) =
+        create_utxos_with_new_asset(&context, index, true, DEFAULT_SEND_AMOUNT, program())?;
 
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
+    let failing = case(ConfidentialOutput).index(index);
+    let passing = case(ExplicitOutput).index(index).expect(expected_asset_id);
 
-    case(ExplicitOutput)
-        .index(index)
-        .expect(expected_asset_id)
-        .run(&context, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
@@ -348,53 +289,30 @@ fn get_explicit_output_asset_id_for_confidential_fail(
     let index = 2;
     let is_explicit = false;
 
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
+    let (conf, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
+    let conf = conf.unwrap();
 
-    case(ExplicitOutput)
+    let failing = case(ExplicitOutput).index(index);
+    // Output `index` is blinded because input `index` is confidential, and its commitment
+    // is only made when the spend is blinded, so check the input instead.
+    let passing = case(ConfidentialInput)
         .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
-}
+        .expected_parity(conf.parity_bit)
+        .confidential_asset_id(conf.asset_id);
 
-#[simplex::test]
-fn get_confidential_output_asset_id_for_explicit_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 1;
-    let is_explicit = true;
-
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
-
-    case(ConfidentialOutput)
-        .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_explicit_current_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
-    let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit = true;
+    let (expected_asset_id, txids) =
+        create_utxos_with_new_asset(&context, index, true, DEFAULT_SEND_AMOUNT, program())?;
 
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
+    let failing = case(CurrentConfidential).index(index);
+    let passing = case(CurrentExplicit).index(index).expect(expected_asset_id);
 
-    case(CurrentExplicit)
-        .index(index)
-        .expect(expected_asset_id)
-        .run(&context, txids)
-}
-
-#[simplex::test]
-fn get_explicit_current_asset_id_for_confidential_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 0;
-    let is_explicit = false;
-
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
-
-    case(CurrentExplicit)
-        .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
@@ -405,23 +323,35 @@ fn get_confidential_current_asset_id(context: simplex::TestContext) -> anyhow::R
     let (conf_asset, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
     let expected = conf_asset.unwrap();
 
-    case(CurrentConfidential)
+    let failing = case(CurrentExplicit).index(index);
+    let passing = case(CurrentConfidential)
         .index(index)
         .expected_parity(expected.parity_bit)
-        .confidential_asset_id(expected.asset_id)
-        .run(&context, txids)
+        .confidential_asset_id(expected.asset_id);
+
+    fail_and_pass_cases(&context, failing, passing, txids)
+}
+
+// The signer adds its own inputs and outputs for the fee and change, so `u32::MAX` is the index
+// that is certain not to exist.
+#[simplex::test]
+fn get_explicit_input_asset_id_for_missing_input_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let (_, txids) = create_utxos_wrapper(&context, 0, true)?;
+
+    case(ExplicitInput)
+        .index(u32::MAX)
+        .expecting(&context, Expect::PrunedBranch, txids)
 }
 
 #[simplex::test]
-fn get_confidential_current_asset_id_for_explicit_fail(
+fn get_explicit_output_asset_id_for_missing_output_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
-    let index = 0;
-    let is_explicit = true;
+    let (_, txids) = create_utxos_wrapper(&context, 0, true)?;
 
-    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
-
-    case(CurrentConfidential)
-        .index(index)
+    case(ExplicitOutput)
+        .index(u32::MAX)
         .expecting(&context, Expect::PrunedBranch, txids)
 }

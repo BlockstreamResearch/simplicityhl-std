@@ -5,7 +5,7 @@ use simplex::simplicityhl::elements::Txid;
 use crate::common::core::Expect;
 use crate::common::core::run_with_inputs_outputs;
 use crate::common::utxo_helper::ConfidentialAmount;
-use crate::common::utxo_helper::create_utxos;
+use crate::common::utxo_helper::{create_utxos, random_expected_amount};
 
 use simplicityhl_std::artifacts::tests::utxo::getters::amount::AmountProgram as TestAmountProgram;
 use simplicityhl_std::artifacts::tests::utxo::getters::amount::derived_amount::{
@@ -105,6 +105,19 @@ impl Case {
     }
 }
 
+/// `failing` must fail, and `passing`, the getter of the other kind, must then succeed on the same
+/// UTXOs. A missing input or output also gives `Expect::PrunedBranch`, so this shows the failure
+/// comes from the content of the UTXO. A failed spend is not broadcast, so both can use the same UTXOs.
+fn fail_and_pass_cases(
+    context: &simplex::TestContext,
+    failing: Case,
+    passing: Case,
+    txids: Vec<Txid>,
+) -> anyhow::Result<()> {
+    failing.expecting(context, Expect::PrunedBranch, txids.clone())?;
+    passing.run(context, txids)
+}
+
 fn create_utxos_wrapper(
     context: &simplex::TestContext,
     index: u32,
@@ -137,7 +150,7 @@ fn create_utxos_wrapper(
 #[simplex::test]
 fn get_explicit_amount_for_input(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
-    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = true;
 
     let (_, txids) = create_utxos_wrapper(
@@ -148,17 +161,19 @@ fn get_explicit_amount_for_input(context: simplex::TestContext) -> anyhow::Resul
         expected_amount,
     )?;
 
-    case(Explicit)
+    let failing = case(Confidential).index(index).index_type(IndexType::Input);
+    let passing = case(Explicit)
         .index(index)
         .index_type(IndexType::Input)
-        .expect(expected_amount)
-        .run(&context, txids)
+        .expect(expected_amount);
+
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_explicit_amount_for_random_input(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = rand::thread_rng().gen_range(0..=20) as u32; // not a big value to not to slow down tests
-    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = true;
 
     let (_, txids) = create_utxos_wrapper(
@@ -179,7 +194,7 @@ fn get_explicit_amount_for_random_input(context: simplex::TestContext) -> anyhow
 #[simplex::test]
 fn get_explicit_amount_for_output(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 1;
-    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = true;
 
     let (_, txids) = create_utxos_wrapper(
@@ -190,17 +205,21 @@ fn get_explicit_amount_for_output(context: simplex::TestContext) -> anyhow::Resu
         expected_amount,
     )?;
 
-    case(Explicit)
+    let failing = case(Confidential)
+        .index(index)
+        .index_type(IndexType::Output);
+    let passing = case(Explicit)
         .index(index)
         .index_type(IndexType::Output)
-        .expect(expected_amount)
-        .run(&context, txids)
+        .expect(expected_amount);
+
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_explicit_amount_for_random_output(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = rand::thread_rng().gen_range(0..=20) as u32;
-    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = true;
 
     let (_, txids) = create_utxos_wrapper(
@@ -216,28 +235,6 @@ fn get_explicit_amount_for_random_output(context: simplex::TestContext) -> anyho
         .index_type(IndexType::Output)
         .expect(expected_amount)
         .run(&context, txids)
-}
-
-#[simplex::test]
-fn get_explicit_amount_for_confidential_input_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 0;
-    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let is_explicit = false;
-
-    let (_, txids) = create_utxos_wrapper(
-        &context,
-        index,
-        is_explicit,
-        is_input(IndexType::Input),
-        expected_amount,
-    )?;
-
-    case(Explicit)
-        .index(index)
-        .index_type(IndexType::Input)
-        .expecting(&context, Expect::PrunedBranch, txids)
 }
 
 #[simplex::test]
@@ -245,95 +242,59 @@ fn get_explicit_amount_for_confidential_output_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 0;
-    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = false;
 
-    let (_, txids) = create_utxos_wrapper(
+    let (conf, txids) = create_utxos_wrapper(
         &context,
         index,
         is_explicit,
         is_input(IndexType::Output),
         expected_amount,
     )?;
+    let conf = conf.unwrap();
 
-    case(Explicit)
+    let failing = case(Explicit).index(index).index_type(IndexType::Output);
+    // Output `index` is blinded because input `index` is confidential, and its commitment
+    // is only made when the spend is blinded, so check the input instead.
+    let passing = case(Confidential)
         .index(index)
-        .index_type(IndexType::Output)
-        .expecting(&context, Expect::PrunedBranch, txids)
+        .index_type(IndexType::Input)
+        .expected_parity(conf.parity_bit)
+        .confidential_amount(conf.amount);
+
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_confidential_amount_for_input(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 3;
-    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = false;
 
-    let (conf_amount, txids) = create_utxos_wrapper(
+    let (conf, txids) = create_utxos_wrapper(
         &context,
         index,
         is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
+    let conf = conf.unwrap();
 
-    let expected = conf_amount.unwrap();
-
-    case(Confidential)
+    let failing = case(Explicit).index(index).index_type(IndexType::Input);
+    let passing = case(Confidential)
         .index(index)
         .index_type(IndexType::Input)
-        .expected_parity(expected.parity_bit)
-        .confidential_amount(expected.amount)
-        .run(&context, txids)
-}
+        .expected_parity(conf.parity_bit)
+        .confidential_amount(conf.amount);
 
-#[simplex::test]
-fn get_confidential_amount_for_explicit_input_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 4;
-    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit = true;
-
-    let (_, txids) = create_utxos_wrapper(
-        &context,
-        index,
-        is_explicit,
-        is_input(IndexType::Input),
-        expected_amount,
-    )?;
-
-    case(Confidential)
-        .index(index)
-        .index_type(IndexType::Input)
-        .expecting(&context, Expect::PrunedBranch, txids)
-}
-
-#[simplex::test]
-fn get_confidential_amount_for_explicit_output_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 2;
-    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit = true;
-
-    let (_, txids) = create_utxos_wrapper(
-        &context,
-        index,
-        is_explicit,
-        is_input(IndexType::Output),
-        expected_amount,
-    )?;
-
-    case(Confidential)
-        .index(index)
-        .index_type(IndexType::Output)
-        .expecting(&context, Expect::PrunedBranch, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_explicit_input_amount(context: simplex::TestContext) -> anyhow::Result<()> {
-    let index = 0;
-    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+    let index = 1;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = true;
 
     let (_, txids) = create_utxos_wrapper(
@@ -344,81 +305,40 @@ fn get_explicit_input_amount(context: simplex::TestContext) -> anyhow::Result<()
         expected_amount,
     )?;
 
-    case(ExplicitInput)
-        .index(index)
-        .expect(expected_amount)
-        .run(&context, txids)
-}
+    let failing = case(ConfidentialInput).index(index);
+    let passing = case(ExplicitInput).index(index).expect(expected_amount);
 
-#[simplex::test]
-fn get_explicit_input_amount_for_confidential_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 0;
-    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let is_explicit = false;
-
-    let (_, txids) = create_utxos_wrapper(
-        &context,
-        index,
-        is_explicit,
-        is_input(IndexType::Input),
-        expected_amount,
-    )?;
-
-    case(ExplicitInput)
-        .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_confidential_input_amount(context: simplex::TestContext) -> anyhow::Result<()> {
-    let index = 1;
-    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let index = 0;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = false;
 
-    let (conf_amount, txids) = create_utxos_wrapper(
+    let (conf, txids) = create_utxos_wrapper(
         &context,
         index,
         is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
+    let conf = conf.unwrap();
 
-    let expected = conf_amount.unwrap();
-
-    case(ConfidentialInput)
+    let failing = case(ExplicitInput).index(index);
+    let passing = case(ConfidentialInput)
         .index(index)
-        .expected_parity(expected.parity_bit)
-        .confidential_amount(expected.amount)
-        .run(&context, txids)
-}
+        .expected_parity(conf.parity_bit)
+        .confidential_amount(conf.amount);
 
-#[simplex::test]
-fn get_confidential_input_amount_for_explicit_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 1;
-    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit = true;
-
-    let (_, txids) = create_utxos_wrapper(
-        &context,
-        index,
-        is_explicit,
-        is_input(IndexType::Input),
-        expected_amount,
-    )?;
-
-    case(ConfidentialInput)
-        .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_explicit_output_amount(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 2;
-    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = true;
 
     let (_, txids) = create_utxos_wrapper(
@@ -429,10 +349,10 @@ fn get_explicit_output_amount(context: simplex::TestContext) -> anyhow::Result<(
         expected_amount,
     )?;
 
-    case(ExplicitOutput)
-        .index(index)
-        .expect(expected_amount)
-        .run(&context, txids)
+    let failing = case(ConfidentialOutput).index(index);
+    let passing = case(ExplicitOutput).index(index).expect(expected_amount);
+
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
@@ -440,47 +360,33 @@ fn get_explicit_output_amount_for_confidential_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 2;
-    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = false;
 
-    let (_, txids) = create_utxos_wrapper(
+    let (conf, txids) = create_utxos_wrapper(
         &context,
         index,
         is_explicit,
         is_input(IndexType::Output),
         expected_amount,
     )?;
+    let conf = conf.unwrap();
 
-    case(ExplicitOutput)
+    let failing = case(ExplicitOutput).index(index);
+    // Output `index` is blinded because input `index` is confidential, and its commitment
+    // is only made when the spend is blinded, so check the input instead.
+    let passing = case(ConfidentialInput)
         .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
-}
+        .expected_parity(conf.parity_bit)
+        .confidential_amount(conf.amount);
 
-#[simplex::test]
-fn get_confidential_output_amount_for_explicit_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 2;
-    let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit = true;
-
-    let (_, txids) = create_utxos_wrapper(
-        &context,
-        index,
-        is_explicit,
-        is_input(IndexType::Output),
-        expected_amount,
-    )?;
-
-    case(ConfidentialOutput)
-        .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_explicit_current_amount(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
-    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = true;
 
     let (_, txids) = create_utxos_wrapper(
@@ -491,73 +397,68 @@ fn get_explicit_current_amount(context: simplex::TestContext) -> anyhow::Result<
         expected_amount,
     )?;
 
-    case(CurrentExplicit)
-        .index(index)
-        .expect(expected_amount)
-        .run(&context, txids)
-}
+    let failing = case(CurrentConfidential).index(index);
+    let passing = case(CurrentExplicit).index(index).expect(expected_amount);
 
-#[simplex::test]
-fn get_explicit_current_amount_for_confidentinal_fail(
-    context: simplex::TestContext,
-) -> anyhow::Result<()> {
-    let index = 0;
-    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let is_explicit = false;
-
-    let (_, txids) = create_utxos_wrapper(
-        &context,
-        index,
-        is_explicit,
-        is_input(IndexType::Input),
-        expected_amount,
-    )?;
-
-    case(CurrentExplicit)
-        .index(index)
-        .expecting(&context, Expect::PrunedBranch, txids)
+    fail_and_pass_cases(&context, failing, passing, txids)
 }
 
 #[simplex::test]
 fn get_confidential_current_amount(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
-    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
+    let expected_amount: u64 = random_expected_amount();
     let is_explicit = false;
 
-    let (conf_amount, txids) = create_utxos_wrapper(
+    let (conf, txids) = create_utxos_wrapper(
         &context,
         index,
         is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
+    let conf = conf.unwrap();
 
-    let expected = conf_amount.unwrap();
-
-    case(CurrentConfidential)
+    let failing = case(CurrentExplicit).index(index);
+    let passing = case(CurrentConfidential)
         .index(index)
-        .expected_parity(expected.parity_bit)
-        .confidential_amount(expected.amount)
-        .run(&context, txids)
+        .expected_parity(conf.parity_bit)
+        .confidential_amount(conf.amount);
+
+    fail_and_pass_cases(&context, failing, passing, txids)
+}
+
+// The signer adds its own inputs and outputs for the fee and change, so `u32::MAX` is the index
+// that is certain not to exist.
+#[simplex::test]
+fn get_explicit_input_amount_for_missing_input_fail(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let (_, txids) = create_utxos_wrapper(
+        &context,
+        0,
+        true,
+        is_input(IndexType::Input),
+        random_expected_amount(),
+    )?;
+
+    case(ExplicitInput)
+        .index(u32::MAX)
+        .expecting(&context, Expect::PrunedBranch, txids)
 }
 
 #[simplex::test]
-fn get_confidential_current_amount_for_explicit_fail(
+fn get_explicit_output_amount_for_missing_output_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
-    let index = 0;
-    let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let is_explicit = true;
-
     let (_, txids) = create_utxos_wrapper(
         &context,
-        index,
-        is_explicit,
+        0,
+        true,
         is_input(IndexType::Input),
-        expected_amount,
+        random_expected_amount(),
     )?;
 
-    case(CurrentConfidential)
-        .index(index)
+    case(ExplicitOutput)
+        .index(u32::MAX)
         .expecting(&context, Expect::PrunedBranch, txids)
 }
