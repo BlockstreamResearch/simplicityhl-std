@@ -12,8 +12,6 @@ use simplex::transaction::{
 
 use crate::common::utxo_helper::{DEFAULT_SEND_AMOUNT, search_utxo_by_txid};
 
-const FUND_TX_THRESHOLD: u64 = 99999999;
-
 #[derive(Clone, Copy)]
 pub enum Expect {
     /// The spend succeeds.
@@ -45,9 +43,7 @@ pub fn fund(
 ) -> anyhow::Result<Script> {
     let script = program.as_ref().get_script_pubkey(context.get_network());
 
-    context
-        .get_default_signer()
-        .send(script.clone(), amount_to_send)?;
+    send_explicit(context.get_default_signer(), &script, amount_to_send)?;
 
     Ok(script)
 }
@@ -98,7 +94,7 @@ where
         search_utxo_by_txid(&txids[0], &utxos)?
     };
 
-    let first_input_confidential = program_utxo.txout.nonce.is_confidential();
+    let first_input_confidential = program_utxo.txout.value.is_confidential();
 
     if first_input_confidential {
         program_utxo = unblind(signer, program_utxo)?;
@@ -116,7 +112,7 @@ where
     if data.unwrap_or_default().is_empty() {
         let mut output = PartialOutput::new(
             script_to_send_to.clone(),
-            // amounts in unput and output on the same index should be different for the test purposes
+            // amounts in input and output on the same index should be different for the test purposes
             program_utxo.amount() - 1,
             program_utxo.asset(),
         );
@@ -134,7 +130,7 @@ where
         for txid in txids.iter().skip(1) {
             let utxo = search_utxo_by_txid(txid, &unblinded_utxos)?;
 
-            if !utxo.txout.nonce.is_confidential() {
+            if !utxo.txout.value.is_confidential() {
                 ft.add_input(PartialInput::new(utxo.clone()), RequiredSignature::None);
 
                 ft.add_output(PartialOutput::new(
@@ -143,7 +139,7 @@ where
                     utxo.explicit_asset(),
                 ));
                 // filtering out fund transaction
-            } else if utxo.unblinded_amount() < FUND_TX_THRESHOLD {
+            } else {
                 ft.add_input(PartialInput::new(utxo.clone()), RequiredSignature::None);
 
                 ft.add_output(

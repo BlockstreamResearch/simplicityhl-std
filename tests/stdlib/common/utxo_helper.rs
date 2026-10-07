@@ -18,10 +18,10 @@ pub struct ConfidentialAmount {
 
 pub type ConfidentialAsset = (ConfidentialAssetId, ConfidentialAmount);
 
-pub fn create_utxo_for_inputs(
+pub fn create_utxos(
     context: &simplex::TestContext,
     index: u32,
-    is_explicit_input: bool,
+    is_explicit: bool,
     is_input: bool,
     expected_amount: u64,
     program: impl AsRef<Program>,
@@ -47,7 +47,7 @@ pub fn create_utxo_for_inputs(
             amount_to_send += 1;
         }
 
-        if index == i && !is_explicit_input {
+        if index == i && !is_explicit {
             txids.push(send_blinded(
                 signer,
                 script,
@@ -59,7 +59,7 @@ pub fn create_utxo_for_inputs(
         }
     }
 
-    if !is_explicit_input {
+    if !is_explicit {
         let script = match index == 0 {
             true => program_script,
             false => pubkey_script,

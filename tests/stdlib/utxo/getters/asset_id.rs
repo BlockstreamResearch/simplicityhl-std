@@ -6,7 +6,7 @@ use crate::common::core::Expect;
 use crate::common::core::run_with_inputs_outputs;
 use crate::common::utxo_helper::ConfidentialAssetId;
 use crate::common::utxo_helper::DEFAULT_SEND_AMOUNT;
-use crate::common::utxo_helper::create_utxo_for_inputs;
+use crate::common::utxo_helper::create_utxos;
 
 use simplicityhl_std::artifacts::tests::utxo::getters::asset_id::AssetIdProgram as TestAssetIdProgram;
 use simplicityhl_std::artifacts::tests::utxo::getters::asset_id::derived_asset_id::{
@@ -108,21 +108,21 @@ impl Case {
     }
 }
 
-fn create_utxo_for_inputs_wrapper(
+fn create_utxos_wrapper(
     context: &simplex::TestContext,
     index: u32,
-    is_explicit_input: bool,
+    is_explicit: bool,
 ) -> anyhow::Result<(Option<ConfidentialAssetId>, Vec<Txid>)> {
-    let (result, txids) = create_utxo_for_inputs(
+    let (result, txids) = create_utxos(
         context,
         index,
-        is_explicit_input,
+        is_explicit,
         true, // is_input is always true, because this parameter affects only tested amount
         DEFAULT_SEND_AMOUNT,
         program(),
     )?;
 
-    let confidential_asset = match is_explicit_input {
+    let confidential_asset = match is_explicit {
         true => None,
         false => {
             let (conf_asset, _) =
@@ -139,9 +139,9 @@ fn create_utxo_for_inputs_wrapper(
 fn get_explicit_asset_id_for_input(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 1;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(Explicit)
         .index(index)
@@ -154,9 +154,9 @@ fn get_explicit_asset_id_for_input(context: simplex::TestContext) -> anyhow::Res
 fn get_explicit_asset_id_for_random_input(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = rand::thread_rng().gen_range(0..=20) as u32; // not a big value to not to slow down tests
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(Explicit)
         .index(index)
@@ -169,9 +169,9 @@ fn get_explicit_asset_id_for_random_input(context: simplex::TestContext) -> anyh
 fn get_explicit_asset_id_for_output(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(Explicit)
         .index(index)
@@ -184,9 +184,9 @@ fn get_explicit_asset_id_for_output(context: simplex::TestContext) -> anyhow::Re
 fn get_explicit_asset_id_for_random_output(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = rand::thread_rng().gen_range(0..=20) as u32;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(Explicit)
         .index(index)
@@ -200,9 +200,9 @@ fn get_explicit_asset_id_for_confidential_input_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 1;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(Explicit)
         .index(index)
@@ -215,9 +215,9 @@ fn get_explicit_asset_id_for_confidential_output_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 0;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(Explicit)
         .index(index)
@@ -228,9 +228,9 @@ fn get_explicit_asset_id_for_confidential_output_fail(
 #[simplex::test]
 fn get_confidential_asset_id_for_input(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 2;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (conf_asset, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (conf_asset, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
     let expected = conf_asset.unwrap();
 
     case(Confidential)
@@ -246,9 +246,9 @@ fn get_confidential_asset_id_for_explicit_input_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 2;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(Confidential)
         .index(index)
@@ -261,9 +261,9 @@ fn get_confidential_asset_id_for_explicit_output_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 2;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(Confidential)
         .index(index)
@@ -274,9 +274,9 @@ fn get_confidential_asset_id_for_explicit_output_fail(
 fn get_explicit_input_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(ExplicitInput)
         .index(index)
@@ -289,9 +289,9 @@ fn get_explicit_input_asset_id_for_confidential_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 0;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(ExplicitInput)
         .index(index)
@@ -301,9 +301,9 @@ fn get_explicit_input_asset_id_for_confidential_fail(
 #[simplex::test]
 fn get_confidential_input_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 1;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (conf_asset, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (conf_asset, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
     let expected = conf_asset.unwrap();
 
     case(ConfidentialInput)
@@ -318,9 +318,9 @@ fn get_confidential_input_asset_id_for_explicit_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 1;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(ConfidentialInput)
         .index(index)
@@ -331,9 +331,9 @@ fn get_confidential_input_asset_id_for_explicit_fail(
 fn get_explicit_output_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 2;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(ExplicitOutput)
         .index(index)
@@ -346,9 +346,9 @@ fn get_explicit_output_asset_id_for_confidential_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 2;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(ExplicitOutput)
         .index(index)
@@ -360,9 +360,9 @@ fn get_confidential_output_asset_id_for_explicit_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 1;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(ConfidentialOutput)
         .index(index)
@@ -373,9 +373,9 @@ fn get_confidential_output_asset_id_for_explicit_fail(
 fn get_explicit_current_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(CurrentExplicit)
         .index(index)
@@ -388,9 +388,9 @@ fn get_explicit_current_asset_id_for_confidential_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 0;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(CurrentExplicit)
         .index(index)
@@ -400,9 +400,9 @@ fn get_explicit_current_asset_id_for_confidential_fail(
 #[simplex::test]
 fn get_confidential_current_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
     let index = 0;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (conf_asset, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (conf_asset, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
     let expected = conf_asset.unwrap();
 
     case(CurrentConfidential)
@@ -417,9 +417,9 @@ fn get_confidential_current_asset_id_for_explicit_fail(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let index = 0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(&context, index, is_explicit_input)?;
+    let (_, txids) = create_utxos_wrapper(&context, index, is_explicit)?;
 
     case(CurrentConfidential)
         .index(index)

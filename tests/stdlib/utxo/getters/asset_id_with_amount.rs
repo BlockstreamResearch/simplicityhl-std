@@ -4,7 +4,7 @@ use simplex::simplicityhl::elements::Txid;
 use crate::common::core::Expect;
 use crate::common::core::run_with_inputs_outputs;
 use crate::common::utxo_helper::ConfidentialAsset;
-use crate::common::utxo_helper::create_utxo_for_inputs;
+use crate::common::utxo_helper::create_utxos;
 
 use simplicityhl_std::artifacts::tests::utxo::getters::asset_id_with_amount::AssetIdWithAmountProgram as TestAssetIdWithAmountProgram;
 use simplicityhl_std::artifacts::tests::utxo::getters::asset_id_with_amount::derived_asset_id_with_amount::{
@@ -114,17 +114,17 @@ impl Case {
     }
 }
 
-fn create_utxo_for_inputs_wrapper(
+fn create_utxos_wrapper(
     context: &simplex::TestContext,
     index: u32,
-    is_explicit_input: bool,
+    is_explicit: bool,
     is_input: bool,
     expected_amount: u64,
 ) -> anyhow::Result<(Option<ConfidentialAsset>, Vec<Txid>)> {
-    create_utxo_for_inputs(
+    create_utxos(
         context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input,
         expected_amount,
         program(),
@@ -138,12 +138,12 @@ fn get_explicit_asset_id_with_amount_for_input(
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -162,12 +162,12 @@ fn get_explicit_asset_id_with_amount_for_random_input(
     let index = rand::thread_rng().gen_range(0..=20) as u32;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -186,12 +186,12 @@ fn get_explicit_asset_id_with_amount_for_output(
     let index = 1;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Output),
         expected_amount,
     )?;
@@ -210,12 +210,12 @@ fn get_explicit_asset_id_with_amount_for_random_output(
     let index = rand::thread_rng().gen_range(0..=20) as u32;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Output),
         expected_amount,
     )?;
@@ -233,12 +233,12 @@ fn get_explicit_asset_id_with_amount_for_confidential_input_fail(
 ) -> anyhow::Result<()> {
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -255,12 +255,12 @@ fn get_explicit_asset_id_with_amount_for_confidential_output_fail(
 ) -> anyhow::Result<()> {
     let index = 1;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Output),
         expected_amount,
     )?;
@@ -277,12 +277,12 @@ fn get_confidential_asset_id_with_amount_for_input(
 ) -> anyhow::Result<()> {
     let index = 2;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (expected, txids) = create_utxo_for_inputs_wrapper(
+    let (expected, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -306,12 +306,12 @@ fn get_confidential_asset_id_with_amount_for_explicit_input_fail(
 ) -> anyhow::Result<()> {
     let index = 2;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -328,12 +328,12 @@ fn get_confidential_asset_id_with_amount_for_explicit_output_fail(
 ) -> anyhow::Result<()> {
     let index = 2;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Output),
         expected_amount,
     )?;
@@ -350,12 +350,12 @@ fn get_explicit_input_asset_id_with_amount(context: simplex::TestContext) -> any
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
 
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -373,12 +373,12 @@ fn get_explicit_input_asset_id_with_amount_for_confidential_fail(
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
 
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -394,12 +394,12 @@ fn get_confidential_input_asset_id_with_amount(
 ) -> anyhow::Result<()> {
     let index = 1;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (expected, txids) = create_utxo_for_inputs_wrapper(
+    let (expected, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -422,12 +422,12 @@ fn get_confidential_input_asset_id_with_amount_for_explicit_fail(
 ) -> anyhow::Result<()> {
     let index = 1;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -442,12 +442,12 @@ fn get_explicit_output_asset_id_with_amount(context: simplex::TestContext) -> an
     let index = 1;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Output),
         expected_amount,
     )?;
@@ -464,12 +464,12 @@ fn get_explicit_output_asset_id_with_amount_for_confidential_fail(
 ) -> anyhow::Result<()> {
     let index = 1;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Output),
         expected_amount,
     )?;
@@ -485,12 +485,12 @@ fn get_confidential_output_asset_id_with_amount_for_explicit_fail(
 ) -> anyhow::Result<()> {
     let index = 2;
     let expected_amount: u64 = rand::thread_rng().gen_range(10..=100) as u64;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Output),
         expected_amount,
     )?;
@@ -505,12 +505,12 @@ fn get_explicit_current_asset_id_with_amount(context: simplex::TestContext) -> a
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
     let expected_asset_id = context.get_network().policy_asset().into_inner().0;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -527,12 +527,12 @@ fn get_explicit_current_asset_id_with_amount_for_confidential_fail(
 ) -> anyhow::Result<()> {
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -548,12 +548,12 @@ fn get_confidential_current_asset_id_with_amount(
 ) -> anyhow::Result<()> {
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let is_explicit_input = false;
+    let is_explicit = false;
 
-    let (expected, txids) = create_utxo_for_inputs_wrapper(
+    let (expected, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
@@ -576,12 +576,12 @@ fn get_confidential_current_asset_id_with_amount_for_explicit_fail(
 ) -> anyhow::Result<()> {
     let index = 0;
     let expected_amount: u64 = rand::thread_rng().gen_range(50..=100) as u64;
-    let is_explicit_input = true;
+    let is_explicit = true;
 
-    let (_, txids) = create_utxo_for_inputs_wrapper(
+    let (_, txids) = create_utxos_wrapper(
         &context,
         index,
-        is_explicit_input,
+        is_explicit,
         is_input(IndexType::Input),
         expected_amount,
     )?;
