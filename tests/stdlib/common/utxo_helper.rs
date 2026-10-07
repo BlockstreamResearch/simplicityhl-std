@@ -9,12 +9,8 @@ use simplex::transaction::UTXO;
 use crate::common::core::{send_blinded, send_explicit, send_issued};
 pub const DEFAULT_SEND_AMOUNT: u64 = 50;
 
-/// An amount for the tested UTXO. The range excludes `DEFAULT_SEND_AMOUNT`,
-/// which the other UTXOs hold, so a getter that reads the wrong index
-/// cannot return the expected amount.
-///
 /// The funding transaction holds around 10^16 satoshis, so 10_000 is used
-/// as the limit to ensure there are enough satoshis for all inputs and outputs.
+/// as the limit to ensure there are enough satoshis for all the inputs and outputs.
 pub fn random_expected_amount() -> u64 {
     rand::thread_rng().gen_range(100..=10_000)
 }
@@ -89,9 +85,6 @@ pub fn create_utxos(
     }
 }
 
-/// Like `create_utxos` for an explicit UTXO, but the UTXO at `index` holds a newly
-/// issued asset, so a getter that reads the wrong index cannot return the expected asset id.
-/// Returns that asset id and the txids in creation order.
 pub fn create_utxos_with_new_asset(
     context: &simplex::TestContext,
     index: u32,

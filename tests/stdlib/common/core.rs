@@ -116,9 +116,8 @@ where
     let script_to_send_to = signer.get_address().script_pubkey();
     let policy_asset = context.get_network().policy_asset();
 
-    // Every input goes back to the signer one unit short, so that an input and the output at the
-    // same index differ. The signer only adds change in the policy asset, so the other
-    // asset gets its own output after all tested ones.
+    // Every output amount is one less than the corresponding input amount.
+    // The signer handles leftovers for the policy asset, but for other assets, we need to handle it here.
     let mut leftover_asset = policy_asset;
 
     let utxos = context

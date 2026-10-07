@@ -105,9 +105,9 @@ impl Case {
     }
 }
 
-/// `failing` must fail, and `passing`, the getter of the other kind, must then succeed on the same
-/// UTXOs. A missing input or output also gives `Expect::PrunedBranch`, so this shows the failure
-/// comes from the content of the UTXO. A failed spend is not broadcast, so both can use the same UTXOs.
+/// Missing input or output also returns `Expect::PrunedBranch` error,
+/// so this approach ensures that the program has the expected input or output.
+/// A failed spend is not broadcasted, so both cases can use the same UTXOs.
 fn fail_and_pass_cases(
     context: &simplex::TestContext,
     failing: Case,
