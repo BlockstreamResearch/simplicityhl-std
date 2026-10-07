@@ -440,8 +440,6 @@ fn get_confidential_current_asset_id_with_amount(
     fail_and_pass_cases(&context, failing, passing, txids)
 }
 
-// The signer adds its own inputs and outputs for the fee and change, so `u32::MAX` is the index
-// that is certain not to exist.
 #[simplex::test]
 fn get_explicit_input_asset_id_with_amount_for_missing_input_fail(
     context: simplex::TestContext,
