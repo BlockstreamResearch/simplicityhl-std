@@ -1,3 +1,4 @@
+use primitive_types::U256;
 use rand::Rng;
 use simplex::program::Program;
 use simplex::simplicityhl::elements::AssetId;
@@ -7,6 +8,7 @@ use simplex::simplicityhl::elements::pset::serialize::Serialize;
 use simplex::transaction::UTXO;
 
 use crate::common::core::{send_blinded, send_explicit, send_issued};
+use crate::common::helper::generate_u256;
 pub const DEFAULT_SEND_AMOUNT: u64 = 50;
 
 /// The funding transaction holds around 10^16 satoshis, so 10_000 is used
@@ -162,4 +164,22 @@ pub fn search_utxo_by_txid(txid: &Txid, utxos: &[UTXO]) -> anyhow::Result<UTXO> 
         .find(|utxo| utxo.outpoint == outpoint)
         .cloned()
         .ok_or_else(|| anyhow::anyhow!("Missing utxo with id: {txid}"))
+}
+
+pub fn generate_different_amounts() -> (u64, u64) {
+    let some_u = random_expected_amount();
+    let mut other_u = random_expected_amount();
+
+    while other_u == some_u {
+        other_u = random_expected_amount();
+    }
+
+    (some_u, other_u)
+}
+
+pub fn generate_random_confidential() -> (u8, [u8; 32]) {
+    let parity_bit = rand::thread_rng().gen_range(0..=1);
+    let asset = generate_u256(U256::zero(), U256::MAX).to_big_endian();
+
+    (parity_bit, asset)
 }
