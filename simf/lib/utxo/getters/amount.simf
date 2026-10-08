@@ -6,9 +6,10 @@
 /// in unnecessary overhead.
 
 /// Returns the explicit amount at the specified input or output.
+/// Panics if the specified input or output does not exist or if its amount is confidential.
 /// 
 /// Warning: using this incurs the overhead, and should be used only when the input/output selection
-/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly
 pub fn get_explicit_amount(index: u32, is_input_index: bool) -> u64 {
     let (
         _,
@@ -21,10 +22,11 @@ pub fn get_explicit_amount(index: u32, is_input_index: bool) -> u64 {
     unwrap_right::<(u1, u256)>(amount)
 }
 
-/// Returns the confidential amount at the specified input or output
+/// Returns the confidential amount at the specified input or output.
+/// Panics if the specified input or output does not exist or if its amount is explicit.
 /// 
 /// Warning: using this incurs the overhead, and should be used only when the input/output selection
-/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly
 pub fn get_confidential_amount(index: u32, is_input_index: bool) -> Confidential1 {
     let (
         _,
@@ -37,42 +39,48 @@ pub fn get_confidential_amount(index: u32, is_input_index: bool) -> Confidential
     unwrap_left::<u64>(amount)
 }
 
-/// Returns the explicit amount at the specified input
+/// Returns the explicit amount at the specified input.
+/// Panics if the specified input does not exist or if its amount is confidential
 pub fn get_explicit_input_amount(index: u32) -> u64 {
     let (_, amount): (Asset1, Amount1) = unwrap(jet::input_amount(index));
 
     unwrap_right::<(u1, u256)>(amount)
 }
 
-/// Returns the confidential amount at the specified input
+/// Returns the confidential amount at the specified input.
+/// Panics if the specified input does not exist or if its amount is explicit
 pub fn get_confidential_input_amount(index: u32) -> Confidential1 {
     let (_, amount): (Asset1, Amount1) = unwrap(jet::input_amount(index));
 
     unwrap_left::<u64>(amount)
 }
 
-/// Returns the explicit amount at the specified output
+/// Returns the explicit amount at the specified output.
+/// Panics if the specified output does not exist or if its amount is confidential
 pub fn get_explicit_output_amount(index: u32) -> u64 {
     let (_, amount): (Asset1, Amount1) = unwrap(jet::output_amount(index));
 
     unwrap_right::<(u1, u256)>(amount)
 }
 
-/// Returns the confidential amount at the specified output
+/// Returns the confidential amount at the specified output.
+/// Panics if the specified output does not exist or if its amount is explicit
 pub fn get_confidential_output_amount(index: u32) -> Confidential1 {
     let (_, amount): (Asset1, Amount1) = unwrap(jet::output_amount(index));
 
     unwrap_left::<u64>(amount)
 }
 
-/// Returns the explicit input amount at the current_index
+/// Returns the explicit input amount at the current_index.
+/// Panics if amount is confidential
 pub fn get_explicit_current_amount() -> u64 {
     let (_, amount): (Asset1, Amount1) = jet::current_amount();
 
     unwrap_right::<(u1, u256)>(amount)
 }
 
-/// Returns the confidential input amount at the current_index
+/// Returns the confidential input amount at the current_index.
+/// Panics if amount is explicit
 pub fn get_confidential_current_amount() -> Confidential1 {
     let (_, amount): (Asset1, Amount1) = jet::current_amount();
 
