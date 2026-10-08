@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.0.2]
 
 - Added `mul_div` functions.
 - Organized code into modules.
@@ -11,7 +11,7 @@
 ## [0.0.1]
 
 Initial release!
-- Сhecked arithmetic operations for `u8`, `u16`, `u32`, `u64`, and `u128`.
+- Сhecked arithmetic operations for `u8`, `u16`, `u32`, `u64`, `u128` and `u256`.
 - `OP_RETURN` detection utilities.
 - Implementation of `and`, `or`, `not`, and `xor` binary operators.
 - Basic numeric assertions.

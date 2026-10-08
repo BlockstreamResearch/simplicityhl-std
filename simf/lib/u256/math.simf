@@ -280,7 +280,7 @@ fn normalize_to_threshold_256_63(a: u256, b: u128, is_b_u128: bool) -> (u64, u25
 /// the most significant non-zero word of `b` is at least 2^127.
 /// 
 /// The normalized dividend fits into 384 bits and is returned as a
-/// `(u128, u256)` pair. The normalized divisor fits into a `u256`.
+/// `(u128, u256)` pair. The normalized divisor fits into a u256.
 fn normalize_to_threshold_256_127(a: u256, b: u256) -> (u128, u256, u256) {
     let norm: u128 = calculate_normalizer_base_128(b);
 

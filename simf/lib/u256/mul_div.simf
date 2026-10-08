@@ -94,7 +94,7 @@ fn estimate_quotient_digit_base_128(u2: u128, u1: u128, u0: u128, v1: u128, v0: 
 /// the most significant non-zero word of `b` is at least 2^127.
 /// 
 /// The normalized dividend fits into 640 bits and is returned as a
-/// `(u128, u256, u256)` tuple. The normalized divisor fits into a `u256`
+/// `(u128, u256, u256)` tuple. The normalized divisor fits into a u256
 fn normalize_to_threshold_512_127(a_high: u256, a_low: u256, b: u256) -> (u128, u256, u256, u256) {
     let norm: u128 = calculate_normalizer_base_128(b);
 
@@ -125,10 +125,10 @@ fn mul_and_sub_128(q: u128, u2: u128, u1: u128, u0: u128, v: u256) -> (u128, u12
     split_u256_into_u128(u_updated_1_0)
 }
 
-/// Divides a 512-bit integer by a 256-bit integer and returns a `u256` quotient.
+/// Divides a 512-bit integer by a 256-bit integer and returns a u256 quotient.
 /// Implements Algorithm D by Donald Knuth.
 /// Requires the upper half of the divisor to be non-zero (`divisor >= 2^128`)
-/// and the quotient to fit into `u256`
+/// and the quotient to fit into u256
 fn algorithm_d_512_256(dividend_high: u256, dividend_low: u256, divisor: u256) -> u256 {
     let (
         _,

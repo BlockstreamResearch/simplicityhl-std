@@ -53,7 +53,7 @@ pub fn checked_div_64(a: u64, b: u64) -> Option<u64> {
     }
 }
 
-/// Returns the quotient of two u64 values, panics if the result overflows u64
+/// Returns the quotient of two u64 values, panics if the divisor is zero
 pub fn div_64(a: u64, b: u64) -> u64 {
     unwrap(checked_div_64(a, b))
 }
