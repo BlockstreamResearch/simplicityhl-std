@@ -109,168 +109,168 @@
     "section": "Amount asserts",
     "input_type": "u32, bool, u64",
     "output_type": "()",
-    "description": "Asserts that the explicit amount at the specified input or output index equals the expected u64 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the explicit amount at the specified input or output index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_amount",
     "section": "Amount asserts",
     "input_type": "u32, bool, Confidential1",
     "output_type": "()",
-    "description": "Asserts that the confidential amount at the specified input or output index equals the expected Confidential1 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the confidential amount at the specified input or output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_input_amount",
     "section": "Amount asserts",
     "input_type": "u32, u64",
     "output_type": "()",
-    "description": "Asserts that the explicit amount at the specified input index equals the expected u64 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the explicit amount at the specified input index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_input_amount",
     "section": "Amount asserts",
     "input_type": "u32, Confidential1",
     "output_type": "()",
-    "description": "Asserts that the confidential amount at the specified input index equals the expected Confidential1 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the confidential amount at the specified input index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_output_amount",
     "section": "Amount asserts",
     "input_type": "u32, u64",
     "output_type": "()",
-    "description": "Asserts that the explicit amount at the specified output index equals the expected u64 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the explicit amount at the specified output index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_output_amount",
     "section": "Amount asserts",
     "input_type": "u32, Confidential1",
     "output_type": "()",
-    "description": "Asserts that the confidential amount at the specified output index equals the expected Confidential1 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the confidential amount at the specified output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_current_amount",
     "section": "Amount asserts",
     "input_type": "u64",
     "output_type": "()",
-    "description": "Asserts that the explicit input amount at the current_index equals the expected u64 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the explicit input amount at the current_index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_current_amount",
     "section": "Amount asserts",
     "input_type": "Confidential1",
     "output_type": "()",
-    "description": "Asserts that the confidential input amount at the current_index equals the expected Confidential1 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the confidential input amount at the current_index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_asset_id_with_amount",
     "section": "AssetId and Amount asserts",
     "input_type": "u32, bool, u256, u64",
     "output_type": "()",
-    "description": "Asserts that explicit asset_id and amount at the specified input or output index equal the expected u256 and u64 values.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that explicit asset_id and amount at the specified input or output index equal the expected `u256` and `u64` values.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_asset_id_with_amount",
     "section": "AssetId and Amount asserts",
     "input_type": "u32, bool, Confidential1, Confidential1",
     "output_type": "()",
-    "description": "Asserts that confidential asset_id and amount at the specified input or output index equal the expected Confidential1 values.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that confidential asset_id and amount at the specified input or output index equal the expected `Confidential1` values.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_input_asset_id_with_amount",
     "section": "AssetId and Amount asserts",
     "input_type": "u32, u256, u64",
     "output_type": "()",
-    "description": "Asserts that explicit asset_id and amount at the specified input index equal the expected u256 and u64 values.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that explicit asset_id and amount at the specified input index equal the expected `u256` and `u64` values.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_input_asset_id_with_amount",
     "section": "AssetId and Amount asserts",
     "input_type": "u32, Confidential1, Confidential1",
     "output_type": "()",
-    "description": "Asserts that confidential asset_id and amount at the specified input index equal the expected Confidential1 values.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that confidential asset_id and amount at the specified input index equal the expected `Confidential1` values.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_output_asset_id_with_amount",
     "section": "AssetId and Amount asserts",
     "input_type": "u32, u256, u64",
     "output_type": "()",
-    "description": "Asserts that explicit asset_id and amount at the specified output index equal the expected u256 and u64 values.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that explicit asset_id and amount at the specified output index equal the expected `u256` and `u64` values.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_output_asset_id_with_amount",
     "section": "AssetId and Amount asserts",
     "input_type": "u32, Confidential1, Confidential1",
     "output_type": "()",
-    "description": "Asserts that confidential asset_id and amount at the specified output index equal the expected Confidential1 values.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that confidential asset_id and amount at the specified output index equal the expected `Confidential1` values.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_current_asset_id_with_amount",
     "section": "AssetId and Amount asserts",
     "input_type": "u256, u64",
     "output_type": "()",
-    "description": "Asserts that explicit input asset_id and amount at the current_index equal the expected u256 and u64 values.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that explicit input asset_id and amount at the current_index equal the expected `u256` and `u64` values.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_current_asset_id_with_amount",
     "section": "AssetId and Amount asserts",
     "input_type": "Confidential1, Confidential1",
     "output_type": "()",
-    "description": "Asserts that confidential input asset_id and amount at the current_index equal the expected Confidential1 values.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that confidential input asset_id and amount at the current_index equal the expected `Confidential1` values.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_asset_id",
     "section": "AssetId asserts",
     "input_type": "u32, bool, u256",
     "output_type": "()",
-    "description": "Asserts that the explicit asset_id at the specified input or output index equals the expected u256 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the explicit asset_id at the specified input or output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_asset_id",
     "section": "AssetId asserts",
     "input_type": "u32, bool, Confidential1",
     "output_type": "()",
-    "description": "Asserts that the confidential asset_id at the specified input or output index equals the expected Confidential1 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the confidential asset_id at the specified input or output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_input_asset_id",
     "section": "AssetId asserts",
     "input_type": "u32, u256",
     "output_type": "()",
-    "description": "Asserts that the explicit asset_id at the specified input index equals the expected u256 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the explicit asset_id at the specified input index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_input_asset_id",
     "section": "AssetId asserts",
     "input_type": "u32, Confidential1",
     "output_type": "()",
-    "description": "Asserts that the confidential asset_id at the specified input index equals the expected Confidential1 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the confidential asset_id at the specified input index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_output_asset_id",
     "section": "AssetId asserts",
     "input_type": "u32, u256",
     "output_type": "()",
-    "description": "Asserts that the explicit asset_id at the specified output index equals the expected u256 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the explicit asset_id at the specified output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_output_asset_id",
     "section": "AssetId asserts",
     "input_type": "u32, Confidential1",
     "output_type": "()",
-    "description": "Asserts that the confidential asset_id at the specified output index equals the expected Confidential1 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the confidential asset_id at the specified output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_explicit_current_asset_id",
     "section": "AssetId asserts",
     "input_type": "u256",
     "output_type": "()",
-    "description": "Asserts that the explicit input asset_id at the current_index equals the expected u256 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the explicit input asset_id at the current_index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "assert_confidential_current_asset_id",
     "section": "AssetId asserts",
     "input_type": "Confidential1",
     "output_type": "()",
-    "description": "Asserts that the confidential input asset_id at the current_index equals the expected Confidential1 value.\n\n## Panics\nThe assertion fails."
+    "description": "Asserts that the confidential input asset_id at the current_index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "get_explicit_amount",
@@ -732,7 +732,7 @@
     "section": "`u8` arithmetic",
     "input_type": "u8, u8, u8",
     "output_type": "u8",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u8 or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u8` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u8_to_u16",
@@ -858,7 +858,7 @@
     "section": "`u16` arithmetic",
     "input_type": "u16, u16, u16",
     "output_type": "u16",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u16 or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u16` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u16_to_u32",
@@ -984,7 +984,7 @@
     "section": "`u32` arithmetic",
     "input_type": "u32, u32, u32",
     "output_type": "u32",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u32 or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u32` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u32_to_u64",
@@ -1117,7 +1117,7 @@
     "section": "`u64` arithmetic",
     "input_type": "u64, u64, u64",
     "output_type": "u64",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u64 or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u64` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u64_to_u128",
@@ -1320,7 +1320,7 @@
     "section": "`u128` arithmetic",
     "input_type": "u128, u128, u128",
     "output_type": "u128",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u128 or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u128` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "and_128",
@@ -1481,7 +1481,7 @@
     "section": "`u256` arithmetic",
     "input_type": "bool, u256, u256",
     "output_type": "(bool, u256)",
-    "description": "Add two u256 values, taking an incoming carry bit. Return the outgoing carry bit and the sum."
+    "description": "Add two `u256` values, taking an incoming carry bit. Return the outgoing carry bit and the sum."
   },
   {
     "simplicityhl_name": "checked_add_256",
@@ -1578,7 +1578,7 @@
     "simplicityhl_name": "div_mod_256_64",
     "section": "`u256` arithmetic",
     "input_type": "u256, u64",
-    "output_type": "()",
+    "output_type": "(u256, u64)",
     "description": "Divide a `u256` value by a `u64` value, returning the `u256` quotient and the `u64` remainder.\n\n## Panics\nPanics if the divisor is zero."
   },
   {
@@ -1621,7 +1621,7 @@
     "section": "`u256` arithmetic",
     "input_type": "u256, u256, u256",
     "output_type": "u256",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a u256 or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u256` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "and_256",
