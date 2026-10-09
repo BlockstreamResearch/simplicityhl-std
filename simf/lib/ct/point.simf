@@ -1,0 +1,27 @@
+/*
+ * Confidential Transactions: decoding confidential points.
+ *
+ * Elements sets the bit of a CT `Point` when y is not a square, but
+ * `jet::decompress` reads it as "y is odd", so CT points are decoded here.
+ * See https://github.com/BlockstreamResearch/simplicity/issues/349
+ */
+
+use crate::lib::u1::convert::u1_to_bool;
+
+/// Decodes a confidential asset or amount `Point`.
+/// Panics if `x` is not on the curve.
+pub fn conf_point_to_ge(p: Point) -> Ge {
+    let (not_square, x): (u1, u256) = p;
+    // `fe_square_root` always returns the root that is itself a square.
+    let y: Fe = unwrap(jet::fe_square_root(jet::fe_add(jet::fe_multiply(jet::fe_square(x), x), 7)));
+
+    match u1_to_bool(not_square) {
+        true => (x, jet::fe_negate(y)),
+        false => (x, y),
+    }
+}
+
+/// Decodes a confidential asset or amount `Point` into a Jacobian point with `z = 1`.
+pub fn conf_point_to_gej(p: Point) -> Gej {
+    (conf_point_to_ge(p), 1)
+}
