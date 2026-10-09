@@ -105,6 +105,342 @@
     "description": "Assert that two `bool` values are equal.\n\n## Panics\nThe assertion fails."
   },
   {
+    "simplicityhl_name": "assert_explicit_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, bool, u64",
+    "output_type": "()",
+    "description": "Asserts that the explicit amount at the specified input or output index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, bool, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential amount at the specified input or output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_input_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, u64",
+    "output_type": "()",
+    "description": "Asserts that the explicit amount at the specified input index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_input_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential amount at the specified input index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_output_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, u64",
+    "output_type": "()",
+    "description": "Asserts that the explicit amount at the specified output index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_output_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential amount at the specified output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_current_amount",
+    "section": "Amount asserts",
+    "input_type": "u64",
+    "output_type": "()",
+    "description": "Asserts that the explicit input amount at the current_index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_current_amount",
+    "section": "Amount asserts",
+    "input_type": "Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential input amount at the current_index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_asset_id_with_amount",
+    "section": "AssetId and Amount asserts",
+    "input_type": "u32, bool, u256, u64",
+    "output_type": "()",
+    "description": "Asserts that explicit asset_id and amount at the specified input or output index equal the expected `u256` and `u64` values.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_asset_id_with_amount",
+    "section": "AssetId and Amount asserts",
+    "input_type": "u32, bool, Confidential1, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that confidential asset_id and amount at the specified input or output index equal the expected `Confidential1` values.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_input_asset_id_with_amount",
+    "section": "AssetId and Amount asserts",
+    "input_type": "u32, u256, u64",
+    "output_type": "()",
+    "description": "Asserts that explicit asset_id and amount at the specified input index equal the expected `u256` and `u64` values.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_input_asset_id_with_amount",
+    "section": "AssetId and Amount asserts",
+    "input_type": "u32, Confidential1, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that confidential asset_id and amount at the specified input index equal the expected `Confidential1` values.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_output_asset_id_with_amount",
+    "section": "AssetId and Amount asserts",
+    "input_type": "u32, u256, u64",
+    "output_type": "()",
+    "description": "Asserts that explicit asset_id and amount at the specified output index equal the expected `u256` and `u64` values.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_output_asset_id_with_amount",
+    "section": "AssetId and Amount asserts",
+    "input_type": "u32, Confidential1, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that confidential asset_id and amount at the specified output index equal the expected `Confidential1` values.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_current_asset_id_with_amount",
+    "section": "AssetId and Amount asserts",
+    "input_type": "u256, u64",
+    "output_type": "()",
+    "description": "Asserts that explicit input asset_id and amount at the current_index equal the expected `u256` and `u64` values.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_current_asset_id_with_amount",
+    "section": "AssetId and Amount asserts",
+    "input_type": "Confidential1, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that confidential input asset_id and amount at the current_index equal the expected `Confidential1` values.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, bool, u256",
+    "output_type": "()",
+    "description": "Asserts that the explicit asset_id at the specified input or output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, bool, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential asset_id at the specified input or output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_input_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, u256",
+    "output_type": "()",
+    "description": "Asserts that the explicit asset_id at the specified input index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_input_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential asset_id at the specified input index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_output_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, u256",
+    "output_type": "()",
+    "description": "Asserts that the explicit asset_id at the specified output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_output_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential asset_id at the specified output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_current_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u256",
+    "output_type": "()",
+    "description": "Asserts that the explicit input asset_id at the current_index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_current_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential input asset_id at the current_index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "get_explicit_amount",
+    "section": "Amount getters",
+    "input_type": "u32, bool",
+    "output_type": "u64",
+    "description": "Returns the explicit amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_amount",
+    "section": "Amount getters",
+    "input_type": "u32, bool",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_input_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "u64",
+    "description": "Returns the explicit amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_input_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_output_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "u64",
+    "description": "Returns the explicit amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_output_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_current_amount",
+    "section": "Amount getters",
+    "input_type": "()",
+    "output_type": "u64",
+    "description": "Returns the explicit input amount at the current_index.\n\n## Panics\nPanics if amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_current_amount",
+    "section": "Amount getters",
+    "input_type": "()",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential input amount at the current_index.\n\n## Panics\nPanics if amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32, bool",
+    "output_type": "(u256, u64)",
+    "description": "Returns explicit asset_id and amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id and amount are confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32, bool",
+    "output_type": "(Confidential1, Confidential1)",
+    "description": "Returns confidential asset_id and amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id and amount are explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_input_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32",
+    "output_type": "(u256, u64)",
+    "description": "Returns explicit asset_id and amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id and amount are confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_input_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32",
+    "output_type": "(Confidential1, Confidential1)",
+    "description": "Returns confidential asset_id and amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id and amount are explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_output_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32",
+    "output_type": "(u256, u64)",
+    "description": "Returns explicit asset_id and amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id and amount are confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_output_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "u32",
+    "output_type": "(Confidential1, Confidential1)",
+    "description": "Returns confidential asset_id and amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id and amount are explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_current_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "()",
+    "output_type": "(u256, u64)",
+    "description": "Returns explicit input asset_id and amount at the current_index.\n\n## Panics\nPanics if asset_id and amount are confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_current_asset_id_with_amount",
+    "section": "AssetId and Amount getters",
+    "input_type": "()",
+    "output_type": "(Confidential1, Confidential1)",
+    "description": "Returns confidential input asset_id and amount at the current_index.\n\n## Panics\nPanics if asset_id and amount are explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32, bool",
+    "output_type": "u256",
+    "description": "Returns the explicit asset_id at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32, bool",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential asset_id at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_input_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32",
+    "output_type": "u256",
+    "description": "Returns the explicit asset_id at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_input_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential asset_id at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_output_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32",
+    "output_type": "u256",
+    "description": "Returns the explicit asset_id at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_output_asset_id",
+    "section": "AssetId getters",
+    "input_type": "u32",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential asset_id at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_current_asset_id",
+    "section": "AssetId getters",
+    "input_type": "()",
+    "output_type": "u256",
+    "description": "Returns the explicit input asset_id at the current_index.\n\n## Panics\nPanics if asset_id is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_current_asset_id",
+    "section": "AssetId getters",
+    "input_type": "()",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential input asset_id at the current_index.\n\n## Panics\nPanics if asset_id is explicit."
+  },
+  {
     "simplicityhl_name": "not",
     "section": "Binary logic",
     "input_type": "bool",
@@ -329,7 +665,7 @@
     "description": "Add two `u8` values. Return `Some` of the sum, or `None` if the result overflows `u8`."
   },
   {
-    "simplicityhl_name": "safe_add_8",
+    "simplicityhl_name": "add_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "u8",
@@ -340,14 +676,14 @@
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "Option<u8>",
-    "description": "Subtract the second `u8` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u8`."
+    "description": "Subtract the second `u8` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u8`."
   },
   {
-    "simplicityhl_name": "safe_sub_8",
+    "simplicityhl_name": "sub_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "u8",
-    "description": "Subtract the second `u8` value from the first.\n\n## Panics\nPanics if the result would underflow `u8`."
+    "description": "Subtract the second `u8` value from the first.\n\n## Panics\nPanics if the result would overflow `u8`."
   },
   {
     "simplicityhl_name": "checked_mul_8",
@@ -357,7 +693,7 @@
     "description": "Multiply two `u8` values. Return `Some` of the product, or `None` if the result overflows `u8`."
   },
   {
-    "simplicityhl_name": "safe_mul_8",
+    "simplicityhl_name": "mul_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "u8",
@@ -371,7 +707,7 @@
     "description": "Divide the first `u8` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_8",
+    "simplicityhl_name": "div_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",
     "output_type": "u8",
@@ -390,6 +726,13 @@
     "input_type": "u8, u8",
     "output_type": "bool",
     "description": "Check if the first `u8` value is greater than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "mul_div_8",
+    "section": "`u8` arithmetic",
+    "input_type": "u8, u8, u8",
+    "output_type": "u8",
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u8` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u8_to_u16",
@@ -448,7 +791,7 @@
     "description": "Add two `u16` values. Return `Some` of the sum, or `None` if the result overflows `u16`."
   },
   {
-    "simplicityhl_name": "safe_add_16",
+    "simplicityhl_name": "add_16",
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "u16",
@@ -459,14 +802,14 @@
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "Option<u16>",
-    "description": "Subtract the second `u16` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u16`."
+    "description": "Subtract the second `u16` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u16`."
   },
   {
-    "simplicityhl_name": "safe_sub_16",
+    "simplicityhl_name": "sub_16",
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "u16",
-    "description": "Subtract the second `u16` value from the first.\n\n## Panics\nPanics if the result would underflow `u16`."
+    "description": "Subtract the second `u16` value from the first.\n\n## Panics\nPanics if the result would overflow `u16`."
   },
   {
     "simplicityhl_name": "checked_mul_16",
@@ -476,7 +819,7 @@
     "description": "Multiply two `u16` values. Return `Some` of the product, or `None` if the result overflows `u16`."
   },
   {
-    "simplicityhl_name": "safe_mul_16",
+    "simplicityhl_name": "mul_16",
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "u16",
@@ -490,7 +833,7 @@
     "description": "Divide the first `u16` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_16",
+    "simplicityhl_name": "div_16",
     "section": "`u16` arithmetic",
     "input_type": "u16, u16",
     "output_type": "u16",
@@ -509,6 +852,13 @@
     "input_type": "u16, u16",
     "output_type": "bool",
     "description": "Check if the first `u16` value is greater than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "mul_div_16",
+    "section": "`u16` arithmetic",
+    "input_type": "u16, u16, u16",
+    "output_type": "u16",
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u16` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u16_to_u32",
@@ -567,7 +917,7 @@
     "description": "Add two `u32` values. Return `Some` of the sum, or `None` if the result overflows `u32`."
   },
   {
-    "simplicityhl_name": "safe_add_32",
+    "simplicityhl_name": "add_32",
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "u32",
@@ -578,14 +928,14 @@
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "Option<u32>",
-    "description": "Subtract the second `u32` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u32`."
+    "description": "Subtract the second `u32` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u32`."
   },
   {
-    "simplicityhl_name": "safe_sub_32",
+    "simplicityhl_name": "sub_32",
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "u32",
-    "description": "Subtract the second `u32` value from the first.\n\n## Panics\nPanics if the result would underflow `u32`."
+    "description": "Subtract the second `u32` value from the first.\n\n## Panics\nPanics if the result would overflow `u32`."
   },
   {
     "simplicityhl_name": "checked_mul_32",
@@ -595,7 +945,7 @@
     "description": "Multiply two `u32` values. Return `Some` of the product, or `None` if the result overflows `u32`."
   },
   {
-    "simplicityhl_name": "safe_mul_32",
+    "simplicityhl_name": "mul_32",
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "u32",
@@ -609,7 +959,7 @@
     "description": "Divide the first `u32` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_32",
+    "simplicityhl_name": "div_32",
     "section": "`u32` arithmetic",
     "input_type": "u32, u32",
     "output_type": "u32",
@@ -628,6 +978,13 @@
     "input_type": "u32, u32",
     "output_type": "bool",
     "description": "Check if the first `u32` value is greater than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "mul_div_32",
+    "section": "`u32` arithmetic",
+    "input_type": "u32, u32, u32",
+    "output_type": "u32",
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u32` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u32_to_u64",
@@ -693,7 +1050,7 @@
     "description": "Add two `u64` values. Return `Some` of the sum, or `None` if the result overflows `u64`."
   },
   {
-    "simplicityhl_name": "safe_add_64",
+    "simplicityhl_name": "add_64",
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "u64",
@@ -704,14 +1061,14 @@
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "Option<u64>",
-    "description": "Subtract the second `u64` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u64`."
+    "description": "Subtract the second `u64` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u64`."
   },
   {
-    "simplicityhl_name": "safe_sub_64",
+    "simplicityhl_name": "sub_64",
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "u64",
-    "description": "Subtract the second `u64` value from the first.\n\n## Panics\nPanics if the result would underflow `u64`."
+    "description": "Subtract the second `u64` value from the first.\n\n## Panics\nPanics if the result would overflow `u64`."
   },
   {
     "simplicityhl_name": "checked_mul_64",
@@ -721,7 +1078,7 @@
     "description": "Multiply two `u64` values. Return `Some` of the product, or `None` if the result overflows `u64`."
   },
   {
-    "simplicityhl_name": "safe_mul_64",
+    "simplicityhl_name": "mul_64",
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "u64",
@@ -735,7 +1092,7 @@
     "description": "Divide the first `u64` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
   },
   {
-    "simplicityhl_name": "safe_div_64",
+    "simplicityhl_name": "div_64",
     "section": "`u64` arithmetic",
     "input_type": "u64, u64",
     "output_type": "u64",
@@ -754,6 +1111,13 @@
     "input_type": "u64, u64",
     "output_type": "bool",
     "description": "Check if the first `u64` value is greater than or equal to the second."
+  },
+  {
+    "simplicityhl_name": "mul_div_64",
+    "section": "`u64` arithmetic",
+    "input_type": "u64, u64, u64",
+    "output_type": "u64",
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u64` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u64_to_u128",
@@ -817,6 +1181,146 @@
     "input_type": "u64",
     "output_type": "u32",
     "description": "Narrow a `u64` value to `u32`.\n\n## Panics\nPanics if the value does not fit in `u32`."
+  },
+  {
+    "simplicityhl_name": "add_128_carry",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "(bool, u128)",
+    "description": "Add two `u128` values. Return the carry bit and the sum."
+  },
+  {
+    "simplicityhl_name": "add_128_64_carry",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u64",
+    "output_type": "(bool, u128)",
+    "description": "Add a `u64` value to a `u128` value. Return the carry bit and the sum."
+  },
+  {
+    "simplicityhl_name": "checked_add_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "Option<u128>",
+    "description": "Add two `u128` values. Return `Some` of the sum, or `None` if the result overflows `u128`."
+  },
+  {
+    "simplicityhl_name": "add_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Add two `u128` values.\n\n## Panics\nPanics if the result overflows `u128`."
+  },
+  {
+    "simplicityhl_name": "sub_128_borrow",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "(bool, u128)",
+    "description": "Subtract the second `u128` value from the first. Return the borrow bit and the difference."
+  },
+  {
+    "simplicityhl_name": "checked_sub_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "Option<u128>",
+    "description": "Subtract the second `u128` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u128`."
+  },
+  {
+    "simplicityhl_name": "sub_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Subtract the second `u128` value from the first.\n\n## Panics\nPanics if the result would overflow `u128`."
+  },
+  {
+    "simplicityhl_name": "mul_128_wide",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u256",
+    "description": "Multiply two `u128` values. The full, non-truncated product is returned as a `u256`, so this operation can never overflow."
+  },
+  {
+    "simplicityhl_name": "checked_mul_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "Option<u128>",
+    "description": "Multiply two `u128` values. Return `Some` of the product, or `None` if the result overflows `u128`."
+  },
+  {
+    "simplicityhl_name": "mul_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Multiply two `u128` values.\n\n## Panics\nPanics if the result overflows `u128`."
+  },
+  {
+    "simplicityhl_name": "div_mod_128_64",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u64",
+    "output_type": "(u128, u64)",
+    "description": "Divide a `u128` value by a `u64` value, returning the `u128` quotient and the `u64` remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "div_mod_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "(u128, u128)",
+    "description": "Divide the first `u128` value by the second, returning the quotient and the remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "div_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "u128",
+    "description": "Divide the first `u128` value by the second, returning the quotient.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "checked_div_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128",
+    "output_type": "Option<u128>",
+    "description": "Divide the first `u128` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "full_add_128",
+    "section": "`u128` arithmetic",
+    "input_type": "bool, u128, u128",
+    "output_type": "(bool, u128)",
+    "description": "Add two `u128` values, taking an incoming carry bit. Return the outgoing carry bit and the sum."
+  },
+  {
+    "simplicityhl_name": "full_sub_128",
+    "section": "`u128` arithmetic",
+    "input_type": "bool, u128, u128",
+    "output_type": "(bool, u128)",
+    "description": "Subtract the second `u128` value from the first, taking an incoming borrow bit. Return the outgoing borrow bit and the difference."
+  },
+  {
+    "simplicityhl_name": "mul_128_64_wide",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u64",
+    "output_type": "u256",
+    "description": "Multiply a `u128` value by a `u64` value. The full, non-truncated product is returned as a `u256`, so this operation can never overflow."
+  },
+  {
+    "simplicityhl_name": "calculate_normalizer_base_64",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, bool",
+    "output_type": "u64",
+    "description": "Helper for `jet::div_mod_128_64`-based division algorithms. Returns the factor by which `b` should be multiplied so that its most-significant non-zero word is at least `2^63`, as required by those algorithms (which operate in base `2^64`). Set `is_b_u128` to `true` if `b`'s upper 64 bits may be non-zero, or `false` if `b` is known to fit in `u64` (in which case its upper 64 bits must already be zero).\n\n## Panics\nThe assertion fails if `is_b_u128` is `false` but `b`'s upper 64 bits are non-zero, or if `b` is zero."
+  },
+  {
+    "simplicityhl_name": "estimate_quotient_digit_base_64",
+    "section": "`u128` arithmetic",
+    "input_type": "u64, u64, u64, u64, u64",
+    "output_type": "u64",
+    "description": "Helper for Algorithm D division. Estimates and corrects the next base-`2^64` quotient digit from the three most-significant dividend words (`u2`, `u1`, `u0`) and the two most-significant divisor words (`v1`, `v0`)."
+  },
+  {
+    "simplicityhl_name": "mul_div_128",
+    "section": "`u128` arithmetic",
+    "input_type": "u128, u128, u128",
+    "output_type": "u128",
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u128` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "and_128",
@@ -959,144 +1463,165 @@
     "description": "Narrow a `u128` value to `u64`.\n\n## Panics\nPanics if the value does not fit in `u64`."
   },
   {
-    "simplicityhl_name": "add_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "(bool, u128)",
-    "description": "Add two `u128` values. Return the carry bit and the sum."
+    "simplicityhl_name": "add_256_carry",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "(bool, u256)",
+    "description": "Add two `u256` values. Return the carry bit and the sum."
   },
   {
-    "simplicityhl_name": "add_128_64",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u64",
-    "output_type": "(bool, u128)",
-    "description": "Add a `u64` value to a `u128` value. Return the carry bit and the sum."
+    "simplicityhl_name": "add_256_128_carry",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u128",
+    "output_type": "(bool, u256)",
+    "description": "Add a `u128` value to a `u256` value. Return the carry bit and the sum."
   },
   {
-    "simplicityhl_name": "checked_add_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "Option<u128>",
-    "description": "Add two `u128` values. Return `Some` of the sum, or `None` if the result overflows `u128`."
+    "simplicityhl_name": "full_add_256",
+    "section": "`u256` arithmetic",
+    "input_type": "bool, u256, u256",
+    "output_type": "(bool, u256)",
+    "description": "Add two `u256` values, taking an incoming carry bit. Return the outgoing carry bit and the sum."
   },
   {
-    "simplicityhl_name": "safe_add_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "u128",
-    "description": "Add two `u128` values.\n\n## Panics\nPanics if the result overflows `u128`."
+    "simplicityhl_name": "checked_add_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "Option<u256>",
+    "description": "Add two `u256` values. Return `Some` of the sum, or `None` if the result overflows `u256`."
   },
   {
-    "simplicityhl_name": "sub_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "(bool, u128)",
-    "description": "Subtract the second `u128` value from the first. Return the borrow bit and the difference."
-  },
-  {
-    "simplicityhl_name": "checked_sub_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "Option<u128>",
-    "description": "Subtract the second `u128` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u128`."
-  },
-  {
-    "simplicityhl_name": "safe_sub_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "u128",
-    "description": "Subtract the second `u128` value from the first.\n\n## Panics\nPanics if the result would underflow `u128`."
-  },
-  {
-    "simplicityhl_name": "mul_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
+    "simplicityhl_name": "add_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
     "output_type": "u256",
-    "description": "Multiply two `u128` values. The full, non-truncated product is returned as a `u256`, so this operation can never overflow."
+    "description": "Add two `u256` values.\n\n## Panics\nPanics if the result overflows `u256`."
   },
   {
-    "simplicityhl_name": "checked_mul_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "Option<u128>",
-    "description": "Multiply two `u128` values. Return `Some` of the product, or `None` if the result overflows `u128`."
+    "simplicityhl_name": "sub_256_borrow",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "(bool, u256)",
+    "description": "Subtract the second `u256` value from the first. Return the borrow bit and the difference."
   },
   {
-    "simplicityhl_name": "safe_mul_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "u128",
-    "description": "Multiply two `u128` values.\n\n## Panics\nPanics if the result overflows `u128`."
+    "simplicityhl_name": "checked_sub_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "Option<u256>",
+    "description": "Subtract the second `u256` value from the first. Return `Some` of the difference, or `None` if the result would overflow `u256`."
   },
   {
-    "simplicityhl_name": "div_mod_128_64",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u64",
-    "output_type": "(u128, u64)",
-    "description": "Divide a `u128` value by a `u64` value, returning the `u128` quotient and the `u64` remainder.\n\n## Panics\nPanics if the divisor is zero."
-  },
-  {
-    "simplicityhl_name": "div_mod_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "(u128, u128)",
-    "description": "Divide the first `u128` value by the second, returning the quotient and the remainder.\n\n## Panics\nPanics if the divisor is zero."
-  },
-  {
-    "simplicityhl_name": "div_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "u128",
-    "description": "Divide the first `u128` value by the second, returning the quotient.\n\n## Panics\nPanics if the divisor is zero."
-  },
-  {
-    "simplicityhl_name": "checked_div_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "Option<u128>",
-    "description": "Divide the first `u128` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
-  },
-  {
-    "simplicityhl_name": "safe_div_128",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u128",
-    "output_type": "u128",
-    "description": "Divide the first `u128` value by the second.\n\n## Panics\nPanics if the divisor is zero."
-  },
-  {
-    "simplicityhl_name": "full_add_128",
-    "section": "`u128` arithmetic",
-    "input_type": "bool, u128, u128",
-    "output_type": "(bool, u128)",
-    "description": "Add two `u128` values, taking an incoming carry bit. Return the outgoing carry bit and the sum."
-  },
-  {
-    "simplicityhl_name": "full_sub_128",
-    "section": "`u128` arithmetic",
-    "input_type": "bool, u128, u128",
-    "output_type": "(bool, u128)",
-    "description": "Subtract the second `u128` value from the first, taking an incoming borrow bit. Return the outgoing borrow bit and the difference."
-  },
-  {
-    "simplicityhl_name": "mul_128_64",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, u64",
+    "simplicityhl_name": "sub_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
     "output_type": "u256",
-    "description": "Multiply a `u128` value by a `u64` value. The full, non-truncated product is returned as a `u256`, so this operation can never overflow."
+    "description": "Subtract the second `u256` value from the first.\n\n## Panics\nPanics if the result would overflow `u256`."
   },
   {
-    "simplicityhl_name": "calculate_normalizer_base_64",
-    "section": "`u128` arithmetic",
-    "input_type": "u128, bool",
-    "output_type": "u64",
-    "description": "Helper for `jet::div_mod_128_64`-based division algorithms. Returns the factor by which `b` should be multiplied so that its most-significant non-zero word is at least `2^63`, as required by those algorithms (which operate in base `2^64`). Set `is_b_u128` to `true` if `b`'s upper 64 bits may be non-zero, or `false` if `b` is known to fit in `u64` (in which case its upper 64 bits must already be zero).\n\n## Panics\nThe assertion fails if `is_b_u128` is `false` but `b`'s upper 64 bits are non-zero, or if `b` is zero."
+    "simplicityhl_name": "mul_256_wide",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "(u256, u256)",
+    "description": "Multiply two `u256` values. The full, non-truncated product is returned as a pair of `u256` values, most-significant first, so this operation can never overflow."
   },
   {
-    "simplicityhl_name": "estimate_quotient_digit_base_64",
-    "section": "`u128` arithmetic",
-    "input_type": "u64, u64, u64, u64, u64",
-    "output_type": "u64",
-    "description": "Helper for Algorithm D division. Estimates and corrects the next base-`2^64` quotient digit from the three most-significant dividend words (`u2`, `u1`, `u0`) and the two most-significant divisor words (`v1`, `v0`)."
+    "simplicityhl_name": "mul_256_64_wide",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u64",
+    "output_type": "(u64, u256)",
+    "description": "Multiply a `u256` value by a `u64` value. The full, non-truncated product is returned as a `u64`/`u256` pair, most-significant first, so this operation can never overflow."
+  },
+  {
+    "simplicityhl_name": "mul_256_128_wide",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u128",
+    "output_type": "(u128, u256)",
+    "description": "Multiply a `u256` value by a `u128` value. The full, non-truncated product is returned as a `u128`/`u256` pair, most-significant first, so this operation can never overflow."
+  },
+  {
+    "simplicityhl_name": "mul_512_128_wide",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256, u128",
+    "output_type": "(u128, u256, u256)",
+    "description": "Multiply a `u512` value by a `u128` value. The full, non-truncated product is returned as a (`u128`, `u256`, `u256`) tuple, most-significant first, so this operation can never overflow."
+  },
+  {
+    "simplicityhl_name": "checked_mul_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "Option<u256>",
+    "description": "Multiply two `u256` values. Return `Some` of the product, or `None` if the result overflows `u256`."
+  },
+  {
+    "simplicityhl_name": "mul_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "u256",
+    "description": "Multiply two `u256` values.\n\n## Panics\nPanics if the result overflows `u256`."
+  },
+  {
+    "simplicityhl_name": "mul_256_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u128",
+    "output_type": "u256",
+    "description": "Multiply a `u256` value by a `u128` value.\n\n## Panics\nPanics if the result overflows `u256`."
+  },
+  {
+    "simplicityhl_name": "calculate_normalizer_base_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256",
+    "output_type": "u128",
+    "description": "Helper for algorithm D division algorithms. Returns the factor by which `b` should be multiplied so that its upper 128 bits are at least `2^127`, as required by those algorithms (which operate in base `2^128`).\n\n## Panics\nThe assertion fails if `b`'s upper 128 bits are zero"
+  },
+  {
+    "simplicityhl_name": "div_mod_256_64",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u64",
+    "output_type": "(u256, u64)",
+    "description": "Divide a `u256` value by a `u64` value, returning the `u256` quotient and the `u64` remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "algorithm_d_256_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u128",
+    "output_type": "(u256, u128)",
+    "description": "Divide a `u256` value by a `u128` value, returning the `u256` quotient and the `u128` remainder.\n\n## Panics\nPanics if the divisor is zero or if divisor's upper 64 bits are zero."
+  },
+  {
+    "simplicityhl_name": "div_mod_256_128",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u128",
+    "output_type": "(u256, u128)",
+    "description": "Divide a `u256` value by a `u128` value, returning the `u256` quotient and the `u128` remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "div_mod_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "(u256, u256)",
+    "description": "Divide the first `u256` value by the second, returning the quotient and the remainder.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "div_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "u256",
+    "description": "Divide the first `u256` value by the second, returning the quotient.\n\n## Panics\nPanics if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "checked_div_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256",
+    "output_type": "Option<u256>",
+    "description": "Divide the first `u256` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
+  },
+  {
+    "simplicityhl_name": "mul_div_256",
+    "section": "`u256` arithmetic",
+    "input_type": "u256, u256, u256",
+    "output_type": "u256",
+    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u256` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "and_256",
@@ -1237,131 +1762,5 @@
     "input_type": "u256",
     "output_type": "u128",
     "description": "Narrow a `u256` value to `u128`.\n\n## Panics\nPanics if the value does not fit in `u128`."
-  },
-  {
-    "simplicityhl_name": "add_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "(bool, u256)",
-    "description": "Add two `u256` values. Return the carry bit and the sum."
-  },
-  {
-    "simplicityhl_name": "add_256_128",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u128",
-    "output_type": "(bool, u256)",
-    "description": "Add a `u128` value to a `u256` value. Return the carry bit and the sum."
-  },
-  {
-    "simplicityhl_name": "checked_add_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "Option<u256>",
-    "description": "Add two `u256` values. Return `Some` of the sum, or `None` if the result overflows `u256`."
-  },
-  {
-    "simplicityhl_name": "safe_add_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "u256",
-    "description": "Add two `u256` values.\n\n## Panics\nPanics if the result overflows `u256`."
-  },
-  {
-    "simplicityhl_name": "sub_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "(bool, u256)",
-    "description": "Subtract the second `u256` value from the first. Return the borrow bit and the difference."
-  },
-  {
-    "simplicityhl_name": "checked_sub_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "Option<u256>",
-    "description": "Subtract the second `u256` value from the first. Return `Some` of the difference, or `None` if the result would underflow `u256`."
-  },
-  {
-    "simplicityhl_name": "safe_sub_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "u256",
-    "description": "Subtract the second `u256` value from the first.\n\n## Panics\nPanics if the result would underflow `u256`."
-  },
-  {
-    "simplicityhl_name": "mul_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "(u256, u256)",
-    "description": "Multiply two `u256` values. The full, non-truncated product is returned as a pair of `u256` values, most-significant first, so this operation can never overflow."
-  },
-  {
-    "simplicityhl_name": "mul_256_64",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u64",
-    "output_type": "(u64, u256)",
-    "description": "Multiply a `u256` value by a `u64` value. The full, non-truncated product is returned as a `u64`/`u256` pair, most-significant first, so this operation can never overflow."
-  },
-  {
-    "simplicityhl_name": "mul_256_128",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u128",
-    "output_type": "(u128, u256)",
-    "description": "Multiply a `u256` value by a `u128` value. The full, non-truncated product is returned as a `u128`/`u256` pair, most-significant first, so this operation can never overflow."
-  },
-  {
-    "simplicityhl_name": "checked_mul_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "Option<u256>",
-    "description": "Multiply two `u256` values. Return `Some` of the product, or `None` if the result overflows `u256`."
-  },
-  {
-    "simplicityhl_name": "safe_mul_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "u256",
-    "description": "Multiply two `u256` values.\n\n## Panics\nPanics if the result overflows `u256`."
-  },
-  {
-    "simplicityhl_name": "div_mod_256_64",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u64",
-    "output_type": "(u256, u64)",
-    "description": "Divide a `u256` value by a `u64` value, returning the `u256` quotient and the `u64` remainder.\n\n## Panics\nPanics if the divisor is zero."
-  },
-  {
-    "simplicityhl_name": "div_mod_256_128",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u128",
-    "output_type": "(u256, u128)",
-    "description": "Divide a `u256` value by a `u128` value, returning the `u256` quotient and the `u128` remainder.\n\n## Panics\nPanics if the divisor is zero."
-  },
-  {
-    "simplicityhl_name": "div_mod_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "(u256, u256)",
-    "description": "Divide the first `u256` value by the second, returning the quotient and the remainder.\n\n## Panics\nPanics if the divisor is zero."
-  },
-  {
-    "simplicityhl_name": "div_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "u256",
-    "description": "Divide the first `u256` value by the second, returning the quotient.\n\n## Panics\nPanics if the divisor is zero."
-  },
-  {
-    "simplicityhl_name": "checked_div_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "Option<u256>",
-    "description": "Divide the first `u256` value by the second. Return `Some` of the quotient, or `None` if the divisor is zero."
-  },
-  {
-    "simplicityhl_name": "safe_div_256",
-    "section": "`u256` arithmetic",
-    "input_type": "u256, u256",
-    "output_type": "u256",
-    "description": "Divide the first `u256` value by the second.\n\n## Panics\nPanics if the divisor is zero."
   }
 ]

@@ -17,11 +17,12 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: full
+  SIMPLEX_VERSION: 0.0.11
 
 jobs:
   simplex-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     permissions:
       contents: read
     strategy:
@@ -47,7 +48,7 @@ jobs:
       - name: Install simplex-cli
         uses: BlockstreamResearch/simplicityhl-toolchain@v0.0.2
         with:
-          components: simplex
+          components: simplex@${{ env.SIMPLEX_VERSION }}
 
       - name: Generate contract artifacts
         shell: bash
@@ -60,4 +61,4 @@ jobs:
 
       - name: Test
         run: |
-          simplex test --test-threads 4
+          simplex test --test-threads 4 -v

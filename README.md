@@ -24,8 +24,10 @@ simf/lib
 ├── u64
 │   ├── convert.simf
 │   │   └── Conversions between `u8`, `u16`, `u32`, `u64` and other uint types.
-│   └── math.simf
-│       └── Overflow-checked arithmetic and `gt`/`ge` functions.
+│   ├── math.simf
+│   │   └── Overflow-checked arithmetic and `gt`/`ge` functions.
+│   └── mul_div.simf
+│       └── Full-precision calculation of `floor(a * b / denominator)`.
 ├── u128
 ├── u256
 │   ├── bit.simf
@@ -34,8 +36,25 @@ simf/lib
 │   │   └── Basic comparison operations available as jets for `u8`-`u64` but missing for `u128` and `u256`.
 │   ├── convert.simf
 │   │   └── Conversions between `u128`, `u256` and other uint types.
-│   └── math.simf
-│       └── Carry/borrow arithmetic, multiplication, division, and overflow-checked wrappers.
+│   ├── math.simf
+│   │   └── Carry/borrow arithmetic, multiplication, division, and overflow-checked wrappers.
+│   └── mul_div.simf
+│       └── Full-precision calculation of `floor(a * b / denominator)`.
+├── utxo
+│   ├── asserts
+│   │   ├── amount.simf
+│   │   │   └── Functions for asserting `Amount` in inputs and outputs.
+│   │   ├── asset_id.simf
+│   │   │   └── Functions for asserting `AssetId` in inputs and outputs.
+│   │   └── asset_id_with_amount.simf
+│   │       └── Functions for asserting `Amount` and `AssetId` in inputs and outputs.
+│   └── getters
+│       ├── amount.simf
+│       │   └── Functions for retrieving `Amount` in inputs and outputs.
+│       ├── asset_id.simf
+│       │   └── Functions for retrieving `AssetId` in inputs and outputs.
+│       └── asset_id_with_amount.simf
+│           └── Functions for retrieving `Amount` and `AssetId` in inputs and outputs.
 ├── asserts.simf
 │   └── Assertion helpers: `assert_eq_*` for uints and `bool`, plus `assert_none_*` for `Option`.
 ├── binary.simf
