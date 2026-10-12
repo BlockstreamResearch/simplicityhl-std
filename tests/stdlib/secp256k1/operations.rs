@@ -399,6 +399,29 @@ fn gej_point_eq_rejects_negation(context: simplex::TestContext) -> anyhow::Resul
         .expecting(&context, Expect::AssertFailed)
 }
 
+#[simplex::test]
+fn gej_point_eq_off_curve_is_false(context: simplex::TestContext) -> anyhow::Result<()> {
+    // x = 0 is off-curve.
+    case(GejPointEq)
+        .gej(ge_to_gej(random_ge_bytes()))
+        .point((0, [0u8; 32]))
+        .expecting(&context, Expect::AssertFailed)
+}
+
+#[simplex::test]
+fn gej_point_eq_rejects_off_curve_gej(context: simplex::TestContext) -> anyhow::Result<()> {
+    // (x, 1, 1) shares x with P but is off-curve. The equivalence jet only
+    // rejects y = -P.y, so without an on-curve check this would pass.
+    let ge = random_ge_bytes();
+    let mut one = [0u8; 32];
+    one[31] = 1;
+
+    case(GejPointEq)
+        .gej(((ge.0, one), one))
+        .point(compress(ge))
+        .expecting(&context, Expect::AssertFailed)
+}
+
 // 9. safe_gej_normalize
 #[simplex::test]
 fn safe_gej_normalize_roundtrip(context: simplex::TestContext) -> anyhow::Result<()> {
