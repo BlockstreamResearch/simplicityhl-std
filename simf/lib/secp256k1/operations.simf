@@ -67,12 +67,17 @@ pub fn point_point_eq(a: Point, b: Point) -> bool {
 }
 
 /// Check if two points represent the same point.
-/// Returns `false` if `p` does not decompress to a curve point.
+/// Returns `false` if `a` is off-curve or `p` does not decompress to a curve point.
 pub fn gej_point_eq(a: Gej, p: Point) -> bool {
-    match jet::decompress(p) {
-        Some(ge: Ge) => jet::gej_ge_equiv(a, ge),
-        None => false,
-    }
+    let (parity, x): (u1, Fe) = p;
+
+    // Cheaper than `decompress`: an on-curve `a` with matching `x` and `y` parity is exactly `p`.
+    let parity_eq: bool = match jet::gej_y_is_odd(a) {
+        true => jet::eq_1(parity, 1),
+        false => jet::eq_1(parity, 0),
+    };
+
+    and(and(jet::gej_is_on_curve(a), jet::gej_x_equiv(x, a)), parity_eq)
 }
 
 /// Field equality modulo `p`.
