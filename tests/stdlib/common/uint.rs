@@ -8,8 +8,8 @@ use std::ops::{Add, Div, Mul, Sub};
 use rand::Rng;
 use rand::distributions::uniform::SampleUniform;
 
-use simplex::program::{Program, WitnessTrait};
-
+use simplex::program::{Program};
+use simplex::simplicityhl::WitnessValues;
 use crate::common::u256_wrapper::U256Wrapper;
 
 use super::core::{Expect, run};
@@ -47,7 +47,7 @@ pub trait TestUint:
     + Div<Output = Self>
 {
     type Program: AsRef<Program>;
-    type Witness: WitnessTrait + 'static;
+    type Witness: Into<WitnessValues> + 'static;
 
     const ZERO: Self;
     const ONE: Self;

@@ -124,7 +124,7 @@ pub fn create_utxos_with_new_asset(
         }
     }
 
-    Ok((new_asset.unwrap().into_inner().0, txids))
+    Ok((new_asset.unwrap().to_byte_array(), txids))
 }
 
 fn get_asset_id_amount_from_conf_utxo(conf_utxo: UTXO) -> anyhow::Result<ConfidentialAsset> {
