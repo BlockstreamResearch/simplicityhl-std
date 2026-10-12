@@ -12,11 +12,17 @@ pub fn ge_to_point(p: Ge) -> Point {
 }
 
 /// Decompress a `Point` into a Jacobian point with `z = 1`.
+/// 
+/// ## Panics
+/// - if `x` is not the x-coordinate of a curve point
 pub fn point_to_gej(p: Point) -> Gej {
     (unwrap(jet::decompress(p)), 1)
 }
 
 /// Convert the point into affine coordinates.
+/// 
+/// ## Panics
+/// - if `p` is the point at infinity
 pub fn safe_gej_normalize(p: Gej) -> Ge {
     unwrap(jet::gej_normalize(p))
 }
@@ -60,9 +66,13 @@ pub fn point_point_eq(a: Point, b: Point) -> bool {
     and(fe_eq(ax, bx), jet::eq_1(ap, bp))
 }
 
-/// Check if two points represent the same point
+/// Check if two points represent the same point.
+/// Returns `false` if `p` does not decompress to a curve point.
 pub fn gej_point_eq(a: Gej, p: Point) -> bool {
-    jet::gej_ge_equiv(a, unwrap(jet::decompress(p)))
+    match jet::decompress(p) {
+        Some(ge: Ge) => jet::gej_ge_equiv(a, ge),
+        None => false,
+    }
 }
 
 /// Field equality modulo `p`.
