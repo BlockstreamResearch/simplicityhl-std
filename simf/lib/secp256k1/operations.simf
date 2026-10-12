@@ -109,11 +109,17 @@ pub fn assert_gej_point_eq(a: Gej, p: Point) {
 }
 
 /// Assert two points represent the same curve point.
+/// Both points must be on the curve: `gej_equiv` only rejects `y = -b.y` for a matching `x`.
 pub fn assert_gej_eq(a: Gej, b: Gej) {
+    assert!(jet::gej_is_on_curve(a));
+    assert!(jet::gej_is_on_curve(b));
     assert!(jet::gej_equiv(a, b));
 }
 
 /// Assert point equal an affine point (no normalize required).
+/// Both points must be on the curve: `gej_ge_equiv` only rejects `y = -b.y` for a matching `x`.
 pub fn assert_gej_ge_eq(a: Gej, b: Ge) {
+    assert!(jet::gej_is_on_curve(a));
+    assert!(jet::ge_is_on_curve(b));
     assert!(jet::gej_ge_equiv(a, b));
 }
