@@ -1,0 +1,77 @@
+/// Functions for retrieving AssetId
+
+/// Returns the explicit asset_id at the specified input or output.
+/// Panics if the specified input or output does not exist or if its asset_id is confidential.
+/// 
+/// Warning: using this incurs the overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+pub fn get_explicit_asset_id(index: u32, is_input_index: bool) -> u256 {
+    let asset: Asset1 = match is_input_index {
+        true => unwrap(jet::input_asset(index)),
+        false => unwrap(jet::output_asset(index)),
+    };
+
+    unwrap_right::<(u1, u256)>(asset)
+}
+
+/// Returns the confidential asset_id at the specified input or output.
+/// Panics if the specified input or output does not exist or if its asset_id is explicit
+/// 
+/// Warning: using this incurs the overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+pub fn get_confidential_asset_id(index: u32, is_input_index: bool) -> Confidential1 {
+    let asset: Asset1 = match is_input_index {
+        true => unwrap(jet::input_asset(index)),
+        false => unwrap(jet::output_asset(index)),
+    };
+
+    unwrap_left::<u256>(asset)
+}
+
+/// Returns the explicit asset_id at the specified input.
+/// Panics if the specified input does not exist or if its asset_id is confidential
+pub fn get_explicit_input_asset_id(index: u32) -> u256 {
+    let asset: Asset1 = unwrap(jet::input_asset(index));
+
+    unwrap_right::<(u1, u256)>(asset)
+}
+
+/// Returns the confidential asset_id at the specified input.
+/// Panics if the specified input does not exist or if its asset_id is explicit
+pub fn get_confidential_input_asset_id(index: u32) -> Confidential1 {
+    let asset: Asset1 = unwrap(jet::input_asset(index));
+
+    unwrap_left::<u256>(asset)
+}
+
+/// Returns the explicit asset_id at the specified output.
+/// Panics if the specified output does not exist or if its asset_id is confidential
+pub fn get_explicit_output_asset_id(index: u32) -> u256 {
+    let asset: Asset1 = unwrap(jet::output_asset(index));
+
+    unwrap_right::<(u1, u256)>(asset)
+}
+
+/// Returns the confidential asset_id at the specified output.
+/// Panics if the specified output does not exist or if its asset_id is explicit
+pub fn get_confidential_output_asset_id(index: u32) -> Confidential1 {
+    let asset: Asset1 = unwrap(jet::output_asset(index));
+
+    unwrap_left::<u256>(asset)
+}
+
+/// Returns the explicit input asset_id at the current_index.
+/// Panics if asset_id is confidential
+pub fn get_explicit_current_asset_id() -> u256 {
+    let asset: Asset1 = jet::current_asset();
+
+    unwrap_right::<(u1, u256)>(asset)
+}
+
+/// Returns the confidential input asset_id at the current_index.
+/// Panics if asset_id is explicit
+pub fn get_confidential_current_asset_id() -> Confidential1 {
+    let asset: Asset1 = jet::current_asset();
+
+    unwrap_left::<u256>(asset)
+}

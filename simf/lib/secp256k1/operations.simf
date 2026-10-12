@@ -1,5 +1,5 @@
 use crate::lib::binary::and;
-use crate::lib::asserts::{assert_eq_1, assert_eq_256};
+use crate::lib::asserts::assert_eq_1;
 
 /// Compress an affine point to `(parity, x)`, where `parity = 1` iff `y` is odd.
 pub fn ge_to_point(p: Ge) -> Point {
@@ -12,11 +12,17 @@ pub fn ge_to_point(p: Ge) -> Point {
 }
 
 /// Decompress a `Point` into a Jacobian point with `z = 1`.
+/// 
+/// ## Panics
+/// - if `x` is not the x-coordinate of a curve point
 pub fn point_to_gej(p: Point) -> Gej {
     (unwrap(jet::decompress(p)), 1)
 }
 
 /// Convert the point into affine coordinates.
+/// 
+/// ## Panics
+/// - if `p` is the point at infinity
 pub fn safe_gej_normalize(p: Gej) -> Ge {
     unwrap(jet::gej_normalize(p))
 }
@@ -53,16 +59,25 @@ pub fn ge_eq(a: Ge, b: Ge) -> bool {
     and(fe_eq(ax, bx), fe_eq(ay, by))
 }
 
-/// Check if two points are equal.
+/// Compressed point equality, with `x` compared modulo `p`.
 pub fn point_point_eq(a: Point, b: Point) -> bool {
-    let (ap, ax): (u1, u256) = a;
-    let (bp, bx): (u1, u256) = b;
-    and(jet::eq_256(ax, bx), jet::eq_1(ap, bp))
+    let (ap, ax): (u1, Fe) = a;
+    let (bp, bx): (u1, Fe) = b;
+    and(fe_eq(ax, bx), jet::eq_1(ap, bp))
 }
 
-/// Check if two points represent the same point
+/// Check if two points represent the same point.
+/// Returns `false` if `a` is off-curve or `p` does not decompress to a curve point.
 pub fn gej_point_eq(a: Gej, p: Point) -> bool {
-    jet::gej_ge_equiv(a, unwrap(jet::decompress(p)))
+    let (parity, x): (u1, Fe) = p;
+
+    // Cheaper than `decompress`: an on-curve `a` with matching `x` and `y` parity is exactly `p`.
+    let parity_eq: bool = match jet::gej_y_is_odd(a) {
+        true => jet::eq_1(parity, 1),
+        false => jet::eq_1(parity, 0),
+    };
+
+    and(and(jet::gej_is_on_curve(a), jet::gej_x_equiv(x, a)), parity_eq)
 }
 
 /// Field equality modulo `p`.
@@ -79,17 +94,17 @@ pub fn assert_scalar_eq(a: Scalar, b: Scalar) {
 pub fn assert_ge_eq(a: Ge, b: Ge) {
     let (ax, ay): (Fe, Fe) = a;
     let (bx, by): (Fe, Fe) = b;
-    
+
     assert_fe_eq(ax, bx);
     assert_fe_eq(ay, by);
 }
 
-/// Check if two points are equal.
+/// Compressed point equality, with `x` compared modulo `p`.
 pub fn assert_point_eq(a: Point, b: Point) {
-    let (ap, ax): (u1, u256) = a;
-    let (bp, bx): (u1, u256) = b;
+    let (ap, ax): (u1, Fe) = a;
+    let (bp, bx): (u1, Fe) = b;
 
-    assert_eq_256(ax, bx);
+    assert_fe_eq(ax, bx);
     assert_eq_1(ap, bp);
 }
 
@@ -99,11 +114,17 @@ pub fn assert_gej_point_eq(a: Gej, p: Point) {
 }
 
 /// Assert two points represent the same curve point.
+/// Both points must be on the curve: `gej_equiv` only rejects `y = -b.y` for a matching `x`.
 pub fn assert_gej_eq(a: Gej, b: Gej) {
+    assert!(jet::gej_is_on_curve(a));
+    assert!(jet::gej_is_on_curve(b));
     assert!(jet::gej_equiv(a, b));
 }
 
 /// Assert point equal an affine point (no normalize required).
+/// Both points must be on the curve: `gej_ge_equiv` only rejects `y = -b.y` for a matching `x`.
 pub fn assert_gej_ge_eq(a: Gej, b: Ge) {
+    assert!(jet::gej_is_on_curve(a));
+    assert!(jet::ge_is_on_curve(b));
     assert!(jet::gej_ge_equiv(a, b));
 }

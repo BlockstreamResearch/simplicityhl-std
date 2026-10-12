@@ -1,0 +1,165 @@
+use crate::lib::utxo::getters::asset_id_with_amount::{
+    get_explicit_asset_id_with_amount,
+    get_confidential_asset_id_with_amount,
+    get_explicit_input_asset_id_with_amount,
+    get_confidential_input_asset_id_with_amount,
+    get_explicit_output_asset_id_with_amount,
+    get_confidential_output_asset_id_with_amount,
+    get_explicit_current_asset_id_with_amount,
+    get_confidential_current_asset_id_with_amount
+};
+use crate::lib::asserts::{assert_eq_1, assert_eq_64, assert_eq_256};
+
+/// Asserts that the explicit asset_id and amount at the specified input or output equal the expected u256 and u64 values
+/// 
+/// Warning: using this incurs the overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+pub fn assert_explicit_asset_id_with_amount(
+    index: u32,
+    is_input_index: bool,
+    expected_asset_id: u256,
+    expected_amount: u64
+) {
+    let (asset_id, amount): (u256, u64) = get_explicit_asset_id_with_amount(index, is_input_index);
+
+    assert_eq_256(asset_id, expected_asset_id);
+    assert_eq_64(amount, expected_amount);
+}
+
+/// Asserts that the confidential asset_id and amount at the specified input or output equal the expected Confidential1 values
+/// 
+/// Warning: using this incurs the overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+pub fn assert_confidential_asset_id_with_amount(
+    index: u32,
+    is_input_index: bool,
+    expected_asset_id: Confidential1,
+    expected_amount: Confidential1
+) {
+    let (
+        asset_id,
+        amount
+    ): (Confidential1, Confidential1) = get_confidential_asset_id_with_amount(
+        index,
+        is_input_index
+    );
+
+    /// asset_id
+    let (asset_id_parity_bit, asset_id): Confidential1 = asset_id;
+    let (expected_asset_id_parity_bit, expected_asset_id): Confidential1 = expected_asset_id;
+    // amount
+    let (amount_parity_bit, amount): Confidential1 = amount;
+    let (expected_amount_parity_bit, expected_amount): Confidential1 = expected_amount;
+    // asset_id
+    assert_eq_1(asset_id_parity_bit, expected_asset_id_parity_bit);
+    assert_eq_256(asset_id, expected_asset_id);
+    // amount
+    assert_eq_1(amount_parity_bit, expected_amount_parity_bit);
+    assert_eq_256(amount, expected_amount);
+}
+
+/// Asserts that the explicit asset_id and amount at the specified input equal the expected u256 and u64 values
+pub fn assert_explicit_input_asset_id_with_amount(
+    index: u32,
+    expected_asset_id: u256,
+    expected_amount: u64
+) {
+    let (asset_id, amount): (u256, u64) = get_explicit_input_asset_id_with_amount(index);
+
+    assert_eq_256(asset_id, expected_asset_id);
+    assert_eq_64(amount, expected_amount);
+}
+
+/// Asserts that the confidential asset_id and amount at the specified input equal the expected Confidential1 values
+pub fn assert_confidential_input_asset_id_with_amount(
+    index: u32,
+    expected_asset_id: Confidential1,
+    expected_amount: Confidential1
+) {
+    let (
+        asset_id,
+        amount
+    ): (Confidential1, Confidential1) = get_confidential_input_asset_id_with_amount(index);
+
+    // asset_id
+    let (asset_id_parity_bit, asset_id): Confidential1 = asset_id;
+    let (expected_asset_id_parity_bit, expected_asset_id): Confidential1 = expected_asset_id;
+    // amount
+    let (amount_parity_bit, amount): Confidential1 = amount;
+    let (expected_amount_parity_bit, expected_amount): Confidential1 = expected_amount;
+    // asset_id
+    assert_eq_1(asset_id_parity_bit, expected_asset_id_parity_bit);
+    assert_eq_256(asset_id, expected_asset_id);
+    // amount
+    assert_eq_1(amount_parity_bit, expected_amount_parity_bit);
+    assert_eq_256(amount, expected_amount);
+}
+
+/// Asserts that the explicit asset_id and amount at the specified output equal the expected u256 and u64 values
+pub fn assert_explicit_output_asset_id_with_amount(
+    index: u32,
+    expected_asset_id: u256,
+    expected_amount: u64
+) {
+    let (asset_id, amount): (u256, u64) = get_explicit_output_asset_id_with_amount(index);
+
+    assert_eq_256(asset_id, expected_asset_id);
+    assert_eq_64(amount, expected_amount);
+}
+
+/// Asserts that the confidential asset_id and amount at the specified output equal the expected Confidential1 values
+pub fn assert_confidential_output_asset_id_with_amount(
+    index: u32,
+    expected_asset_id: Confidential1,
+    expected_amount: Confidential1
+) {
+    let (
+        asset_id,
+        amount
+    ): (Confidential1, Confidential1) = get_confidential_output_asset_id_with_amount(index);
+
+    // asset_id
+    let (asset_id_parity_bit, asset_id): Confidential1 = asset_id;
+    let (expected_asset_id_parity_bit, expected_asset_id): Confidential1 = expected_asset_id;
+    // amount
+    let (amount_parity_bit, amount): Confidential1 = amount;
+    let (expected_amount_parity_bit, expected_amount): Confidential1 = expected_amount;
+    // asset_id
+    assert_eq_1(asset_id_parity_bit, expected_asset_id_parity_bit);
+    assert_eq_256(asset_id, expected_asset_id);
+    // amount
+    assert_eq_1(amount_parity_bit, expected_amount_parity_bit);
+    assert_eq_256(amount, expected_amount);
+}
+
+/// Asserts that the explicit input asset_id and amount at the current_index equal the expected u256 and u64 values
+pub fn assert_explicit_current_asset_id_with_amount(expected_asset_id: u256, expected_amount: u64) {
+    let (asset_id, amount): (u256, u64) = get_explicit_current_asset_id_with_amount();
+
+    assert_eq_256(asset_id, expected_asset_id);
+    assert_eq_64(amount, expected_amount);
+}
+
+/// Asserts that the confidential input asset_id and amount at the current_index equal the expected Confidential1 values
+pub fn assert_confidential_current_asset_id_with_amount(
+    expected_asset_id: Confidential1,
+    expected_amount: Confidential1
+) {
+    let (
+        asset_id,
+        amount
+    ): (Confidential1, Confidential1) = get_confidential_current_asset_id_with_amount();
+
+    // asset_id
+    let (asset_id_parity_bit, asset_id): Confidential1 = asset_id;
+    let (expected_asset_id_parity_bit, expected_asset_id): Confidential1 = expected_asset_id;
+    // amount
+    let (amount_parity_bit, amount): Confidential1 = amount;
+    let (expected_amount_parity_bit, expected_amount): Confidential1 = expected_amount;
+    // asset_id
+    assert_eq_1(asset_id_parity_bit, expected_asset_id_parity_bit);
+    assert_eq_256(asset_id, expected_asset_id);
+    // amount
+    assert_eq_1(amount_parity_bit, expected_amount_parity_bit);
+    assert_eq_256(amount, expected_amount);
+}
