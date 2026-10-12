@@ -1,5 +1,5 @@
 use crate::lib::binary::and;
-use crate::lib::asserts::{assert_eq_1, assert_eq_256};
+use crate::lib::asserts::assert_eq_1;
 
 /// Compress an affine point to `(parity, x)`, where `parity = 1` iff `y` is odd.
 pub fn ge_to_point(p: Ge) -> Point {
@@ -53,11 +53,11 @@ pub fn ge_eq(a: Ge, b: Ge) -> bool {
     and(fe_eq(ax, bx), fe_eq(ay, by))
 }
 
-/// Check if two points are equal.
+/// Compressed point equality, with `x` compared modulo `p`.
 pub fn point_point_eq(a: Point, b: Point) -> bool {
-    let (ap, ax): (u1, u256) = a;
-    let (bp, bx): (u1, u256) = b;
-    and(jet::eq_256(ax, bx), jet::eq_1(ap, bp))
+    let (ap, ax): (u1, Fe) = a;
+    let (bp, bx): (u1, Fe) = b;
+    and(fe_eq(ax, bx), jet::eq_1(ap, bp))
 }
 
 /// Check if two points represent the same point
@@ -84,12 +84,12 @@ pub fn assert_ge_eq(a: Ge, b: Ge) {
     assert_fe_eq(ay, by);
 }
 
-/// Check if two points are equal.
+/// Compressed point equality, with `x` compared modulo `p`.
 pub fn assert_point_eq(a: Point, b: Point) {
-    let (ap, ax): (u1, u256) = a;
-    let (bp, bx): (u1, u256) = b;
+    let (ap, ax): (u1, Fe) = a;
+    let (bp, bx): (u1, Fe) = b;
 
-    assert_eq_256(ax, bx);
+    assert_fe_eq(ax, bx);
     assert_eq_1(ap, bp);
 }
 
