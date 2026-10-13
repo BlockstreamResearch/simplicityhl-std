@@ -26,7 +26,7 @@
 # network = "<Liquid, LiquidTestnet, ElementsRegtest>"
 
  [test.fuzz]
- cases = 10
+ cases = 25
 # seed = 12345
 # network = "<Liquid, LiquidTestnet, ElementsRegtest>"
 

@@ -108,3 +108,181 @@ fn mul_div_32_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
         .expect(0)
         .expecting(&context, Expect::AssertFailed)
 }
+
+mod mul_div_tests_fuzz {
+    use super::*;
+
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::proptest::prelude::any;
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::{FuzzMode, TestContext};
+
+    fn arb_u16() -> impl Strategy<Value = u16> {
+        any::<u16>()
+    }
+
+    fn arb_non_zero_u32() -> impl Strategy<Value = u32> {
+        any::<u32>().prop_filter("u32 should not be zero", |index| *index != 0)
+    }
+
+    #[derive(Debug, Default)]
+    struct FuzzCase {
+        first_numerator: Option<u32>,
+        second_numerator: Option<u32>,
+        denominator: Option<u32>,
+        expected: Option<u32>,
+    }
+
+    impl FuzzCase {
+        fn from_numerator(first_numerator: u32) -> Self {
+            let mut x = Self::default();
+            let _ = x.first_numerator.insert(first_numerator);
+            x
+        }
+
+        fn mul(mut self, second_numerator: u32) -> Self {
+            let _ = self.second_numerator.insert(second_numerator);
+            self
+        }
+
+        fn div(mut self, denominator: u32) -> Self {
+            let _ = self.denominator.insert(denominator);
+            self
+        }
+
+        fn expect(mut self, expected: u32) -> Self {
+            let _ = self.expected.insert(expected);
+            self
+        }
+
+        fn into_witness(
+            self,
+            witness: U32MulDivTestWitness,
+            expect_failure: bool,
+        ) -> WitnessValues {
+            let case = Case { witness }.args(
+                self.first_numerator.expect("no first numerator in witness"),
+                self.second_numerator
+                    .expect("no second numerator in witness"),
+                self.denominator.expect("no denominator in witness"),
+            );
+
+            let case = if expect_failure {
+                case
+            } else {
+                case.expect(self.expected.expect("no expected arg in witness"))
+            };
+
+            case.witness.into()
+        }
+    }
+
+    struct FuzzCaseBuilder {
+        case: Case,
+        context: TestContext<FuzzMode>,
+        inputs: Option<BoxedStrategy<FuzzCase>>,
+        test_name: &'static str,
+        expect: Expect,
+    }
+
+    fn case_fuzz(context: TestContext<FuzzMode>, test_name: &'static str) -> FuzzCaseBuilder {
+        FuzzCaseBuilder {
+            case: case(MulDiv),
+            context,
+            inputs: None,
+            test_name,
+            expect: Expect::Ok,
+        }
+    }
+
+    impl FuzzCaseBuilder {
+        fn strategy(mut self, inputs: impl Strategy<Value = FuzzCase> + 'static) -> Self {
+            self.inputs = Some(inputs.boxed());
+            self
+        }
+
+        fn expect(mut self, expect: Expect) -> Self {
+            self.expect = expect;
+            self
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let Case { witness } = self.case;
+            let inputs = self.inputs.expect("a fuzz strategy must be specified");
+            let expect_failure = matches!(self.expect, Expect::AssertFailed);
+
+            let strategy = inputs
+                .prop_map(move |fuzz_case| {
+                    let arguments: Arguments = U32MulDivTestArguments {}.into();
+                    let witness: WitnessValues =
+                        fuzz_case.into_witness(witness.clone(), expect_failure);
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            self.context
+                .engine::<U32MulDivTestProgram, U32MulDivTestArguments, U32MulDivTestWitness>()
+                .with_custom_strategy(strategy)
+                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
+                .run();
+
+            Ok(())
+        }
+    }
+
+    #[simplex::fuzz]
+    fn mul_div_32_product_is_u32(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (arb_u16(), arb_u16(), arb_non_zero_u32()).prop_map(|(a, b, c)| {
+            let a = u32::from(a);
+            let b = u32::from(b);
+
+            FuzzCase::from_numerator(a).mul(b).div(c).expect(a * b / c)
+        });
+
+        case_fuzz(context, "mul_div_32_product_is_u32")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn mul_div_32_intermediate_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (2u32..=u32::MAX).prop_flat_map(|a| {
+            (a..=u32::MAX).prop_map(move |c| {
+                let b = u32::MAX;
+                let expected = ((u64::from(a) * u64::from(b)) / u64::from(c)) as u32;
+
+                FuzzCase::from_numerator(a).mul(b).div(c).expect(expected)
+            })
+        });
+
+        case_fuzz(context, "mul_div_32_intermediate_overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn mul_div_32_result_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (2u32..=u32::MAX).prop_flat_map(|a| {
+            (1u32..a).prop_map(move |c| FuzzCase::from_numerator(a).mul(u32::MAX).div(c))
+        });
+
+        case_fuzz(context, "mul_div_32_result_overflow")
+            .strategy(strategy)
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn mul_div_32_div_by_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (arb_non_zero_u32(), arb_non_zero_u32())
+            .prop_map(|(a, b)| FuzzCase::from_numerator(a).mul(b).div(0).expect(0));
+
+        case_fuzz(context, "mul_div_32_div_by_zero")
+            .strategy(strategy)
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+}

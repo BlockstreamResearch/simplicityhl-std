@@ -136,3 +136,208 @@ fn le_256_bigger(context: simplex::TestContext) -> anyhow::Result<()> {
         .args(a.to_big_endian(), b.to_big_endian())
         .run(&context)
 }
+
+mod comparison_tests_fuzz {
+    use super::*;
+
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::proptest::prelude::any;
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::{FuzzMode, TestContext};
+
+    const EXPECTED_TRUE: bool = true;
+    const EXPECTED_FALSE: bool = false;
+
+    // (A, B, Expected)
+    type ComparisonInputs = (U256, U256, bool);
+
+    fn arb_u256() -> impl Strategy<Value = U256> {
+        any::<[u8; 32]>().prop_map(|bytes| U256::from_big_endian(&bytes))
+    }
+
+    fn arb_non_zero_u256() -> impl Strategy<Value = U256> {
+        arb_u256().prop_map(|value| value.max(U256::one()))
+    }
+
+    fn arb_u256_in_range(low: U256, high: U256) -> impl Strategy<Value = U256> {
+        assert!(low <= high);
+
+        let range = high - low;
+
+        arb_u256().prop_map(move |value| {
+            if range == U256::MAX {
+                value
+            } else {
+                low + value % (range + U256::one())
+            }
+        })
+    }
+
+    struct CaseFuzz {
+        case: Case,
+        context: TestContext<FuzzMode>,
+        inputs: Option<BoxedStrategy<ComparisonInputs>>,
+        test_name: &'static str,
+    }
+
+    fn case_fuzz(
+        function: FunctionToTest,
+        context: TestContext<FuzzMode>,
+        test_name: &'static str,
+    ) -> CaseFuzz {
+        CaseFuzz {
+            case: case(function),
+            context,
+            inputs: None,
+            test_name,
+        }
+    }
+
+    impl CaseFuzz {
+        fn strategy(mut self, inputs: impl Strategy<Value = ComparisonInputs> + 'static) -> Self {
+            self.inputs = Some(inputs.boxed());
+            self
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let Case { witness } = self.case;
+            let inputs = self.inputs.expect("a fuzz strategy must be specified");
+
+            let strategy = inputs
+                .prop_map(move |(a, b, expected)| (a.to_big_endian(), b.to_big_endian(), expected))
+                .prop_map(move |(a, b, expected)| {
+                    let arguments: Arguments = U256TestCompareArguments {}.into();
+                    let witness: WitnessValues = Case {
+                        witness: witness.clone(),
+                    }
+                    .args(a, b)
+                    .flag(expected)
+                    .witness
+                    .into();
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            self.context
+                .engine::<U256TestCompareProgram, U256TestCompareArguments, U256TestCompareWitness>(
+                )
+                .with_custom_strategy(strategy)
+                .with_custom_check(FuzzExecutionCheck::new(self.test_name, Expect::Ok))
+                .run();
+
+            Ok(())
+        }
+    }
+
+    // is_zero_256_false - accepts custom inputs for the same operation.
+    // 1<=a<=u256::MAX; expected is_zero=false.
+    #[simplex::fuzz]
+    fn is_zero_256_false(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = arb_non_zero_u256().prop_map(|a| (a, U256::zero(), EXPECTED_FALSE));
+
+        case_fuzz(IsZero256, context, "u256 is non-zero")
+            .strategy(strategy)
+            .run()
+    }
+
+    // lt_256_less - accepts custom inputs for the same operation.
+    // 0<=a<MAX and a<b<=MAX; checks the strict-less ordering.
+    #[simplex::fuzz]
+    fn lt_256_less(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_u256_in_range(U256::zero(), U256::MAX - 1);
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(a + U256::one(), U256::MAX);
+
+                b.prop_map(move |b| (a, b, EXPECTED_TRUE))
+            })
+        };
+
+        case_fuzz(Lt256, context, "u256 less than")
+            .strategy(strategy)
+            .run()
+    }
+
+    // lt_256_eq - accepts custom inputs for the same operation.
+    // a=b across the full width; expected lt=false.
+    #[simplex::fuzz]
+    fn lt_256_eq(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = arb_u256().prop_map(|a| (a, a, EXPECTED_FALSE));
+
+        case_fuzz(Lt256, context, "u256 less than equal")
+            .strategy(strategy)
+            .run()
+    }
+
+    // lt_256_bigger - accepts custom inputs for the same operation.
+    // 1<=a<=MAX and 0<=b<a; checks the strict-greater ordering.
+    #[simplex::fuzz]
+    fn lt_256_bigger(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_non_zero_u256();
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(U256::zero(), a - U256::one());
+
+                b.prop_map(move |b| (a, b, EXPECTED_FALSE))
+            })
+        };
+
+        case_fuzz(Lt256, context, "u256 greater than")
+            .strategy(strategy)
+            .run()
+    }
+
+    // le_256_less - accepts custom inputs for the same operation.
+    // 0<=a<MAX and a<b<=MAX; checks the strict-less ordering.
+    #[simplex::fuzz]
+    fn le_256_less(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_u256_in_range(U256::zero(), U256::MAX - 1);
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(a + U256::one(), U256::MAX);
+
+                b.prop_map(move |b| (a, b, EXPECTED_TRUE))
+            })
+        };
+
+        case_fuzz(Le256, context, "u256 less than or equal")
+            .strategy(strategy)
+            .run()
+    }
+
+    // le_256_eq - accepts custom inputs for the same operation.
+    // a=b across the full width; expected le=true.
+    #[simplex::fuzz]
+    fn le_256_eq(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = arb_u256().prop_map(|a| (a, a, EXPECTED_TRUE));
+
+        case_fuzz(Le256, context, "u256 less than or equal equal")
+            .strategy(strategy)
+            .run()
+    }
+
+    // le_256_bigger - accepts custom inputs for the same operation.
+    // 1<=a<=MAX and 0<=b<a; checks the strict-greater ordering.
+    #[simplex::fuzz]
+    fn le_256_bigger(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_non_zero_u256();
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(U256::zero(), a - U256::one());
+
+                b.prop_map(move |b| (a, b, EXPECTED_FALSE))
+            })
+        };
+
+        case_fuzz(Le256, context, "u256 greater than")
+            .strategy(strategy)
+            .run()
+    }
+}
