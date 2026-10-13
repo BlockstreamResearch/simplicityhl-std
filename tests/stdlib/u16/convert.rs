@@ -152,3 +152,164 @@ fn safe_u16_to_u8_overflow(context: simplex::TestContext) -> anyhow::Result<()> 
         .expect(U256::from(a).to_big_endian())
         .expecting(&context, Expect::AssertFailed)
 }
+
+mod convert_tests_fuzz {
+    use super::*;
+
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::proptest::prelude::any;
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::{FuzzMode, TestContext};
+
+    // (first_arg)
+    type ConvertInputs = u16;
+
+    struct FuzzCaseBuilder {
+        case: Case,
+        context: TestContext<FuzzMode>,
+        inputs: Option<BoxedStrategy<ConvertInputs>>,
+        test_name: &'static str,
+        expect: Expect,
+    }
+
+    fn case_fuzz(
+        function: FunctionToTest,
+        context: TestContext<FuzzMode>,
+        test_name: &'static str,
+    ) -> FuzzCaseBuilder {
+        FuzzCaseBuilder {
+            case: case(function),
+            context,
+            inputs: None,
+            test_name,
+            expect: Expect::Ok,
+        }
+    }
+
+    fn arb_bool() -> impl Strategy<Value = bool> {
+        any::<bool>()
+    }
+
+    fn arb_u8() -> impl Strategy<Value = u8> {
+        any::<u8>()
+    }
+
+    fn arb_u16() -> impl Strategy<Value = u16> {
+        any::<u16>()
+    }
+
+    fn arb_bool_u16() -> impl Strategy<Value = u16> {
+        arb_bool().prop_map(u16::from)
+    }
+
+    fn arb_u8_u16() -> impl Strategy<Value = u16> {
+        arb_u8().prop_map(u16::from)
+    }
+
+    impl FuzzCaseBuilder {
+        fn strategy(mut self, inputs: impl Strategy<Value = ConvertInputs> + 'static) -> Self {
+            self.inputs = Some(inputs.boxed());
+            self
+        }
+
+        fn expect(mut self, expect: Expect) -> Self {
+            self.expect = expect;
+            self
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let Case { witness } = self.case;
+            let inputs = self.inputs.expect("a fuzz strategy must be specified");
+            let strategy = inputs
+                .prop_map(move |a| {
+                    let arguments: Arguments = U16ConvertTestArguments {}.into();
+
+                    let witness: WitnessValues = Case {
+                        witness: witness.clone(),
+                    }
+                    .arg(a)
+                    .expect(U256::from(a).to_big_endian())
+                    .witness
+                    .into();
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            self.context
+                .engine::<U16ConvertTestProgram, U16ConvertTestArguments, U16ConvertTestWitness>()
+                .with_custom_strategy(strategy)
+                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
+                .run();
+
+            Ok(())
+        }
+    }
+
+    #[simplex::fuzz]
+    fn u16_to_u32(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        case_fuzz(U16ToU32, context, "u16_to_u32")
+            .strategy(arb_u16())
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn u16_to_u64(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        case_fuzz(U16ToU64, context, "u16_to_u64")
+            .strategy(arb_u16())
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn u16_to_u128(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        case_fuzz(U16ToU128, context, "u16_to_u128")
+            .strategy(arb_u16())
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn u16_to_u256(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        case_fuzz(U16ToU256, context, "u16_to_u256")
+            .strategy(arb_u16())
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn split_u16_into_u8(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        case_fuzz(SplitU16IntoU8, context, "split_u16_into_u8")
+            .strategy(arb_u16())
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u16_to_u1(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        case_fuzz(SafeU16ToU1, context, "safe_u16_to_u1")
+            .strategy(arb_bool_u16())
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u16_to_u1_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        case_fuzz(SafeU16ToU1, context, "safe_u16_to_u1_overflow")
+            .strategy(2u16..=u16::MAX)
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u16_to_u8(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        case_fuzz(SafeU16ToU8, context, "safe_u16_to_u8")
+            .strategy(arb_u8_u16())
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn safe_u16_to_u8_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        case_fuzz(SafeU16ToU8, context, "safe_u16_to_u8_overflow")
+            .strategy(u8::MAX as u16 + 1..=u16::MAX)
+            .expect(Expect::AssertFailed)
+            .run()
+    }
+}
