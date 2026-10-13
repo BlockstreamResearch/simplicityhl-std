@@ -59,6 +59,10 @@ jobs:
         run: |
           cargo build --workspace --all-features --verbose
 
+      - name: Fuzz
+        run: |
+          simplex test --fuzz --test-threads 4 -v
+
       - name: Test
         run: |
           simplex test --test-threads 4 -v
