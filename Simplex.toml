@@ -25,8 +25,8 @@
 # url = "<esplora url>"
 # network = "<Liquid, LiquidTestnet, ElementsRegtest>"
 
-# [test.fuzz]
-# cases = 10
+ [test.fuzz]
+ cases = 10
 # seed = 12345
 # network = "<Liquid, LiquidTestnet, ElementsRegtest>"
 
