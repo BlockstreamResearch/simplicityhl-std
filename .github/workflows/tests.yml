@@ -17,7 +17,7 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: full
-  SIMPLEX_VERSION: 0.0.11
+  SIMPLEX_VERSION: 0.1.1
 
 jobs:
   simplex-tests:
