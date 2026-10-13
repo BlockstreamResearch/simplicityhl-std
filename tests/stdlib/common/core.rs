@@ -3,10 +3,14 @@
 #![allow(dead_code)]
 
 use secp256k1_zkp::Secp256k1;
-use simplex::program::{Program, WitnessTrait};
+
+use simplex::program::Program;
 use simplex::signer::Signer;
 use simplex::simplicityhl::elements::bitcoin::PublicKey;
-use simplex::simplicityhl::elements::{AssetId, Script, Txid};
+use simplex::simplicityhl::{
+    WitnessValues,
+    elements::{AssetId, Script, Txid},
+};
 use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
     FinalTransaction, PartialInput, PartialOutput, ProgramInput, RequiredSignature, UTXO,
@@ -113,7 +117,7 @@ pub fn construct_final_tx<W>(
     program_for_test: Option<Program>,
 ) -> anyhow::Result<FinalTransaction>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let signer = context.get_default_signer();
     let network = context.get_network();
@@ -128,7 +132,7 @@ where
 
     ft.add_program_input(
         PartialInput::new(program_utxo.clone()),
-        ProgramInput::new(Box::new(program.as_ref().clone()), Box::new(witness)),
+        ProgramInput::new(Box::new(program.as_ref().clone()), witness.into()),
         RequiredSignature::None,
     );
 
@@ -160,7 +164,7 @@ where
 
                 ft.add_program_input(
                     PartialInput::new(last_utxo.clone()),
-                    ProgramInput::new(Box::new(program_for_test.clone()), Box::new(MockWitness {})),
+                    ProgramInput::new(Box::new(program_for_test.clone()), MockWitness {}),
                     RequiredSignature::None,
                 );
 
@@ -280,7 +284,7 @@ pub fn spend<W>(
     program_for_test: Option<Program>,
 ) -> anyhow::Result<String>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let ft = construct_final_tx(context, program, witness, data, txids, program_for_test)?;
 
@@ -315,7 +319,7 @@ pub fn run<W>(
     expect: Expect,
 ) -> anyhow::Result<()>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     fund(context, &program, DEFAULT_SEND_AMOUNT)?;
     let result = spend(context, &program, witness, None, Vec::new(), None);
@@ -333,7 +337,7 @@ pub fn run_with_op_return<W>(
     data: &[u8],
 ) -> anyhow::Result<()>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     fund(context, &program, DEFAULT_SEND_AMOUNT)?;
     let result = spend(context, &program, witness, Some(data), Vec::new(), None);
@@ -351,7 +355,7 @@ pub fn run_with_inputs_outputs<W>(
     program_for_test: Option<Program>,
 ) -> anyhow::Result<()>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let result = spend(context, &program, witness, None, txids, program_for_test);
 
