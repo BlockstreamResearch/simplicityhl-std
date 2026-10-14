@@ -3,9 +3,13 @@
 #![allow(dead_code)]
 
 use secp256k1_zkp::Secp256k1;
-use simplex::program::{Program, WitnessTrait};
+
+use simplex::program::Program;
 use simplex::signer::Signer;
-use simplex::simplicityhl::elements::{AssetId, Script, Txid};
+use simplex::simplicityhl::{
+    WitnessValues,
+    elements::{AssetId, Script, Txid},
+};
 use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
     FinalTransaction, PartialInput, PartialOutput, ProgramInput, RequiredSignature, UTXO,
@@ -110,7 +114,7 @@ pub fn construct_final_tx<W>(
     txids: Vec<Txid>,
 ) -> anyhow::Result<FinalTransaction>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let signer = context.get_default_signer();
     let script_to_send_to = signer.get_address().script_pubkey();
@@ -140,7 +144,7 @@ where
 
     ft.add_program_input(
         PartialInput::new(program_utxo.clone()),
-        ProgramInput::new(Box::new(program.as_ref().clone()), Box::new(witness)),
+        ProgramInput::new(Box::new(program.as_ref().clone()), witness.into()),
         RequiredSignature::None,
     );
 
@@ -232,7 +236,7 @@ pub fn spend<W>(
     txids: Vec<Txid>,
 ) -> anyhow::Result<String>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let ft = construct_final_tx(context, program, script, witness, data, txids)?;
 
@@ -267,7 +271,7 @@ pub fn run<W>(
     expect: Expect,
 ) -> anyhow::Result<()>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let script = fund(context, &program, DEFAULT_SEND_AMOUNT)?;
     let result = spend(context, &program, &script, witness, None, Vec::new());
@@ -285,7 +289,7 @@ pub fn run_with_op_return<W>(
     data: &[u8],
 ) -> anyhow::Result<()>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let script = fund(context, &program, DEFAULT_SEND_AMOUNT)?;
     let result = spend(context, &program, &script, witness, Some(data), Vec::new());
@@ -302,7 +306,7 @@ pub fn run_with_inputs_outputs<W>(
     txids: Vec<Txid>,
 ) -> anyhow::Result<()>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let script = program.as_ref().get_script_pubkey(context.get_network());
 
