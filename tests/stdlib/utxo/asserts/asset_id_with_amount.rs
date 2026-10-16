@@ -4,7 +4,7 @@ use simplex::simplicityhl::elements::Txid;
 use crate::common::core::Expect;
 use crate::common::core::run_with_inputs_outputs;
 use crate::common::utxo_helper::ConfidentialAsset;
-use crate::common::utxo_helper::create_utxos;
+use crate::common::utxo_helper::create_utxos_and_return_conf_assets;
 use crate::common::utxo_helper::create_utxos_with_new_asset;
 use crate::common::utxo_helper::generate_different_amounts;
 use crate::common::utxo_helper::generate_random_confidential;
@@ -113,7 +113,14 @@ impl Case {
         expect: Expect,
         txids: Vec<Txid>,
     ) -> anyhow::Result<()> {
-        run_with_inputs_outputs(context, program(), self.witness, expect, txids)
+        run_with_inputs_outputs(
+            context,
+            program(),
+            self.witness,
+            expect,
+            txids,
+            None::<&TestAssetIdWithAmountProgram>,
+        )
     }
 }
 
@@ -137,7 +144,7 @@ fn create_utxos_wrapper(
     is_input: bool,
     expected_amount: u64,
 ) -> anyhow::Result<(Option<ConfidentialAsset>, Vec<Txid>)> {
-    create_utxos(
+    create_utxos_and_return_conf_assets(
         context,
         index,
         is_explicit,

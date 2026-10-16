@@ -5,11 +5,14 @@
 use secp256k1_zkp::Secp256k1;
 use simplex::program::{Program, WitnessTrait};
 use simplex::signer::Signer;
+use simplex::simplicityhl::elements::bitcoin::PublicKey;
 use simplex::simplicityhl::elements::{AssetId, Script, Txid};
 use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
     FinalTransaction, PartialInput, PartialOutput, ProgramInput, RequiredSignature, UTXO,
 };
+use simplicityhl_std::artifacts::tests::mock::MockProgram;
+use simplicityhl_std::artifacts::tests::mock::derived_mock::MockWitness;
 
 use crate::common::utxo_helper::{DEFAULT_SEND_AMOUNT, search_utxo_by_txid};
 
@@ -54,6 +57,7 @@ pub fn send_explicit(signer: &Signer, to: &Script, amount_to_send: u64) -> anyho
     Ok(signer.send(to.clone(), amount_to_send)?.txid())
 }
 
+/// Send sats to the specified script confidentialy.
 pub fn send_blinded(
     signer: &Signer,
     to: &Script,
@@ -71,7 +75,7 @@ pub fn send_blinded(
 }
 
 /// Issue `amount_to_send` of a new asset to the specified script, so the UTXO holds an asset that
-/// nothing else in the wallet has. Returns the funding txid and the new asset id.
+/// nothing else in the wallet has.
 pub fn send_issued(
     context: &simplex::TestContext,
     to: &Script,
@@ -104,39 +108,24 @@ pub fn send_issued(
 pub fn construct_final_tx<W>(
     context: &simplex::TestContext,
     program: &impl AsRef<Program>,
-    script: &Script,
     witness: W,
     data: Option<&[u8]>,
     txids: Vec<Txid>,
+    program_for_test: Option<&impl AsRef<Program>>,
 ) -> anyhow::Result<FinalTransaction>
 where
     W: WitnessTrait + 'static,
 {
     let signer = context.get_default_signer();
-    let script_to_send_to = signer.get_address().script_pubkey();
-    let policy_asset = context.get_network().policy_asset();
+    let network = context.get_network();
+    let policy_asset = network.policy_asset();
 
-    // Every output amount is one less than the corresponding input amount.
-    // The signer handles leftovers for the policy asset, but for other assets, we need to handle it here.
-    let mut leftover_asset = policy_asset;
-
-    let utxos = context
-        .get_default_provider()
-        .fetch_scripthash_utxos(script)?;
-
-    let mut program_utxo = if txids.is_empty() {
-        utxos[0].clone()
-    } else {
-        search_utxo_by_txid(&txids[0], &utxos)?
-    };
-
-    let first_input_confidential = program_utxo.txout.value.is_confidential();
-
-    if first_input_confidential {
-        program_utxo = unblind(signer, program_utxo)?;
-    }
+    let default_script = signer.get_address().script_pubkey();
+    let program_script = &program.as_ref().get_script_pubkey(network);
+    let mut leftover_asset: Option<AssetId> = None;
 
     let mut ft = FinalTransaction::new();
+    let program_utxo = prepare_utxo(context, program_script, txids.first())?;
 
     ft.add_program_input(
         PartialInput::new(program_utxo.clone()),
@@ -144,63 +133,66 @@ where
         RequiredSignature::None,
     );
 
-    // it is not an op_return path
     if data.unwrap_or_default().is_empty() {
-        let mut output = PartialOutput::new(
-            script_to_send_to.clone(),
-            // amounts in input and output on the same index should be different for the test purposes
-            program_utxo.amount() - 1,
-            program_utxo.asset(),
+        (ft, leftover_asset) = add_mirror_output(
+            ft,
+            &program_utxo,
+            signer.get_blinding_public_key(),
+            policy_asset,
         );
-
-        if first_input_confidential {
-            output = output.with_blinding_key(signer.get_blinding_public_key())
-        }
-
-        ft.add_output(output);
-
-        if program_utxo.asset() != policy_asset {
-            leftover_asset = program_utxo.asset();
-        }
     }
 
     if txids.len() > 1 {
         let unblinded_utxos = signer.get_utxos()?;
+        let last = txids.len() - 1;
 
-        for txid in txids.iter().skip(1) {
+        for txid in &txids[1..last] {
             let utxo = search_utxo_by_txid(txid, &unblinded_utxos)?;
 
-            if !utxo.txout.value.is_confidential() {
-                ft.add_input(PartialInput::new(utxo.clone()), RequiredSignature::None);
+            ft.add_input(PartialInput::new(utxo.clone()), RequiredSignature::None);
 
-                ft.add_output(PartialOutput::new(
-                    script_to_send_to.clone(),
-                    utxo.explicit_amount() - 1,
-                    utxo.explicit_asset(),
-                ));
-
-                if utxo.explicit_asset() != policy_asset {
-                    leftover_asset = utxo.asset();
-                }
-                // filtering out fund transaction
-            } else {
-                ft.add_input(PartialInput::new(utxo.clone()), RequiredSignature::None);
-
-                ft.add_output(
-                    PartialOutput::new(
-                        script_to_send_to.clone(),
-                        utxo.unblinded_amount() - 1,
-                        utxo.unblinded_asset(),
-                    )
-                    .with_blinding_key(signer.get_blinding_public_key()),
-                );
-            }
+            (ft, _) = add_mirror_output(ft, &utxo, signer.get_blinding_public_key(), policy_asset);
         }
+
+        let last_utxo = match program_for_test {
+            Some(program_for_test) => {
+                let last_script = &program_for_test.as_ref().get_script_pubkey(network);
+                let last_utxo = prepare_utxo(context, last_script, txids.last())?;
+
+                ft.add_program_input(
+                    PartialInput::new(last_utxo.clone()),
+                    ProgramInput::new(
+                        Box::new(program_for_test.as_ref().clone()),
+                        Box::new(MockWitness {}),
+                    ),
+                    RequiredSignature::None,
+                );
+
+                last_utxo
+            }
+            None => {
+                let last_utxo = search_utxo_by_txid(txids.last().unwrap(), &unblinded_utxos)?;
+
+                ft.add_input(
+                    PartialInput::new(last_utxo.clone()),
+                    RequiredSignature::None,
+                );
+
+                last_utxo
+            }
+        };
+
+        (ft, leftover_asset) = add_mirror_output(
+            ft,
+            &last_utxo,
+            signer.get_blinding_public_key(),
+            policy_asset,
+        );
     }
 
-    if leftover_asset != policy_asset {
+    if let Some(leftover_asset) = leftover_asset {
         ft.add_output(PartialOutput::new(
-            script_to_send_to.clone(),
+            default_script.clone(),
             1,
             leftover_asset,
         ));
@@ -213,6 +205,32 @@ where
     Ok(ft)
 }
 
+/// Fetch the UTXO for script, unblind if confidential.
+fn prepare_utxo(
+    context: &simplex::TestContext,
+    script: &Script,
+    txid: Option<&Txid>,
+) -> anyhow::Result<UTXO> {
+    let utxos = context
+        .get_default_provider()
+        .fetch_scripthash_utxos(script)?;
+
+    let utxo = match txid {
+        Some(txid) => search_utxo_by_txid(txid, &utxos)?,
+        None => utxos
+            .into_iter()
+            .next()
+            .expect("Missing UTXO for the script"),
+    };
+
+    if utxo.txout.value.is_confidential() {
+        Ok(unblind(context.get_default_signer(), utxo)?)
+    } else {
+        Ok(utxo)
+    }
+}
+
+/// Unblind the utxo.
 fn unblind(signer: &Signer, mut utxo: UTXO) -> anyhow::Result<UTXO> {
     let secp = Secp256k1::new();
     let secrets = utxo
@@ -222,19 +240,48 @@ fn unblind(signer: &Signer, mut utxo: UTXO) -> anyhow::Result<UTXO> {
     Ok(utxo)
 }
 
+// Add an output mirroring utxo's asset with amount - 1 and the same script.
+fn add_mirror_output(
+    mut ft: FinalTransaction,
+    utxo: &UTXO,
+    binding_key: PublicKey,
+    policy_asset: AssetId,
+) -> (FinalTransaction, Option<AssetId>) {
+    let mut output = PartialOutput::new(
+        utxo.txout.script_pubkey.clone(),
+        // amounts in input and output on the same index should be different for the test
+        utxo.amount() - 1,
+        utxo.asset(),
+    );
+
+    if utxo.txout.value.is_confidential() {
+        output = output.with_blinding_key(binding_key)
+    }
+
+    ft.add_output(output);
+
+    let leftover_asset = if utxo.asset() != policy_asset {
+        Some(utxo.asset())
+    } else {
+        None
+    };
+
+    (ft, leftover_asset)
+}
+
 /// Spend the funded UTXO with `witness`. Return the broadcast result.
 pub fn spend<W>(
     context: &simplex::TestContext,
     program: &impl AsRef<Program>,
-    script: &Script,
     witness: W,
     data: Option<&[u8]>,
     txids: Vec<Txid>,
+    program_for_test: Option<&impl AsRef<Program>>,
 ) -> anyhow::Result<String>
 where
     W: WitnessTrait + 'static,
 {
-    let ft = construct_final_tx(context, program, script, witness, data, txids)?;
+    let ft = construct_final_tx(context, program, witness, data, txids, program_for_test)?;
 
     Ok(context.get_default_signer().broadcast(&ft)?.to_string())
 }
@@ -269,8 +316,15 @@ pub fn run<W>(
 where
     W: WitnessTrait + 'static,
 {
-    let script = fund(context, &program, DEFAULT_SEND_AMOUNT)?;
-    let result = spend(context, &program, &script, witness, None, Vec::new());
+    fund(context, &program, DEFAULT_SEND_AMOUNT)?;
+    let result = spend(
+        context,
+        &program,
+        witness,
+        None,
+        Vec::new(),
+        None::<&MockProgram>,
+    );
 
     assert_error_msg(result, expect)
 }
@@ -287,8 +341,15 @@ pub fn run_with_op_return<W>(
 where
     W: WitnessTrait + 'static,
 {
-    let script = fund(context, &program, DEFAULT_SEND_AMOUNT)?;
-    let result = spend(context, &program, &script, witness, Some(data), Vec::new());
+    fund(context, &program, DEFAULT_SEND_AMOUNT)?;
+    let result = spend(
+        context,
+        &program,
+        witness,
+        Some(data),
+        Vec::new(),
+        None::<&MockProgram>,
+    );
 
     assert_error_msg(result, expect)
 }
@@ -300,13 +361,12 @@ pub fn run_with_inputs_outputs<W>(
     witness: W,
     expect: Expect,
     txids: Vec<Txid>,
+    program_for_test: Option<&impl AsRef<Program>>,
 ) -> anyhow::Result<()>
 where
     W: WitnessTrait + 'static,
 {
-    let script = program.as_ref().get_script_pubkey(context.get_network());
-
-    let result = spend(context, &program, &script, witness, None, txids);
+    let result = spend(context, &program, witness, None, txids, program_for_test);
 
     assert_error_msg(result, expect)
 }
