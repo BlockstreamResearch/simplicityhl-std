@@ -223,10 +223,9 @@ fn prepare_utxo(
             .expect("Missing UTXO for the script"),
     };
 
-    if utxo.txout.value.is_confidential() {
-        Ok(unblind(context.get_default_signer(), utxo)?)
-    } else {
-        Ok(utxo)
+    match utxo.txout.value.is_confidential() {
+        true => Ok(unblind(context.get_default_signer(), utxo)?),
+        false => Ok(utxo),
     }
 }
 
@@ -240,7 +239,7 @@ fn unblind(signer: &Signer, mut utxo: UTXO) -> anyhow::Result<UTXO> {
     Ok(utxo)
 }
 
-// Add an output mirroring utxo's asset with amount - 1 and the same script.
+// Add an output mirroring utxo's asset with amount - 1 and the tweaked script.
 fn add_mirror_output(
     mut ft: FinalTransaction,
     utxo: &UTXO,
@@ -248,7 +247,8 @@ fn add_mirror_output(
     policy_asset: AssetId,
 ) -> (FinalTransaction, Option<AssetId>) {
     let mut output = PartialOutput::new(
-        utxo.txout.script_pubkey.clone(),
+        // scripts in input and output on the same index should be different for the test
+        tweak_script(&utxo.txout.script_pubkey),
         // amounts in input and output on the same index should be different for the test
         utxo.amount() - 1,
         utxo.asset(),
@@ -260,13 +260,22 @@ fn add_mirror_output(
 
     ft.add_output(output);
 
-    let leftover_asset = if utxo.asset() != policy_asset {
-        Some(utxo.asset())
-    } else {
-        None
+    let leftover_asset = match utxo.asset() == policy_asset {
+        true => None,
+        false => Some(utxo.asset()),
     };
 
     (ft, leftover_asset)
+}
+
+/// Change the lowest bit of the last byte (used for test purposes).
+pub fn tweak_script(script: &Script) -> Script {
+    let mut bytes = script.as_bytes().to_vec();
+
+    let last = bytes.last_mut().expect("Empty script");
+    *last ^= 0x01;
+
+    Script::from(bytes)
 }
 
 /// Spend the funded UTXO with `witness`. Return the broadcast result.

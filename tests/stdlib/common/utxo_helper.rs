@@ -10,6 +10,7 @@ use simplex::simplicityhl::elements::Txid;
 use simplex::simplicityhl::elements::pset::serialize::Serialize;
 use simplex::transaction::UTXO;
 
+use crate::common::core::tweak_script;
 use crate::common::core::{send_blinded, send_explicit, send_issued};
 use crate::common::helper::generate_u256;
 pub const DEFAULT_SEND_AMOUNT: u64 = 50;
@@ -134,7 +135,14 @@ pub fn create_utxos_and_return_script_hash(
         program,
     )?;
 
-    let hash = (last_utxo.txout.script_pubkey).wscript_hash();
+    // when testing an input amount, we expect the actual script;
+    // the output script will be tweaked to differ from the input script
+    let script = match is_input {
+        true => last_utxo.txout.script_pubkey,
+        false => tweak_script(&last_utxo.txout.script_pubkey),
+    };
+
+    let hash = script.wscript_hash();
 
     Ok((hash.to_byte_array(), txids))
 }
