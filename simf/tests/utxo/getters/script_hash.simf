@@ -1,0 +1,46 @@
+use crate::lib::utxo::getters::script_hash::{
+    get_script_hash,
+    get_input_script_hash,
+    get_output_script_hash,
+    get_current_script_hash
+};
+use crate::lib::asserts::assert_eq_256;
+
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let index: u32 = witness::INDEX;
+    let is_input_index: bool = witness::IS_INPUT_INDEX;
+
+    let expected_hash: u256 = witness::EXPECTED;
+
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_eq_256(get_script_hash(index, is_input_index), expected_hash);
+        },
+        false => (),
+    };
+
+    match is_selected(1, fn_idx) {
+        true => {
+            assert_eq_256(get_input_script_hash(index), expected_hash);
+        },
+        false => (),
+    };
+
+    match is_selected(2, fn_idx) {
+        true => {
+            assert_eq_256(get_output_script_hash(index), expected_hash);
+        },
+        false => (),
+    };
+
+    match is_selected(3, fn_idx) {
+        true => {
+            assert_eq_256(get_current_script_hash(), expected_hash);
+        },
+        false => (),
+    };
+}
