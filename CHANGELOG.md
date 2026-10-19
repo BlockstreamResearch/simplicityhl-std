@@ -1,5 +1,8 @@
 # Changelog
 
+## [Unreleased]
+- Added functions for retrieving script hashes.
+
 ## [0.0.2]
 
 - Added `mul_div` functions.
