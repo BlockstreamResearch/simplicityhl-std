@@ -136,7 +136,7 @@ pub fn create_utxos_and_return_script_hash(
     )?;
 
     // when testing an input amount, we expect the actual script;
-    // the output script will be tweaked to differ from the input script
+    // the output script is tweaked to differ from the input script
     let script = match is_input {
         true => last_utxo.txout.script_pubkey,
         false => tweak_script(&last_utxo.txout.script_pubkey),

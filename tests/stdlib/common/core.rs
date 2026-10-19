@@ -11,7 +11,6 @@ use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
     FinalTransaction, PartialInput, PartialOutput, ProgramInput, RequiredSignature, UTXO,
 };
-use simplicityhl_std::artifacts::tests::mock::MockProgram;
 use simplicityhl_std::artifacts::tests::mock::derived_mock::MockWitness;
 
 use crate::common::utxo_helper::{DEFAULT_SEND_AMOUNT, search_utxo_by_txid};
@@ -57,7 +56,7 @@ pub fn send_explicit(signer: &Signer, to: &Script, amount_to_send: u64) -> anyho
     Ok(signer.send(to.clone(), amount_to_send)?.txid())
 }
 
-/// Send sats to the specified script confidentialy.
+/// Send sats to the specified script confidentially.
 pub fn send_blinded(
     signer: &Signer,
     to: &Script,
@@ -111,7 +110,7 @@ pub fn construct_final_tx<W>(
     witness: W,
     data: Option<&[u8]>,
     txids: Vec<Txid>,
-    program_for_test: Option<&impl AsRef<Program>>,
+    program_for_test: Option<Program>,
 ) -> anyhow::Result<FinalTransaction>
 where
     W: WitnessTrait + 'static,
@@ -156,15 +155,12 @@ where
 
         let last_utxo = match program_for_test {
             Some(program_for_test) => {
-                let last_script = &program_for_test.as_ref().get_script_pubkey(network);
+                let last_script = &program_for_test.get_script_pubkey(network);
                 let last_utxo = prepare_utxo(context, last_script, txids.last())?;
 
                 ft.add_program_input(
                     PartialInput::new(last_utxo.clone()),
-                    ProgramInput::new(
-                        Box::new(program_for_test.as_ref().clone()),
-                        Box::new(MockWitness {}),
-                    ),
+                    ProgramInput::new(Box::new(program_for_test.clone()), Box::new(MockWitness {})),
                     RequiredSignature::None,
                 );
 
@@ -191,11 +187,7 @@ where
     }
 
     if let Some(leftover_asset) = leftover_asset {
-        ft.add_output(PartialOutput::new(
-            default_script.clone(),
-            1,
-            leftover_asset,
-        ));
+        ft.add_output(PartialOutput::new(default_script, 1, leftover_asset));
     }
 
     if let Some(data) = data {
@@ -285,7 +277,7 @@ pub fn spend<W>(
     witness: W,
     data: Option<&[u8]>,
     txids: Vec<Txid>,
-    program_for_test: Option<&impl AsRef<Program>>,
+    program_for_test: Option<Program>,
 ) -> anyhow::Result<String>
 where
     W: WitnessTrait + 'static,
@@ -326,14 +318,7 @@ where
     W: WitnessTrait + 'static,
 {
     fund(context, &program, DEFAULT_SEND_AMOUNT)?;
-    let result = spend(
-        context,
-        &program,
-        witness,
-        None,
-        Vec::new(),
-        None::<&MockProgram>,
-    );
+    let result = spend(context, &program, witness, None, Vec::new(), None);
 
     assert_error_msg(result, expect)
 }
@@ -351,14 +336,7 @@ where
     W: WitnessTrait + 'static,
 {
     fund(context, &program, DEFAULT_SEND_AMOUNT)?;
-    let result = spend(
-        context,
-        &program,
-        witness,
-        Some(data),
-        Vec::new(),
-        None::<&MockProgram>,
-    );
+    let result = spend(context, &program, witness, Some(data), Vec::new(), None);
 
     assert_error_msg(result, expect)
 }
@@ -370,7 +348,7 @@ pub fn run_with_inputs_outputs<W>(
     witness: W,
     expect: Expect,
     txids: Vec<Txid>,
-    program_for_test: Option<&impl AsRef<Program>>,
+    program_for_test: Option<Program>,
 ) -> anyhow::Result<()>
 where
     W: WitnessTrait + 'static,

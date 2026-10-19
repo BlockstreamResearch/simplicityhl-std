@@ -1,8 +1,7 @@
 use crate::lib::utxo::getters::script_hash::{
     get_script_hash,
     get_input_script_hash,
-    get_output_script_hash,
-    get_current_script_hash
+    get_output_script_hash
 };
 use crate::lib::asserts::assert_eq_256;
 
@@ -33,13 +32,6 @@ fn main() {
     match is_selected(2, fn_idx) {
         true => {
             assert_eq_256(get_output_script_hash(index), expected_hash);
-        },
-        false => (),
-    };
-
-    match is_selected(3, fn_idx) {
-        true => {
-            assert_eq_256(get_current_script_hash(), expected_hash);
         },
         false => (),
     };

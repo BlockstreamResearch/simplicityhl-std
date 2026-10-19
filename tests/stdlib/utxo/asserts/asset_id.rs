@@ -105,14 +105,7 @@ impl Case {
         expect: Expect,
         txids: Vec<Txid>,
     ) -> anyhow::Result<()> {
-        run_with_inputs_outputs(
-            context,
-            program(),
-            self.witness,
-            expect,
-            txids,
-            None::<&TestAssetIdProgram>,
-        )
+        run_with_inputs_outputs(context, program(), self.witness, expect, txids, None)
     }
 }
 

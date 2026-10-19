@@ -459,14 +459,7 @@
     "section": "Script hash getters",
     "input_type": "u32",
     "output_type": "u256",
-    "description": " Returns the SHA256 hash of the scriptPubKey of the output at the given index.\n\n## Panics\nPanics if the specified output does not exist."
-  },
-  {
-    "simplicityhl_name": "get_current_script_hash",
-    "section": "Script hash getters",
-    "input_type": "()",
-    "output_type": "u256",
-    "description": "Returns the SHA256 hash of the scriptPubKey at the current_index."
+    "description": "Returns the SHA256 hash of the scriptPubKey of the output at the given index.\n\n## Panics\nPanics if the specified output does not exist."
   },
   {
     "simplicityhl_name": "not",

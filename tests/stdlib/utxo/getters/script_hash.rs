@@ -19,7 +19,6 @@ enum FunctionToTest {
     Script,
     InputScript,
     OutputScript,
-    CurrentScript,
 }
 #[derive(PartialEq, Eq)]
 enum IndexType {
@@ -92,7 +91,7 @@ impl Case {
             self.witness,
             expect,
             txids,
-            Some(&mock()),
+            Some(mock().as_ref().clone()),
         )
     }
 }
@@ -194,16 +193,4 @@ fn get_output_script_hash_missing_output_fail(context: simplex::TestContext) -> 
     case(OutputScript)
         .index(u32::MAX)
         .expecting(&context, Expect::PrunedBranch, txids)
-}
-
-#[simplex::test]
-fn get_current_script_hash(context: simplex::TestContext) -> anyhow::Result<()> {
-    let index = 0;
-
-    let (expected_hash, txids) = create_utxos_wrapper(&context, index, is_input(IndexType::Input))?;
-
-    case(CurrentScript)
-        .index(index)
-        .expect(expected_hash)
-        .run(&context, txids)
 }

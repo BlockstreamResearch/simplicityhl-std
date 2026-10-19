@@ -15,20 +15,11 @@ pub fn get_script_hash(index: u32, is_input_index: bool) -> u256 {
 /// Returns the SHA256 hash of the scriptPubKey of the UTXO of the input at the given index.
 /// Panics if the specified input does not exist
 pub fn get_input_script_hash(index: u32) -> u256 {
-    let script_hash: Option<u256> = jet::input_script_hash(index);
-
-    unwrap(script_hash)
+    unwrap(jet::input_script_hash(index))
 }
 
 /// Returns the SHA256 hash of the scriptPubKey of the UTXO of the output at the given index.
 /// Panics if the specified output does not exist
 pub fn get_output_script_hash(index: u32) -> u256 {
-    let script_hash: Option<u256> = jet::output_script_hash(index);
-
-    unwrap(script_hash)
-}
-
-/// Returns the SHA256 hash of the scriptPubKey of the UTXO at the current_index
-pub fn get_current_script_hash() -> u256 {
-    jet::current_script_hash()
+    unwrap(jet::output_script_hash(index))
 }
