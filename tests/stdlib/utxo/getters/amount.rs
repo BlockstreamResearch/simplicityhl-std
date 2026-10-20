@@ -5,7 +5,7 @@ use simplex::simplicityhl::elements::Txid;
 use crate::common::core::Expect;
 use crate::common::core::run_with_inputs_outputs;
 use crate::common::utxo_helper::ConfidentialAmount;
-use crate::common::utxo_helper::{create_utxos, random_expected_amount};
+use crate::common::utxo_helper::{create_utxos_and_return_conf_assets, random_expected_amount};
 
 use simplicityhl_std::artifacts::tests::utxo::getters::amount::AmountProgram as TestAmountProgram;
 use simplicityhl_std::artifacts::tests::utxo::getters::amount::derived_amount::{
@@ -101,7 +101,7 @@ impl Case {
         expect: Expect,
         txids: Vec<Txid>,
     ) -> anyhow::Result<()> {
-        run_with_inputs_outputs(context, program(), self.witness, expect, txids)
+        run_with_inputs_outputs(context, program(), self.witness, expect, txids, None)
     }
 }
 
@@ -125,7 +125,7 @@ fn create_utxos_wrapper(
     is_input: bool,
     expected_amount: u64,
 ) -> anyhow::Result<(Option<ConfidentialAmount>, Vec<Txid>)> {
-    let (result, txids) = create_utxos(
+    let (result, txids) = create_utxos_and_return_conf_assets(
         context,
         index,
         is_explicit,

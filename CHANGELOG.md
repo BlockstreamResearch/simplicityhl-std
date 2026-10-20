@@ -1,14 +1,15 @@
 # Changelog
 
-## [0.0.2]
+## [Unreleased]
 
 - Added `mul_div` functions.
 - Organized code into modules.
 - Refactored test structure.
 - Removed `safe_` prefixes from math functions, so the default versions are overflow-checked.
 - Added functions for retrieving and asserting `AssetId` and `Amount`.
+- Added functions for retrieving script hashes.
 
-## [0.0.1]
+## [0.1.0]
 
 Initial release!
 - Сhecked arithmetic operations for `u8`, `u16`, `u32`, `u64`, `u128` and `u256`.

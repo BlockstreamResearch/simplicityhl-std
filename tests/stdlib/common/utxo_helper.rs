@@ -1,12 +1,16 @@
 use primitive_types::U256;
 use rand::Rng;
+use secp256k1_zkp::hashes::Hash;
+
 use simplex::program::Program;
 use simplex::simplicityhl::elements::AssetId;
 use simplex::simplicityhl::elements::OutPoint;
+use simplex::simplicityhl::elements::Script;
 use simplex::simplicityhl::elements::Txid;
 use simplex::simplicityhl::elements::pset::serialize::Serialize;
 use simplex::transaction::UTXO;
 
+use crate::common::core::tweak_script;
 use crate::common::core::{send_blinded, send_explicit, send_issued};
 use crate::common::helper::generate_u256;
 pub const DEFAULT_SEND_AMOUNT: u64 = 50;
@@ -34,8 +38,9 @@ pub fn create_utxos(
     is_explicit: bool,
     is_input: bool,
     expected_amount: u64,
+    last_script: &Script,
     program: impl AsRef<Program>,
-) -> anyhow::Result<(Option<ConfidentialAsset>, Vec<Txid>)> {
+) -> anyhow::Result<(UTXO, Vec<Txid>)> {
     let signer = context.get_default_signer();
     let pubkey_script = &signer.get_address().script_pubkey();
     let program_script = &program.as_ref().get_script_pubkey(context.get_network());
@@ -43,10 +48,14 @@ pub fn create_utxos(
     let mut txids = Vec::new();
 
     for i in 0..=index {
-        let script = match i == 0 {
-            true => program_script,
-            false => pubkey_script,
+        let script = if i == 0 {
+            program_script
+        } else if i == index {
+            last_script
+        } else {
+            pubkey_script
         };
+
         let mut amount_to_send = match index == i {
             true => expected_amount,
             false => DEFAULT_SEND_AMOUNT,
@@ -69,22 +78,73 @@ pub fn create_utxos(
         }
     }
 
-    if !is_explicit {
-        let script = match index == 0 {
-            true => program_script,
-            false => pubkey_script,
-        };
+    let script = match index == 0 {
+        true => program_script,
+        false => last_script,
+    };
 
-        let utxos = context
-            .get_default_provider()
-            .fetch_scripthash_utxos(script)?;
+    let utxos = context
+        .get_default_provider()
+        .fetch_scripthash_utxos(script)?;
 
-        let conf_utxo = search_utxo_by_txid(txids.last().unwrap(), &utxos)?;
+    let last_utxo = search_utxo_by_txid(txids.last().unwrap(), &utxos)?;
 
-        Ok((Some(get_asset_id_amount_from_conf_utxo(conf_utxo)?), txids))
-    } else {
-        Ok((None, txids))
+    Ok((last_utxo, txids))
+}
+
+pub fn create_utxos_and_return_conf_assets(
+    context: &simplex::TestContext,
+    index: u32,
+    is_explicit: bool,
+    is_input: bool,
+    expected_amount: u64,
+    program: impl AsRef<Program>,
+) -> anyhow::Result<(Option<ConfidentialAsset>, Vec<Txid>)> {
+    let last_script = &context.get_default_signer().get_address().script_pubkey();
+
+    let (last_utxo, txids) = create_utxos(
+        context,
+        index,
+        is_explicit,
+        is_input,
+        expected_amount,
+        last_script,
+        program,
+    )?;
+
+    match is_explicit {
+        true => Ok((None, txids)),
+        false => Ok((Some(get_asset_id_amount_from_conf_utxo(last_utxo)?), txids)),
     }
+}
+
+pub fn create_utxos_and_return_script_hash(
+    context: &simplex::TestContext,
+    index: u32,
+    is_input: bool,
+    last_script: &Script,
+    program: impl AsRef<Program>,
+) -> anyhow::Result<([u8; 32], Vec<Txid>)> {
+    let (last_utxo, txids) = create_utxos(
+        context,
+        index,
+        true,
+        is_input,
+        DEFAULT_SEND_AMOUNT,
+        last_script,
+        program,
+    )?;
+
+    // when testing an input amount, we expect the actual script;
+    // the output script is tweaked to differ from the input script
+    let script = match is_input {
+        true => last_utxo.txout.script_pubkey,
+        false => tweak_script(&last_utxo.txout.script_pubkey),
+    };
+
+    let hash = script.wscript_hash();
+
+    Ok((hash.to_byte_array(), txids))
 }
 
 pub fn create_utxos_with_new_asset(

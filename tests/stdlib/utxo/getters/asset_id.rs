@@ -6,7 +6,9 @@ use crate::common::core::Expect;
 use crate::common::core::run_with_inputs_outputs;
 use crate::common::utxo_helper::ConfidentialAssetId;
 use crate::common::utxo_helper::DEFAULT_SEND_AMOUNT;
-use crate::common::utxo_helper::{create_utxos, create_utxos_with_new_asset};
+use crate::common::utxo_helper::{
+    create_utxos_and_return_conf_assets, create_utxos_with_new_asset,
+};
 
 use simplicityhl_std::artifacts::tests::utxo::getters::asset_id::AssetIdProgram as TestAssetIdProgram;
 use simplicityhl_std::artifacts::tests::utxo::getters::asset_id::derived_asset_id::{
@@ -104,7 +106,7 @@ impl Case {
         expect: Expect,
         txids: Vec<Txid>,
     ) -> anyhow::Result<()> {
-        run_with_inputs_outputs(context, program(), self.witness, expect, txids)
+        run_with_inputs_outputs(context, program(), self.witness, expect, txids, None)
     }
 }
 
@@ -126,7 +128,7 @@ fn create_utxos_wrapper(
     index: u32,
     is_explicit: bool,
 ) -> anyhow::Result<(Option<ConfidentialAssetId>, Vec<Txid>)> {
-    let (result, txids) = create_utxos(
+    let (result, txids) = create_utxos_and_return_conf_assets(
         context,
         index,
         is_explicit,

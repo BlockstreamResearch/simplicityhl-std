@@ -441,6 +441,27 @@
     "description": "Returns the confidential input asset_id at the current_index.\n\n## Panics\nPanics if asset_id is explicit."
   },
   {
+    "simplicityhl_name": "get_script_hash",
+    "section": "Script hash getters",
+    "input_type": "u32, bool",
+    "output_type": "u256",
+    "description": "Returns the SHA256 hash of the scriptPubKey at the specified input or output.\n\n## Panics\nPanics if the specified input or output does not exist."
+  },
+  {
+    "simplicityhl_name": "get_input_script_hash",
+    "section": "Script hash getters",
+    "input_type": "u32",
+    "output_type": "u256",
+    "description": "Returns the SHA256 hash of the scriptPubKey of the input at the given index.\n\n## Panics\nPanics if the specified input does not exist."
+  },
+  {
+    "simplicityhl_name": "get_output_script_hash",
+    "section": "Script hash getters",
+    "input_type": "u32",
+    "output_type": "u256",
+    "description": "Returns the SHA256 hash of the scriptPubKey of the output at the given index.\n\n## Panics\nPanics if the specified output does not exist."
+  },
+  {
     "simplicityhl_name": "not",
     "section": "Binary logic",
     "input_type": "bool",
