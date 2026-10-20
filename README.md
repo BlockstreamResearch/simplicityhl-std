@@ -53,8 +53,10 @@ simf/lib
 │       │   └── Functions for retrieving `Amount` in inputs and outputs.
 │       ├── asset_id.simf
 │       │   └── Functions for retrieving `AssetId` in inputs and outputs.
-│       └── asset_id_with_amount.simf
-│           └── Functions for retrieving `Amount` and `AssetId` in inputs and outputs.
+│       ├── asset_id_with_amount.simf
+│       │   └── Functions for retrieving `Amount` and `AssetId` in inputs and outputs.
+│       └── script_hash.simf
+│           └── Functions for retrieving hash of the scriptPubKey in inputs and outputs.
 ├── asserts.simf
 │   └── Assertion helpers: `assert_eq_*` for uints and `bool`, plus `assert_none_*` for `Option`.
 ├── binary.simf
