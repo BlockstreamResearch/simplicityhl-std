@@ -4,7 +4,7 @@
 
 ### Breaking changes
 - Removed `safe_` prefixes from math functions, so the default versions are overflow-checked.
-- Functions that return a carry, borrow, or widened result were renamed.
+- Functions that return a carry, borrow, or widened result were renamed accordingly (e.g. `add_128_carry`, `sub_128_borrow`, `mul_256_wide`).
 - Bumped Simplex to 0.0.12.
 
 ### Added
