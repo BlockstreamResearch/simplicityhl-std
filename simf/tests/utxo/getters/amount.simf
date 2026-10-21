@@ -1,0 +1,104 @@
+use crate::lib::utxo::getters::amount::{
+    get_explicit_amount,
+    get_confidential_amount,
+    get_explicit_input_amount,
+    get_confidential_input_amount,
+    get_explicit_output_amount,
+    get_confidential_output_amount,
+    get_explicit_current_amount,
+    get_confidential_current_amount
+};
+use crate::lib::asserts::{assert_eq_1, assert_eq_64, assert_eq_256};
+
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let index: u32 = witness::INDEX;
+    let is_input_index: bool = witness::IS_INPUT_INDEX;
+
+    let expected_amount: u64 = witness::EXPECTED;
+    let expected_parity: u1 = witness::EXPECTED_PARITY;
+    let expected_confidential_amount: u256 = witness::EXPECTED_CONF;
+
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_eq_64(get_explicit_amount(index, is_input_index), expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(1, fn_idx) {
+        true => {
+            let (
+                parity_bit,
+                confidential_amount
+            ): Confidential1 = get_confidential_amount(index, is_input_index);
+
+            assert_eq_1(parity_bit,expected_parity);
+            assert_eq_256(confidential_amount, expected_confidential_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(2, fn_idx) {
+        true => {
+            assert_eq_64(get_explicit_input_amount(index), expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(3, fn_idx) {
+        true => {
+            let (
+                parity_bit,
+                confidential_amount
+            ): Confidential1 = get_confidential_input_amount(index);
+
+            assert_eq_1(parity_bit,expected_parity);
+            assert_eq_256(confidential_amount, expected_confidential_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(4, fn_idx) {
+        true => {
+            assert_eq_64(get_explicit_output_amount(index), expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(5, fn_idx) {
+        true => {
+            let (
+                parity_bit,
+                confidential_amount
+            ): Confidential1 = get_confidential_output_amount(index);
+
+            assert_eq_1(parity_bit,expected_parity);
+            assert_eq_256(confidential_amount, expected_confidential_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(6, fn_idx) {
+        true => {
+            assert_eq_64(get_explicit_current_amount(), expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(7, fn_idx) {
+        true => {
+            let (
+                parity_bit,
+                confidential_amount
+            ): Confidential1 = get_confidential_current_amount();
+
+            assert_eq_1(parity_bit,expected_parity);
+            assert_eq_256(confidential_amount, expected_confidential_amount);
+        },
+        false => (),
+    };
+}

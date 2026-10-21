@@ -12,7 +12,7 @@ When submitting a feature request, please provide as many details as possible fo
 
 ## Pull Requests
 
-If you're interested in contributing code to the library, start by [forking the repository](https://github.com/BlockstreamResearch/simplicityhl-std/fork) and submitting a pull request. 
+If you're interested in contributing code to the library, start by [forking the repository](https://github.com/BlockstreamResearch/simplicityhl-std/fork) and submitting a pull request.
 
 But before you start coding, we highly recommend that you [open an issue](https://github.com/BlockstreamResearch/simplicityhl-std/issues/new/choose) first to discuss the changes you want to make.
 

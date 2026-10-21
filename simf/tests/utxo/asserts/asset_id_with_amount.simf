@@ -1,0 +1,114 @@
+use crate::lib::utxo::asserts::asset_id_with_amount::{
+    assert_explicit_asset_id_with_amount,
+    assert_confidential_asset_id_with_amount,
+    assert_explicit_input_asset_id_with_amount,
+    assert_confidential_input_asset_id_with_amount,
+    assert_explicit_output_asset_id_with_amount,
+    assert_confidential_output_asset_id_with_amount,
+    assert_explicit_current_asset_id_with_amount,
+    assert_confidential_current_asset_id_with_amount
+};
+
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let index: u32 = witness::INDEX;
+    let is_input_index: bool = witness::IS_INPUT_INDEX;
+
+    let expected_asset_id: u256 = witness::EXPECTED_ASSET;
+    let expected_asset_parity: u1 = witness::EXPECTED_ASSET_PARITY;
+    let expected_confidential_asset_id: u256 = witness::EXPECTED_CONF_ASSET;
+
+    let expected_confidential_asset_id: Confidential1 = (
+        expected_asset_parity,
+        expected_confidential_asset_id
+    );
+
+    let expected_amount: u64 = witness::EXPECTED_AMOUNT;
+    let expected_amount_parity: u1 = witness::EXPECTED_AMOUNT_PARITY;
+    let expected_confidential_amount: u256 = witness::EXPECTED_CONF_AMOUNT;
+
+    let expected_confidential_amount: Confidential1 = (
+        expected_amount_parity,
+        expected_confidential_amount
+    );
+
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_explicit_asset_id_with_amount(
+                index,
+                is_input_index,
+                expected_asset_id,
+                expected_amount
+            );
+        },
+        false => (),
+    };
+
+    match is_selected(1, fn_idx) {
+        true => {
+            assert_confidential_asset_id_with_amount(
+                index,
+                is_input_index,
+                expected_confidential_asset_id,
+                expected_confidential_amount
+            );
+        },
+        false => (),
+    };
+
+    match is_selected(2, fn_idx) {
+        true => {
+            assert_explicit_input_asset_id_with_amount(index, expected_asset_id, expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(3, fn_idx) {
+        true => {
+            assert_confidential_input_asset_id_with_amount(
+                index,
+                expected_confidential_asset_id,
+                expected_confidential_amount
+            );
+        },
+        false => (),
+    };
+
+    match is_selected(4, fn_idx) {
+        true => {
+            assert_explicit_output_asset_id_with_amount(index, expected_asset_id, expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(5, fn_idx) {
+        true => {
+            assert_confidential_output_asset_id_with_amount(
+                index,
+                expected_confidential_asset_id,
+                expected_confidential_amount
+            );
+        },
+        false => (),
+    };
+
+    match is_selected(6, fn_idx) {
+        true => {
+            assert_explicit_current_asset_id_with_amount(expected_asset_id, expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(7, fn_idx) {
+        true => {
+            assert_confidential_current_asset_id_with_amount(
+                expected_confidential_asset_id,
+                expected_confidential_amount
+            );
+        },
+        false => (),
+    };
+}
