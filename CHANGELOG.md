@@ -1,18 +1,25 @@
 # Changelog
 
-## [Unreleased]
+## [0.2.0]
 
-- Added `mul_div` functions.
+### Breaking changes
+- Removed `safe_` prefixes from math functions, so the default versions are overflow-checked.
+- Functions that return a carry, borrow, or widened result were renamed accordingly (e.g. `add_128_carry`, `sub_128_borrow`, `mul_256_wide`).
+- Bumped Simplex to 0.0.12.
+
+### Added
+- `mul_div` functions.
+- Functions for retrieving and asserting `AssetId` and `Amount`.
+- Functions for retrieving script hashes.
+
+### Changed
 - Organized code into modules.
 - Refactored test structure.
-- Removed `safe_` prefixes from math functions, so the default versions are overflow-checked.
-- Added functions for retrieving and asserting `AssetId` and `Amount`.
-- Added functions for retrieving script hashes.
 
 ## [0.1.0]
 
 Initial release!
-- Сhecked arithmetic operations for `u8`, `u16`, `u32`, `u64`, `u128` and `u256`.
+- Checked arithmetic operations for `u8`, `u16`, `u32`, `u64`, `u128` and `u256`.
 - `OP_RETURN` detection utilities.
 - Implementation of `and`, `or`, `not`, and `xor` binary operators.
 - Basic numeric assertions.
