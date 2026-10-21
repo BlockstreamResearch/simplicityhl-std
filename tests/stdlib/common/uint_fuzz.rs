@@ -8,11 +8,9 @@ use super::uint::{CommonOp, TestUint};
 
 use simplex::simplicityhl::{Arguments, WitnessValues};
 
-use simplex::fuzz::FuzzableProgram;
-use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
 use simplex::fuzz::proptest::prelude::Just;
 use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
-use simplex::program::{ProgramFactory, ProgramSchema};
+use simplex::fuzz::{Expect, FuzzProgramTrait};
 use simplex::{FuzzMode, TestContext};
 
 /// Fuzz-specific program data and number generators for a common unsigned
@@ -20,9 +18,6 @@ use simplex::{FuzzMode, TestContext};
 pub trait TestUintFuzz: TestUint + Debug + 'static {
     /// Program arguments used for each generated test case.
     type Arguments: Debug + Clone + Into<Arguments> + 'static;
-
-    /// Execution outcome for division by zero in this width's target library.
-    const DIV_BY_ZERO_EXPECT: Expect = Expect::PrunedBranch;
 
     /// Returns the fixed program arguments for this uint test program.
     fn arguments() -> Self::Arguments;
@@ -278,15 +273,10 @@ pub fn run_uint_fuzz<T: TestUintFuzz>(
     expect: Expect,
 ) -> anyhow::Result<()>
 where
-    T::Program:
-        FuzzableProgram<T::Program> + ProgramFactory<T::Program> + ProgramSchema + Clone + 'static,
+    T::Program: FuzzProgramTrait,
     T::Witness: Debug + Clone + 'static,
 {
-    context
-        .engine::<T::Program, T::Arguments, T::Witness>()
-        .with_custom_strategy(strategy)
-        .with_custom_check(FuzzExecutionCheck::new("uint operation", expect))
-        .run();
+    super::fuzz::run::<T::Program>(&context, strategy, "uint operation", expect);
 
     Ok(())
 }
@@ -310,28 +300,28 @@ macro_rules! uint_fuzz_tests {
     ($t:ty) => {
 
         $crate::uint_fuzz_tests!(@stub $t;
-            checked_add_fitting checked_add_fitting_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            checked_add_overflow checked_add_overflow_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            safe_add_fitting safe_add_fitting_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            safe_add_overflow safe_add_overflow_strategy simplex::fuzz::fuzz_check::Expect::PrunedBranch;
-            checked_sub_fitting checked_sub_fitting_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            checked_sub_overflow checked_sub_overflow_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            safe_sub_fitting safe_sub_fitting_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            safe_sub_overflow safe_sub_overflow_strategy simplex::fuzz::fuzz_check::Expect::PrunedBranch;
-            checked_mul_fitting checked_mul_fitting_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            checked_mul_overflow checked_mul_overflow_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            safe_mul_fitting safe_mul_fitting_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            safe_mul_overflow safe_mul_overflow_strategy simplex::fuzz::fuzz_check::Expect::PrunedBranch;
-            checked_div_fitting checked_div_fitting_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            checked_div_by_zero checked_div_by_zero_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            safe_div_fitting safe_div_fitting_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            safe_div_by_zero safe_div_by_zero_strategy <$t as $crate::common::uint_fuzz::TestUintFuzz>::DIV_BY_ZERO_EXPECT;
-            gt_greater gt_greater_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            gt_equal gt_equal_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            gt_less gt_less_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            ge_greater ge_greater_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            ge_equal ge_equal_strategy simplex::fuzz::fuzz_check::Expect::Ok;
-            ge_less ge_less_strategy simplex::fuzz::fuzz_check::Expect::Ok;
+            checked_add_fitting checked_add_fitting_strategy simplex::fuzz::Expect::Accept;
+            checked_add_overflow checked_add_overflow_strategy simplex::fuzz::Expect::Accept;
+            safe_add_fitting safe_add_fitting_strategy simplex::fuzz::Expect::Accept;
+            safe_add_overflow safe_add_overflow_strategy simplex::fuzz::Expect::Reject;
+            checked_sub_fitting checked_sub_fitting_strategy simplex::fuzz::Expect::Accept;
+            checked_sub_overflow checked_sub_overflow_strategy simplex::fuzz::Expect::Accept;
+            safe_sub_fitting safe_sub_fitting_strategy simplex::fuzz::Expect::Accept;
+            safe_sub_overflow safe_sub_overflow_strategy simplex::fuzz::Expect::Reject;
+            checked_mul_fitting checked_mul_fitting_strategy simplex::fuzz::Expect::Accept;
+            checked_mul_overflow checked_mul_overflow_strategy simplex::fuzz::Expect::Accept;
+            safe_mul_fitting safe_mul_fitting_strategy simplex::fuzz::Expect::Accept;
+            safe_mul_overflow safe_mul_overflow_strategy simplex::fuzz::Expect::Reject;
+            checked_div_fitting checked_div_fitting_strategy simplex::fuzz::Expect::Accept;
+            checked_div_by_zero checked_div_by_zero_strategy simplex::fuzz::Expect::Accept;
+            safe_div_fitting safe_div_fitting_strategy simplex::fuzz::Expect::Accept;
+            safe_div_by_zero safe_div_by_zero_strategy simplex::fuzz::Expect::Reject;
+            gt_greater gt_greater_strategy simplex::fuzz::Expect::Accept;
+            gt_equal gt_equal_strategy simplex::fuzz::Expect::Accept;
+            gt_less gt_less_strategy simplex::fuzz::Expect::Accept;
+            ge_greater ge_greater_strategy simplex::fuzz::Expect::Accept;
+            ge_equal ge_equal_strategy simplex::fuzz::Expect::Accept;
+            ge_less ge_less_strategy simplex::fuzz::Expect::Accept;
         );
     };
     (@stub $t:ty; $(

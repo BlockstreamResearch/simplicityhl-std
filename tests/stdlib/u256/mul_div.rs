@@ -28,6 +28,7 @@ struct Case {
 fn case(function: FunctionToTest) -> Case {
     Case {
         witness: U256MulDivTestWitness {
+            // budget_padding: [[0; 32]; 32],
             function_index: function as u8,
             first_arg: [0; 32],
             second_arg: [0; 32],
@@ -268,7 +269,7 @@ mod mul_div_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -347,7 +348,7 @@ mod mul_div_tests_fuzz {
             context,
             inputs: None,
             test_name,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
         }
     }
 
@@ -365,7 +366,7 @@ mod mul_div_tests_fuzz {
         fn run(self) -> anyhow::Result<()> {
             let Case { witness } = self.case;
             let inputs = self.inputs.expect("a fuzz strategy must be specified");
-            let expect_failure = matches!(self.expect, Expect::AssertFailed);
+            let expect_failure = matches!(self.expect, Expect::Reject);
 
             let strategy = inputs
                 .prop_map(move |(a, b, c, expected)| {
@@ -396,11 +397,12 @@ mod mul_div_tests_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<U256MulDivTestProgram, U256MulDivTestArguments, U256MulDivTestWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
-                .run();
+            crate::common::fuzz::run::<U256MulDivTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+            );
 
             Ok(())
         }
@@ -465,7 +467,7 @@ mod mul_div_tests_fuzz {
 
         case_fuzz(MulDiv, context, "mul_div_256 result overflow")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -544,7 +546,7 @@ mod mul_div_tests_fuzz {
 
         case_fuzz(MulDiv, context, "mul_div_256 division by zero")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 

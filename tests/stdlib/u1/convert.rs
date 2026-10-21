@@ -138,7 +138,7 @@ mod convert_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -197,11 +197,12 @@ mod convert_tests_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<U1ConvertTestProgram, U1ConvertTestArguments, U1ConvertTestWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, Expect::Ok))
-                .run();
+            crate::common::fuzz::run::<U1ConvertTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                Expect::Accept,
+            );
 
             Ok(())
         }

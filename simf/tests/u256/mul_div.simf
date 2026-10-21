@@ -3,7 +3,17 @@ use crate::lib::asserts::assert_eq_256;
 
 use crate::tests::support::dispatch::is_selected;
 
+// Consume a 1 KiB witness so expensive division paths have enough execution budget.
+// This belongs to the test harness; the library result is still checked below.
+fn check_budget_padding(word: u256, acc: ()) -> () {
+    assert!(jet::eq_256(word, 0));
+    acc
+}
+
 fn main() {
+    // let padding: [u256; 32] = witness::BUDGET_PADDING;
+    // array_fold::<check_budget_padding, 32>(padding, ());
+
     let fn_idx: u8 = witness::FUNCTION_INDEX;
 
     let a: u256 = witness::FIRST_ARG;

@@ -116,7 +116,7 @@ mod mul_div_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -195,7 +195,7 @@ mod mul_div_tests_fuzz {
             case: case(MulDiv),
             context,
             inputs: None,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
             test_name,
         }
     }
@@ -214,7 +214,7 @@ mod mul_div_tests_fuzz {
         fn run(self) -> anyhow::Result<()> {
             let Case { witness } = self.case;
             let inputs = self.inputs.expect("a fuzz strategy must be specified");
-            let expect_failure = matches!(self.expect, Expect::AssertFailed);
+            let expect_failure = matches!(self.expect, Expect::Reject);
 
             let strategy = inputs
                 .prop_map(move |case| {
@@ -225,11 +225,12 @@ mod mul_div_tests_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<U128MulDivTestProgram, U128MulDivTestArguments, U128MulDivTestWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
-                .run();
+            crate::common::fuzz::run::<U128MulDivTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+            );
 
             Ok(())
         }
@@ -287,7 +288,7 @@ mod mul_div_tests_fuzz {
 
         case_fuzz(context, "u128 mul div result overflow")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -302,7 +303,7 @@ mod mul_div_tests_fuzz {
 
         case_fuzz(context, "u128 mul div by zero")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 }

@@ -282,7 +282,7 @@ mod sub_mul_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -422,7 +422,7 @@ mod sub_mul_tests_fuzz {
             context,
             inputs: None,
             test_name,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
         }
     }
 
@@ -450,11 +450,12 @@ mod sub_mul_tests_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<U256TestSubMulProgram, U256TestSubMulArguments, U256TestSubMulWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
-                .run();
+            crate::common::fuzz::run::<U256TestSubMulProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+            );
 
             Ok(())
         }
@@ -696,7 +697,7 @@ mod sub_mul_tests_fuzz {
             "safe u256 by u128 multiplication overflow",
         )
         .strategy(strategy)
-        .expect(Expect::AssertFailed)
+        .expect(Expect::Reject)
         .run()
     }
 }

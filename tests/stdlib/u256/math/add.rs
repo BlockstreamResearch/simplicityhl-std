@@ -201,7 +201,7 @@ mod add_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -316,11 +316,12 @@ mod add_tests_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<U256TestAddProgram, U256TestAddArguments, U256TestAddWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, Expect::Ok))
-                .run();
+            crate::common::fuzz::run::<U256TestAddProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                Expect::Accept,
+            );
 
             Ok(())
         }

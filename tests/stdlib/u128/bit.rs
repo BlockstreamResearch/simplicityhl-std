@@ -172,7 +172,7 @@ mod bit_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -269,11 +269,12 @@ mod bit_tests_fuzz {
                     (arguments, witness)
                 });
 
-            self.context
-                .engine::<U128TestBitsProgram, U128TestBitsArguments, U128TestBitsWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.name, Expect::Ok))
-                .run();
+            crate::common::fuzz::run::<U128TestBitsProgram>(
+                &self.context,
+                strategy,
+                self.name,
+                Expect::Accept,
+            );
             Ok(())
         }
     }

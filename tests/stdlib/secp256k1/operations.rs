@@ -449,7 +449,7 @@ mod fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -510,7 +510,7 @@ mod fuzz {
             cases: Just(case(function)).boxed(),
             context,
             test_name,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
         }
     }
 
@@ -542,15 +542,12 @@ mod fuzz {
                 (arguments, witness)
             });
 
-            self.context
-                .engine::<
-                    Secp256k1OperationsTestProgram,
-                    Secp256k1OperationsTestArguments,
-                    Secp256k1OperationsTestWitness,
-                >()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
-                .run();
+            crate::common::fuzz::run::<Secp256k1OperationsTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+            );
 
             Ok(())
         }
@@ -645,7 +642,7 @@ mod fuzz {
                 case.gejs(pk_to_gej(&p), pk_to_gej(&p))
                     .expect_gej(Default::default())
             })
-            .expect(Expect::Ok)
+            .expect(Expect::Accept)
             .run()
     }
 
@@ -666,7 +663,7 @@ mod fuzz {
             .inject(arb_ge(), |case, ge| {
                 case.ges(ge, (ge.0, fe_negate_ref(ge.1)))
             })
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -699,7 +696,7 @@ mod fuzz {
 
                 case.gej(ge_to_gej(ge)).point((parity ^ 1, x))
             })
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 

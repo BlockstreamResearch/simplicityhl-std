@@ -111,7 +111,7 @@ mod mul_div_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -190,7 +190,7 @@ mod mul_div_tests_fuzz {
             context,
             inputs: None,
             test_name,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
         }
     }
 
@@ -208,7 +208,7 @@ mod mul_div_tests_fuzz {
         fn run(self) -> anyhow::Result<()> {
             let Case { witness } = self.case;
             let inputs = self.inputs.expect("a fuzz strategy must be specified");
-            let expect_failure = matches!(self.expect, Expect::AssertFailed);
+            let expect_failure = matches!(self.expect, Expect::Reject);
 
             let strategy = inputs
                 .prop_map(move |fuzz_case| {
@@ -220,11 +220,12 @@ mod mul_div_tests_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<U64MulDivTestProgram, U64MulDivTestArguments, U64MulDivTestWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
-                .run();
+            crate::common::fuzz::run::<U64MulDivTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+            );
 
             Ok(())
         }
@@ -269,7 +270,7 @@ mod mul_div_tests_fuzz {
 
         case_fuzz(context, "mul_div_64_result_overflow")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -280,7 +281,7 @@ mod mul_div_tests_fuzz {
 
         case_fuzz(context, "mul_div_64_div_by_zero")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 }

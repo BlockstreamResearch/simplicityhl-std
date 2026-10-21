@@ -451,7 +451,7 @@ mod div_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -569,7 +569,7 @@ mod div_tests_fuzz {
             context,
             inputs: None,
             test_name,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
         }
     }
 
@@ -597,11 +597,12 @@ mod div_tests_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<U256TestDivProgram, U256TestDivArguments, U256TestDivWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
-                .run();
+            crate::common::fuzz::run::<U256TestDivProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+            );
 
             Ok(())
         }
@@ -705,7 +706,7 @@ mod div_tests_fuzz {
             "u256 calculate base 128 normalizer rejects u128",
         )
         .strategy(strategy)
-        .expect(Expect::AssertFailed)
+        .expect(Expect::Reject)
         .run()
     }
 
@@ -723,7 +724,7 @@ mod div_tests_fuzz {
             "u256 calculate base 128 normalizer rejects zero",
         )
         .strategy(strategy)
-        .expect(Expect::AssertFailed)
+        .expect(Expect::Reject)
         .run()
     }
 
@@ -751,7 +752,7 @@ mod div_tests_fuzz {
 
         case_fuzz(DivMod256_64, context, "u256 div mod by u64 zero")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -790,7 +791,7 @@ mod div_tests_fuzz {
             "u256 algorithm d rejects u64 divisor",
         )
         .strategy(strategy)
-        .expect(Expect::AssertFailed)
+        .expect(Expect::Reject)
         .run()
     }
 
@@ -806,7 +807,7 @@ mod div_tests_fuzz {
             "u256 algorithm d rejects zero divisor",
         )
         .strategy(strategy)
-        .expect(Expect::AssertFailed)
+        .expect(Expect::Reject)
         .run()
     }
 
@@ -869,7 +870,7 @@ mod div_tests_fuzz {
 
         case_fuzz(DivMod256_128, context, "u256 div mod by u128 zero")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -1062,7 +1063,7 @@ mod div_tests_fuzz {
         run_uint_fuzz::<U256Wrapper>(
             context,
             safe_div_fitting_strategy::<U256Wrapper>(),
-            Expect::Ok,
+            Expect::Accept,
         )
     }
 
@@ -1074,7 +1075,7 @@ mod div_tests_fuzz {
         run_uint_fuzz::<U256Wrapper>(
             context,
             safe_div_by_zero_strategy::<U256Wrapper>(),
-            Expect::AssertFailed,
+            Expect::Reject,
         )
     }
 }

@@ -646,7 +646,7 @@ mod primitives_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -753,7 +753,7 @@ mod primitives_tests_fuzz {
             case: case(function),
             context,
             inputs: None,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
             name,
         }
     }
@@ -782,11 +782,12 @@ mod primitives_tests_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<U128BasicMathTestProgram, U128BasicMathTestArguments, U128BasicMathTestWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.name, self.expect))
-                .run();
+            crate::common::fuzz::run::<U128BasicMathTestProgram>(
+                &self.context,
+                strategy,
+                self.name,
+                self.expect,
+            );
             Ok(())
         }
     }
@@ -1109,7 +1110,7 @@ mod primitives_tests_fuzz {
             "normalizer_u64_wrong_width",
         )
         .strategy(strategy)
-        .expect(Expect::AssertFailed)
+        .expect(Expect::Reject)
         .run()
     }
 
@@ -1132,7 +1133,7 @@ mod primitives_tests_fuzz {
             "normalizer_u128_wrong_width",
         )
         .strategy(strategy)
-        .expect(Expect::AssertFailed)
+        .expect(Expect::Reject)
         .run()
     }
 
@@ -1144,7 +1145,7 @@ mod primitives_tests_fuzz {
 
         case_fuzz(CalculateNormalizerBase64, context, "normalizer_zero")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -1197,7 +1198,7 @@ mod primitives_tests_fuzz {
             "quotient_digit_too_large",
         )
         .strategy(strategy)
-        .expect(Expect::AssertFailed)
+        .expect(Expect::Reject)
         .run()
     }
 
@@ -1224,7 +1225,7 @@ mod primitives_tests_fuzz {
 
         case_fuzz(DivMod128_64, context, "div_mod_128_64_zero")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -1291,7 +1292,7 @@ mod primitives_tests_fuzz {
     // b>0.
     #[simplex::fuzz]
     fn div(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        run_uint_fuzz::<u128>(context, safe_div_fitting_strategy::<u128>(), Expect::Ok)
+        run_uint_fuzz::<u128>(context, safe_div_fitting_strategy::<u128>(), Expect::Accept)
     }
 
     // div_mod_128_div_by_zero - accepts custom inputs for the same operation.
@@ -1299,11 +1300,7 @@ mod primitives_tests_fuzz {
     // is expected.
     #[simplex::fuzz]
     fn div_by_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        run_uint_fuzz::<u128>(
-            context,
-            safe_div_by_zero_strategy::<u128>(),
-            Expect::AssertFailed,
-        )
+        run_uint_fuzz::<u128>(context, safe_div_by_zero_strategy::<u128>(), Expect::Reject)
     }
 
     // Explicit edge families complement the unrestricted arithmetic properties.
