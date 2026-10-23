@@ -10,6 +10,8 @@ The standard library implementation for [SimplicityHL](https://github.com/Blocks
 ```md
 simf/lib
 ├── secp256k1
+│   ├── ecdsa.simf
+│   │   └── ECDSA signature verification against a compressed public key.
 │   └── operations.simf
 │       ├── Conversions between `Ge`, `Gej`, and compressed `Point`.
 │       ├── Subtraction for `Fe`, `Scalar`, `Gej`.
