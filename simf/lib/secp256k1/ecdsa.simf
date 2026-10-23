@@ -1,0 +1,68 @@
+use crate::lib::binary::{and, not};
+
+/// Whether `a` is in `[1, n - 1]`. The scalar jets reduce mod `n`, so without this `s + n`
+/// would verify like `s`, and `r = 0` would make the check ignore `pk`.
+fn is_signature_scalar(a: Scalar) -> bool {
+    and(jet::eq_256(jet::scalar_normalize(a), a), not(jet::scalar_is_zero(a)))
+}
+
+/// Decompress `pk`, rejecting an `x >= p` that `jet::decompress` would silently reduce.
+fn decompress_public_key(pk: Point) -> Option<Ge> {
+    let (_, x): (u1, Fe) = pk;
+
+    match jet::eq_256(jet::fe_normalize(x), x) {
+        true => jet::decompress(pk),
+        false => None,
+    }
+}
+
+/// Check an ECDSA signature `(r, s)` by `pk` over the digest `msg` (SEC 1 v2.0, 4.1.4).
+///
+/// ## Security
+///
+/// - Hash `msg` in the contract, never take it from the witness: anyone can sign a digest of
+///   their choosing for any key.
+/// - Read every value the contract uses from the hashed bytes, and fix the rest (e.g. an
+///   oracle's pair and timestamp).
+/// - Take `pk` from a parameter.
+/// - Use `jet::sig_all_hash()` to authorize a spend. A signed statement doesn't say who may
+///   spend, so constrain the outputs.
+/// - Accepts both `(r, s)` and `(r, n - s)`.
+pub fn ecdsa_is_valid(pk: Point, msg: Message, sig: (Scalar, Scalar)) -> bool {
+    let (r, s): (Scalar, Scalar) = sig;
+
+    match decompress_public_key(pk) {
+        Some(q: Ge) => {
+            // The jets reduce `msg` mod `n`. `s = 0` gives `w = 0` and fails the range check.
+            let w: Scalar = jet::scalar_invert(s);
+            let u1: Scalar = jet::scalar_multiply(msg, w);
+            let u2: Scalar = jet::scalar_multiply(r, w);
+
+            // R = u1 * G + u2 * Q
+            let q: Gej = (q, 1);
+            let big_r: Gej = jet::linear_combination_1((u2, q), u1);
+
+            let r_matches: bool = match jet::gej_normalize(big_r) {
+                Some(big_r: Ge) => {
+                    let (x, _): (Fe, Fe) = big_r;
+                    // x < p < 2n, so this is x mod n.
+                    jet::eq_256(jet::scalar_normalize(x), r)
+                },
+                None => false,
+            };
+
+            and(and(is_signature_scalar(r), is_signature_scalar(s)), r_matches)
+        },
+        None => false,
+    }
+}
+
+/// Assert `ecdsa_is_valid(pk, msg, sig)`.
+///
+/// ## Security
+///
+/// Hash `msg` in the contract, never take it from the witness: anyone can sign a digest of
+/// their choosing for any key. See `ecdsa_is_valid` for the other caveats.
+pub fn ecdsa_verify(pk: Point, msg: Message, sig: (Scalar, Scalar)) {
+    assert!(ecdsa_is_valid(pk, msg, sig));
+}

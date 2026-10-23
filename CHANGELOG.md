@@ -11,6 +11,7 @@
 - `mul_div` functions.
 - Functions for retrieving and asserting `AssetId` and `Amount`.
 - Functions for retrieving script hashes.
+- `ecdsa_is_valid` and `ecdsa_verify`, which check an ECDSA signature over a 32-byte digest (SEC 1). Tested against the Wycheproof vectors.
 
 ### Changed
 - Organized code into modules.
