@@ -1,0 +1,25 @@
+use crate::lib::secp256k1::ecdsa::{ecdsa_is_valid, ecdsa_verify};
+use crate::tests::support::dispatch::is_selected;
+use crate::tests::support::expect::assert_bool;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let pk: Point = witness::PUBKEY;
+    let msg: Message = witness::MSG;
+    let sig: (Scalar, Scalar) = witness::SIG;
+    let expected: bool = witness::EXPECTED;
+
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_bool(ecdsa_is_valid(pk, msg, sig), expected);
+        },
+        false => (),
+    };
+    match is_selected(1, fn_idx) {
+        true => {
+            ecdsa_verify(pk, msg, sig);
+        },
+        false => (),
+    };
+}
