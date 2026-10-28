@@ -2,7 +2,7 @@ use crate::lib::binary::not;
 use crate::lib::u64::convert::u64_to_u128;
 use crate::lib::u128::math::{calculate_normalizer_base_64, estimate_quotient_digit_base_64};
 use crate::lib::u128::convert::split_u128_into_u64;
-use crate::lib::u256::math::{mul_256_wide, div_256};
+use crate::lib::u256::math::{mul_256_wide, div_256, full_mul_256_64};
 use crate::lib::u256::convert::split_u256_into_u64;
 use crate::lib::u256::comparison::{is_zero_256, lt_256};
 
@@ -45,19 +45,6 @@ fn shift_to_top_word_512_256(
         },
         false => (dividend_high, dividend_low, divisor),
     }
-}
-
-/// Multiplies the 256-bit integer by the 64-bit integer.
-/// Takes a carry-in word and returns a carry-out word
-fn full_mul_256_64(carry_in: u64, a: u256, b: u64) -> (u64, u256) {
-    let (a3, a2, a1, a0): (u64, u64, u64, u64) = split_u256_into_u64(a);
-
-    let (c0, w0): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(a0, b, carry_in, 0));
-    let (c1, w1): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(a1, b, c0, 0));
-    let (c2, w2): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(a2, b, c1, 0));
-    let (c3, w3): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(a3, b, c2, 0));
-
-    (c3, <(u64, u64, u64, u64)>::into((w3, w2, w1, w0)))
 }
 
 /// Normalizes the dividend and divisor for Algorithm D by shifting and

@@ -159,6 +159,19 @@ pub fn mul_256_64_wide(a: u256, b: u64) -> (u64, u256) {
     (res_2, <(u128, u128)>::into((res_1, word_0)))
 }
 
+/// Multiplies the 256-bit integer by the 64-bit integer.
+/// Takes a carry-in word and returns a carry-out word
+pub fn full_mul_256_64(carry_in: u64, a: u256, b: u64) -> (u64, u256) {
+    let (a3, a2, a1, a0): (u64, u64, u64, u64) = split_u256_into_u64(a);
+
+    let (c0, w0): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(a0, b, carry_in, 0));
+    let (c1, w1): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(a1, b, c0, 0));
+    let (c2, w2): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(a2, b, c1, 0));
+    let (c3, w3): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(a3, b, c2, 0));
+
+    (c3, <(u64, u64, u64, u64)>::into((w3, w2, w1, w0)))
+}
+
 /// Multiplies two integers. 
 /// The output consists of a 128-bit integer and a 256-bit integer.
 /// The idea is that u256-bit `a` divides into 128-bit `a_high` and `a_low`,

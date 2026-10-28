@@ -210,7 +210,7 @@ fn mul_div_256_algorithm_d_512_256_c_is_res_high(
 }
 
 #[simplex::test]
-fn mul_div_256_normalize_to_threshold_512_127_norm_is_1(
+fn mul_div_256_normalize_to_threshold_512_256_63_norm_is_1(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let pow2_128: U256 = U256::from(u128::MAX) + 1;
@@ -235,7 +235,7 @@ fn mul_div_256_normalize_to_threshold_512_127_norm_is_1(
 }
 
 #[simplex::test]
-fn mul_div_256_normalize_to_threshold_512_127_norm_greater_than_1(
+fn mul_div_256_normalize_to_threshold_512_256_63_norm_greater_than_1(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let a = generate_u256(U256::from(u128::MAX) + 1, U256::MAX);
@@ -254,6 +254,24 @@ fn mul_div_256_normalize_to_threshold_512_127_norm_greater_than_1(
     );
 
     let res = safe_u512_to_u256(product.div(c).to_big_endian());
+
+    case(MulDiv)
+        .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
+        .expect(res)
+        .run(&context)
+}
+
+#[simplex::test]
+fn mul_div_256_div_step_320_256_add_back(context: simplex::TestContext) -> anyhow::Result<()> {
+    let pow2_255: U256 = U256::from(2).pow(U256::from(255));
+
+    // a = (v3, v2, 0, 0), b = q << 192, c = (v3, v2, v1, v0) with (v1, v0) != 0:
+    // the quotient word is estimated as q, which is one too large
+    let c = generate_u256(pow2_255, U256::MAX) | U256::one();
+    let a = (c >> 128) << 128;
+    let b = generate_u256(U256::one(), U256::from(u64::MAX)) << 192;
+
+    let res = safe_u512_to_u256(a.full_mul(b).div(c).to_big_endian());
 
     case(MulDiv)
         .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
