@@ -32,3 +32,38 @@ impl TestUint for u128 {
 
 // Stamps the 22 `#[simplex::test]` entry points for u128. Logic lives in common::uint.
 crate::uint_tests!(u128);
+
+mod math_api_tests_fuzz {
+    use crate::common::uint_fuzz::TestUintFuzz;
+
+    use super::*;
+
+    use simplex::fuzz::proptest::prelude::any;
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+
+    impl TestUintFuzz for u128 {
+        type Arguments = U128MathTestArguments;
+
+        const DIV_BY_ZERO_EXPECT: simplex::fuzz::fuzz_check::Expect =
+            simplex::fuzz::fuzz_check::Expect::AssertFailed;
+
+        fn arguments() -> Self::Arguments {
+            U128MathTestArguments {}
+        }
+
+        fn arb_any() -> BoxedStrategy<Self> {
+            any::<u128>().boxed()
+        }
+
+        fn arb_non_zero() -> BoxedStrategy<Self> {
+            any::<u128>().prop_map(|value| value.max(1)).boxed()
+        }
+
+        fn arb_fitting(low: Self, high: Self) -> BoxedStrategy<Self> {
+            assert!(low <= high);
+            (low..=high).boxed()
+        }
+    }
+
+    crate::uint_fuzz_tests!(u128);
+}

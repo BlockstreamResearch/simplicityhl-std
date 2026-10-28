@@ -3,6 +3,7 @@ target/
 
 # Simplex output
 src/artifacts
+/fuzz-failures
 
 # IDE/editors (optional but common minimal)
 **/.DS_Store
