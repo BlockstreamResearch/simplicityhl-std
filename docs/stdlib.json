@@ -1554,6 +1554,13 @@
     "description": "Multiply a `u256` value by a `u64` value. The full, non-truncated product is returned as a `u64`/`u256` pair, most-significant first, so this operation can never overflow."
   },
   {
+    "simplicityhl_name": "full_mul_256_64",
+    "section": "`u256` arithmetic",
+    "input_type": "u64, u256, u64",
+    "output_type": "(u64, u256)",
+    "description": "Multiply a `u256` value by a `u64` value, taking an incoming carry word that is added to the product. Return the outgoing carry word and the low 256 bits of the result, so this operation can never overflow."
+  },
+  {
     "simplicityhl_name": "mul_256_128_wide",
     "section": "`u256` arithmetic",
     "input_type": "u256, u128",
