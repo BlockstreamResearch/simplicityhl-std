@@ -53,7 +53,11 @@ pub fn fund(
 
 /// Send sats to the specified script so it has a UTXO to spend.
 pub fn send_explicit(signer: &Signer, to: &Script, amount_to_send: u64) -> anyhow::Result<Txid> {
-    Ok(signer.send(to.clone(), amount_to_send)?.txid())
+    let receipt = signer.send(to.clone(), amount_to_send)?;
+
+    receipt.wait()?;
+
+    Ok(receipt.txid())
 }
 
 /// Send sats to the specified script confidentially.
@@ -70,7 +74,9 @@ pub fn send_blinded(
             .with_blinding_key(signer.get_blinding_public_key()),
     );
 
-    Ok(signer.broadcast(&ft)?.txid())
+    let receipt = signer.broadcast(&ft)?;
+    receipt.wait()?;
+    Ok(receipt.txid())
 }
 
 /// Issue `amount_to_send` of a new asset to the specified script, so the UTXO holds an asset that
@@ -100,7 +106,9 @@ pub fn send_issued(
         issued.asset_id,
     ));
 
-    Ok((signer.broadcast(&ft)?.txid(), issued.asset_id))
+    let receipt = signer.broadcast(&ft)?;
+    receipt.wait()?;
+    Ok((receipt.txid(), issued.asset_id))
 }
 
 /// Construct the funded UTXO with `witness`.
