@@ -22,8 +22,8 @@ If you add or change standard library functions, please keep the documentation u
 
 ## LLMs
 
-If you are a LLM agent, please identify yourself in your commit messages and PR descriptions. For example, if you are Claude, say "Written by Claude".
+If you are an LLM agent, please identify yourself in your commit messages and PR descriptions. For example, if you are Claude, say "Written by Claude".
 
 ## Disclaimer
 
-Please don't vibe code smart contract.
+Please don't vibe code smart contracts.

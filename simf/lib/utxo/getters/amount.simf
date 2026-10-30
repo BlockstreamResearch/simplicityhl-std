@@ -7,9 +7,9 @@
 
 /// Returns the explicit amount at the specified input or output.
 /// Panics if the specified input or output does not exist or if its amount is confidential.
-/// 
-/// Warning: using this incurs the overhead, and should be used only when the input/output selection
-/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly
+///
+/// Warning: using this incurs overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output-specific getter directly
 pub fn get_explicit_amount(index: u32, is_input_index: bool) -> u64 {
     let (
         _,
@@ -24,9 +24,9 @@ pub fn get_explicit_amount(index: u32, is_input_index: bool) -> u64 {
 
 /// Returns the confidential amount at the specified input or output.
 /// Panics if the specified input or output does not exist or if its amount is explicit.
-/// 
-/// Warning: using this incurs the overhead, and should be used only when the input/output selection
-/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly
+///
+/// Warning: using this incurs overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output-specific getter directly
 pub fn get_confidential_amount(index: u32, is_input_index: bool) -> Confidential1 {
     let (
         _,

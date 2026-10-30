@@ -11,9 +11,9 @@ use crate::lib::utxo::getters::amount::{
 use crate::lib::asserts::{assert_eq_1, assert_eq_64, assert_eq_256};
 
 /// Asserts that the explicit amount at the specified input or output equals the expected u64 value
-/// 
-/// Warning: using this incurs the overhead, and should be used only when the input/output selection
-/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+///
+/// Warning: using this incurs overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output-specific assert directly.
 pub fn assert_explicit_amount(index: u32, is_input_index: bool, expected: u64) {
     let amount: u64 = get_explicit_amount(index, is_input_index);
 
@@ -21,9 +21,9 @@ pub fn assert_explicit_amount(index: u32, is_input_index: bool, expected: u64) {
 }
 
 /// Asserts that the confidential amount at the specified input or output equals the expected Confidential1 value
-/// 
-/// Warning: using this incurs the overhead, and should be used only when the input/output selection
-/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+///
+/// Warning: using this incurs overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output-specific assert directly.
 pub fn assert_confidential_amount(index: u32, is_input_index: bool, expected: Confidential1) {
     let (parity_bit, amount): Confidential1 = get_confidential_amount(index, is_input_index);
     let (expected_parity_bit, expected_amount): Confidential1 = expected;

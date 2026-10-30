@@ -97,7 +97,7 @@ pub fn sub_256(a: u256, b: u256) -> u256 {
 }
 
 /// Multiplies two integers. The output is two 256-bit integers
-/// The idea is that u256-bit `a` divides into 128-bit `a_high` and `a_low`,
+/// The idea is that 256-bit `a` divides into 128-bit `a_high` and `a_low`,
 /// so a = a_high * 2^128 + a_low.
 /// In the same way, b = b_high * 2^128 + b_low.
 /// Therefore, a * b = 2^256 * a_high * b_high + 2^128(a_high * b_low + a_low * b_high) + a_low * b_low.
@@ -124,7 +124,7 @@ pub fn mul_256_wide(a: u256, b: u256) -> (u256, u256) {
     // `word_3` is the upper half of a_high * b_high. It is at most `u128::MAX - 1` when
     // either factor is `u128::MAX`, and even in the extreme case where
     // a == b == u256::MAX, the total product still fits into two u256.
-    // Therefore, word_3 + carry_3a + carry_3b can not overflow, and `full_add_128`
+    // Therefore, word_3 + carry_3a + carry_3b cannot overflow, and `full_add_128`
     // is used instead of `add_128` to avoid the unnecessary overflow check
     let (_, res_3a): (bool, u128) = full_add_128(carry_3a, word_3, 0);
     let (_, res_3): (bool, u128) = full_add_128(carry_3b, res_3a, 0);
@@ -135,9 +135,9 @@ pub fn mul_256_wide(a: u256, b: u256) -> (u256, u256) {
     (res_3_2, res_1_0)
 }
 
-/// Multiplies two integers. 
+/// Multiplies two integers.
 /// The output consists of a 64-bit integer and a 256-bit integer.
-/// The idea is that u256-bit `a` divides into 128-bit `a_high` and `a_low`,
+/// The idea is that 256-bit `a` divides into 128-bit `a_high` and `a_low`,
 /// so a = a_high * 2^128 + a_low,
 /// a * b = 2^128 * a_high * b + a_low * b
 pub fn mul_256_64_wide(a: u256, b: u64) -> (u64, u256) {
@@ -152,7 +152,7 @@ pub fn mul_256_64_wide(a: u256, b: u64) -> (u64, u256) {
     let (_, word_3): (u64, u64) = split_u128_into_u64(word_3);
 
     let (carry_2, res_1): (bool, u128) = add_128_carry(word_1, word_2);
-    // a * b fits into u320, so addition below can not overflow and 
+    // a * b fits into u320, so addition below cannot overflow and
     // `full_add_64` is used to avoid the unnecessary overflow check
     let (_, res_2): (bool, u64) = jet::full_add_64(carry_2, word_3, 0);
 
@@ -172,9 +172,9 @@ pub fn full_mul_256_64(carry_in: u64, a: u256, b: u64) -> (u64, u256) {
     (c3, <(u64, u64, u64, u64)>::into((w3, w2, w1, w0)))
 }
 
-/// Multiplies two integers. 
+/// Multiplies two integers.
 /// The output consists of a 128-bit integer and a 256-bit integer.
-/// The idea is that u256-bit `a` divides into 128-bit `a_high` and `a_low`,
+/// The idea is that 256-bit `a` divides into 128-bit `a_high` and `a_low`,
 /// so a = a_high * 2^128 + a_low,
 /// and a * b = 2^128 * a_high * b + a_low * b
 pub fn mul_256_128_wide(a: u256, b: u128) -> (u128, u256) {
@@ -187,14 +187,14 @@ pub fn mul_256_128_wide(a: u256, b: u128) -> (u128, u256) {
     let (word_3, word_2): (u128, u128) = split_u256_into_u128(highest);
 
     let (carry_2, res_1): (bool, u128) = add_128_carry(word_1, word_2);
-    // a * b fits into u384, so addition below can not overflow and 
+    // a * b fits into u384, so addition below cannot overflow and
     // `full_add_128` is used to avoid the unnecessary overflow check
     let (_, res_2): (bool, u128) = full_add_128(carry_2, word_3, 0);
 
     (res_2, <(u128, u128)>::into((res_1, word_0)))
 }
 
-/// Multiplies two integers. 
+/// Multiplies two integers.
 /// The output consists of a 128-bit integer and two 256-bit integers.
 /// The idea is that 512-bit `a` divides into 256-bit `a_high` and `a_low`,
 /// so a = a_high * 2^256 + a_low,
@@ -205,7 +205,7 @@ pub fn mul_512_128_wide(a_high: u256, a_low: u256, b: u128) -> (u128, u256, u256
 
     let (carry, res_1): (bool, u256) = add_256_128_carry(word_2, word_1);
 
-    // a * b fits into u640, so addition below can not overflow and
+    // a * b fits into u640, so addition below cannot overflow and
     // `full_add_128` is used to avoid the unnecessary overflow check
     let (_, res_2): (bool, u128) = full_add_128(carry, word_3, 0);
 
@@ -258,7 +258,7 @@ pub fn calculate_normalizer_base_128(b: u256) -> u128 {
                     ): (bool, u128) = add_128_carry(
                         norm,
                         1
-                    ); // norm <= 2^127, so norm + 1 can not overflow
+                    ); // norm <= 2^127, so norm + 1 cannot overflow
                     norm
                 },
             }
@@ -267,11 +267,11 @@ pub fn calculate_normalizer_base_128(b: u256) -> u128 {
     }
 }
 
-/// Normalizes the dividend and divisor for Algorithm D by multiplying 
-/// both u256 and u128 by the same factor, ensuring that 
+/// Normalizes the dividend and divisor for Algorithm D by multiplying
+/// both u256 and u128 by the same factor, ensuring that
 /// the most significant non-zero word of `b` is at least 2^63.
-/// 
-/// Returns the normalized `a` as a `(u64, u256)` pair, 
+///
+/// Returns the normalized `a` as a `(u64, u256)` pair,
 /// the normalized `b` and the normalization factor.
 fn normalize_to_threshold_256_63(a: u256, b: u128, is_b_u128: bool) -> (u64, u256, u128, u64) {
     let norm: u64 = calculate_normalizer_base_64(b, is_b_u128);
@@ -288,10 +288,10 @@ fn normalize_to_threshold_256_63(a: u256, b: u128, is_b_u128: bool) -> (u64, u25
     }
 }
 
-/// Normalizes the dividend and divisor for Algorithm D by multiplying 
-/// both u256 values by the same factor, ensuring that 
+/// Normalizes the dividend and divisor for Algorithm D by multiplying
+/// both u256 values by the same factor, ensuring that
 /// the most significant non-zero word of `b` is at least 2^127.
-/// 
+///
 /// The normalized dividend fits into 384 bits and is returned as a
 /// `(u128, u256)` pair. The normalized divisor fits into a u256.
 fn normalize_to_threshold_256_127(a: u256, b: u256) -> (u128, u256, u256) {
@@ -319,7 +319,7 @@ pub fn div_mod_256_64(dividend: u256, divisor: u64) -> (u256, u64) {
     let divisor: u128 = u64_to_u128(divisor);
     let dividend: u256 = <(u64, u64, u64, u64)>::into((remainder, u2, u1, u0));
 
-    // normalized dividend fits into 256 bits because remainder < divisor and 
+    // normalized dividend fits into 256 bits because remainder < divisor and
     // divisor * norm fits into u64, so dividend * norm also fits
     let (
         _,
@@ -388,7 +388,7 @@ pub fn algorithm_d_256_128(dividend: u256, divisor: u128) -> (u256, u128) {
 
 /// Divides the 256-bit integer by the 128-bit integer,
 /// returns a tuple of the u256 quotient and the u128 remainder
-/// Panics if the divisor is zero 
+/// Panics if the divisor is zero
 pub fn div_mod_256_128(dividend: u256, divisor: u128) -> (u256, u128) {
     let (divisor_high, divisor_low): (u64, u64) = split_u128_into_u64(divisor);
 
@@ -425,7 +425,7 @@ fn algorithm_d_256_256(dividend: u256, divisor: u256) -> (u128, u256) {
     // correcting estimation: q_hat is off by at most 2.
     let q: u128 = match lt_256(r_hat_u0, u_hat) {
         true => {
-            // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
+            // cannot overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
             let (_, q_hat): (bool, u128) = sub_128_borrow(q_hat, 1);
             let (carry, r_hat): (bool, u128) = add_128_carry(r_hat, v1);
 
@@ -437,7 +437,7 @@ fn algorithm_d_256_256(dividend: u256, divisor: u256) -> (u128, u256) {
 
                     match lt_256(r_hat_u0, u_hat) {
                         true => {
-                            // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
+                            // cannot overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
                             let (_, q_hat): (bool, u128) = sub_128_borrow(q_hat, 1);
 
                             q_hat
@@ -476,7 +476,7 @@ pub fn div_mod_256(a: u256, b: u256) -> (u256, u256) {
                     match eq_128(a_high, b_high) {
                         true => {
                             // safe: !lt_256(a, b) and a_high == b_high, so a_low >= b_low,
-                            // and the subtraction can not overflow
+                            // and the subtraction cannot overflow
                             let (_, diff): (bool, u128) = sub_128_borrow(a_low, b_low);
                             (1, u128_to_u256(diff))
                         },
@@ -497,7 +497,7 @@ pub fn div_mod_256(a: u256, b: u256) -> (u256, u256) {
     }
 }
 
-/// Divide the first integer by the second integer, returns the quotient
+/// Divides the first integer by the second integer, returns the quotient
 /// Panics if the divisor is zero
 pub fn div_256(a: u256, b: u256) -> u256 {
     let (q, _): (u256, u256) = div_mod_256(a, b);

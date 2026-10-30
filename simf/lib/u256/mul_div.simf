@@ -68,7 +68,7 @@ fn normalize_to_threshold_512_256_63(
     match jet::eq_64(norm, 1) {
         true => (dividend_high, dividend_low, divisor),
         false => {
-            // normalized divisor fits into u256 and dividend into 512 bits, so carries are zero
+            // normalized divisor fits into u256 and dividend into 512 bits, so the final carries are zero
             let (carry, dividend_low): (u64, u256) = full_mul_256_64(0, dividend_low, norm);
             let (_, dividend_high): (u64, u256) = full_mul_256_64(carry, dividend_high, norm);
             let (_, divisor): (u64, u256) = full_mul_256_64(0, divisor, norm);
@@ -108,7 +108,7 @@ fn div_step_320_256(
     match borrow {
         true => {
             // q_hat is one too large, so add the divisor back.
-            // can not overflow, because the borrow means q_hat is at least 1
+            // cannot overflow, because the borrow means q_hat is at least 1
             let (_, q): (bool, u64) = jet::subtract_64(q_hat, 1);
 
             // remainder is less than the divisor, so the final carry is dropped

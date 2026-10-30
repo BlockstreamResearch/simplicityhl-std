@@ -94,11 +94,11 @@ You can find [a rendered standard library reference](https://docs.simplicity-lan
 After installing the library, import modules from `std::lib`:
 
 ```rust
-use std::lib::u32::math::checked_add_32;
+use std::lib::u32::math::add_32;
 use std::lib::asserts::assert_eq_32;
 
 fn main() {
-    assert_eq_32(unwrap(checked_add_32(1, 2)), 3);
+    assert_eq_32(add_32(1, 2), 3);
 }
 ```
 

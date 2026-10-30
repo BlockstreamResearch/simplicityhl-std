@@ -11,9 +11,9 @@ use crate::lib::utxo::getters::asset_id_with_amount::{
 use crate::lib::asserts::{assert_eq_1, assert_eq_64, assert_eq_256};
 
 /// Asserts that the explicit asset_id and amount at the specified input or output equal the expected u256 and u64 values
-/// 
-/// Warning: using this incurs the overhead, and should be used only when the input/output selection
-/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+///
+/// Warning: using this incurs overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output-specific assert directly.
 pub fn assert_explicit_asset_id_with_amount(
     index: u32,
     is_input_index: bool,
@@ -27,9 +27,9 @@ pub fn assert_explicit_asset_id_with_amount(
 }
 
 /// Asserts that the confidential asset_id and amount at the specified input or output equal the expected Confidential1 values
-/// 
-/// Warning: using this incurs the overhead, and should be used only when the input/output selection
-/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly.
+///
+/// Warning: using this incurs overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output-specific assert directly.
 pub fn assert_confidential_asset_id_with_amount(
     index: u32,
     is_input_index: bool,
@@ -44,7 +44,7 @@ pub fn assert_confidential_asset_id_with_amount(
         is_input_index
     );
 
-    /// asset_id
+    // asset_id
     let (asset_id_parity_bit, asset_id): Confidential1 = asset_id;
     let (expected_asset_id_parity_bit, expected_asset_id): Confidential1 = expected_asset_id;
     // amount

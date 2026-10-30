@@ -1,8 +1,8 @@
 /// Returns the SHA256 hash of the scriptPubKey of the UTXO at the specified input or output.
 /// Panics if the specified input or output does not exist.
-/// 
-/// Warning: using this incurs the overhead, and should be used only when the input/output selection
-/// needs to be determined at runtime; otherwise, use the input- or output- specific getter directly
+///
+/// Warning: using this incurs overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output-specific getter directly
 pub fn get_script_hash(index: u32, is_input_index: bool) -> u256 {
     let script_hash: Option<u256> = match is_input_index {
         true => jet::input_script_hash(index),

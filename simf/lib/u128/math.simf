@@ -96,7 +96,7 @@ pub fn sub_128(a: u128, b: u128) -> u128 {
 }
 
 /// Multiplies two integers. The output is a 256-bit integer.
-/// The idea is that u128-bit `a` divides into 64-bit `a_high` and `a_low`,
+/// The idea is that 128-bit `a` divides into 64-bit `a_high` and `a_low`,
 /// so a = a_high * 2^64 + a_low.
 /// In the same way, b = b_high * 2^64 + b_low.
 /// Therefore, a * b = 2^128 * a_high * b_high + 2^64(a_high * b_low + a_low * b_high) + a_low * b_low.
@@ -123,7 +123,7 @@ pub fn mul_128_wide(a: u128, b: u128) -> u256 {
     // `word_3` is the upper half of a_high * b_high. It is at most `u64::MAX - 1` when
     // either factor is `u64::MAX`, and even in the extreme case where
     // a == b == u128::MAX, the total product still fits into u256.
-    // Therefore, word_3 + carry_3a + carry_3b can not overflow, and `full_add_64`
+    // Therefore, word_3 + carry_3a + carry_3b cannot overflow, and `full_add_64`
     // is used instead of `add_64` to avoid the unnecessary overflow check
     let (_, res_3a): (bool, u64) = jet::full_add_64(carry_3a, word_3, 0);
     let (_, res_3): (bool, u64) = jet::full_add_64(carry_3b, res_3a, 0);
@@ -135,7 +135,7 @@ pub fn mul_128_wide(a: u128, b: u128) -> u256 {
 }
 
 /// Multiplies two integers. The output is a 256-bit integer.
-/// The idea is that u128-bit `a` divides into 64-bit `a_high` and `a_low`,
+/// The idea is that 128-bit `a` divides into 64-bit `a_high` and `a_low`,
 /// so a = a_high * 2^64 + a_low.
 /// Therefore, a * b = 2^64 * a_high * b + a_low * b.
 pub fn mul_128_64_wide(a: u128, b: u64) -> u256 {
@@ -148,7 +148,7 @@ pub fn mul_128_64_wide(a: u128, b: u64) -> u256 {
     let (word_3, word_2): (u64, u64) = split_u128_into_u64(highest);
 
     let (carry_2, res_1): (bool, u64) = jet::add_64(word_1, word_2);
-    // a * b fits into u192, so addition below can not overflow and `full_add_64`
+    // a * b fits into u192, so addition below cannot overflow and `full_add_64`
     // is used instead of `add_64` to avoid the unnecessary overflow check
     let (_, res_2): (bool, u64) = jet::full_add_64(carry_2, word_3, 0);
 
@@ -196,7 +196,7 @@ pub fn calculate_normalizer_base_64(b: u128, is_b_u128: bool) -> u64 {
             let (
                 _,
                 norm
-            ): (bool, u64) = jet::add_64(norm, 1); // norm <= 2^63, so norm + 1 can not overflow
+            ): (bool, u64) = jet::add_64(norm, 1); // norm <= 2^63, so norm + 1 cannot overflow
             norm
         },
     }
@@ -251,7 +251,7 @@ pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u
             // correcting estimation: q_hat is off by at most 2.
             match lt_128(r_hat_u0, jet::multiply_64(q_hat, v0)) {
                 true => {
-                    // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
+                    // cannot overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
                     let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1);
                     let (carry, r_hat): (bool, u64) = jet::add_64(r_hat, v1);
 
@@ -262,7 +262,7 @@ pub fn estimate_quotient_digit_base_64(u2: u64, u1: u64, u0: u64, v1: u64, v0: u
 
                             match lt_128(r_hat_u0, jet::multiply_64(q_hat, v0)) {
                                 true => {
-                                    // can not overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
+                                    // cannot overflow because r_hat_u0 < q_hat * v0, so q_hat is at least 1
                                     let (_, q_hat): (bool, u64) = jet::subtract_64(q_hat, 1);
 
                                     q_hat
@@ -351,7 +351,7 @@ pub fn div_mod_128(a: u128, b: u128) -> (u128, u128) {
                     match jet::eq_64(a_high, b_high) {
                         true => {
                             // safe: !lt_128(a, b) and a_high == b_high, so a_low >= b_low,
-                            // and the subtraction can not overflow
+                            // and the subtraction cannot overflow
                             let (_, diff): (bool, u64) = jet::subtract_64(a_low, b_low);
                             (1, u64_to_u128(diff))
                         },
@@ -370,11 +370,10 @@ pub fn div_mod_128(a: u128, b: u128) -> (u128, u128) {
             }
         },
     }
-
 }
 
-/// Divide the first integer by the second integer, returns the quotient
-/// Panics if the divisor is zero 
+/// Divides the first integer by the second integer, returns the quotient
+/// Panics if the divisor is zero
 pub fn div_128(a: u128, b: u128) -> u128 {
     let (q, _): (u128, u128) = div_mod_128(a, b);
 
