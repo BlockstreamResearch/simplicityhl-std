@@ -630,6 +630,20 @@
     "description": "Assert that a Jacobian point equals an affine point, without normalizing the Jacobian point first.\n\n## Panics\nThe assertion fails."
   },
   {
+    "simplicityhl_name": "ecdsa_is_valid",
+    "section": "secp256k1 ECDSA",
+    "input_type": "Point, Message, (Scalar, Scalar)",
+    "output_type": "bool",
+    "description": "Check an ECDSA signature `sig = (r, s)` by `pk` over the digest `msg` (SEC 1 v2.0, 4.1.4). `pk` is `(parity, x)`, with `parity = 1` if `y` is odd. Returns `false` for `r` or `s` outside `[1, n - 1]`, an `x` not below `p` or not on the curve, or a signature that does not match.\n\n## Security\n- Hash `msg` in the contract, never take it from the witness: anyone can sign a digest of their choosing for any key.\n- Read every value the contract uses from the hashed bytes, and fix the rest (e.g. an oracle's pair and timestamp).\n- Take `pk` from a parameter.\n- Use `jet::sig_all_hash()` to authorize a spend. A signed statement doesn't say who may spend, so constrain the outputs.\n- Accepts both `(r, s)` and `(r, n - s)`."
+  },
+  {
+    "simplicityhl_name": "ecdsa_verify",
+    "section": "secp256k1 ECDSA",
+    "input_type": "Point, Message, (Scalar, Scalar)",
+    "output_type": "()",
+    "description": "Assert `ecdsa_is_valid(pk, msg, sig)`.\n\n## Security\nHash `msg` in the contract, never take it from the witness: anyone can sign a digest of their choosing for any key. See `ecdsa_is_valid` for the other caveats.\n\n## Panics\nThe assertion fails."
+  },
+  {
     "simplicityhl_name": "u1_to_u8",
     "section": "`u1` conversions",
     "input_type": "u1",

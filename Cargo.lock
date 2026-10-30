@@ -1498,6 +1498,7 @@ dependencies = [
  "primitive-types",
  "rand",
  "secp256k1-zkp",
+ "serde_json",
  "smplx-std",
 ]
 
