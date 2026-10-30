@@ -5,7 +5,6 @@
 ### Breaking changes
 - Removed `safe_` prefixes from math functions, so the default versions are overflow-checked.
 - `u128`/`u256` functions that return a carry, borrow, or widened result got `_carry`, `_borrow`, and `_wide` suffixes (e.g. `add_128_carry`, `sub_256_borrow`, `mul_128_wide`).
-- Division functions now panic if the divisor is zero.
 
 ### Added
 - `mul_div` functions for all uint types.
