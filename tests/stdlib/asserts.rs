@@ -363,7 +363,7 @@ mod asserts_test_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -621,7 +621,7 @@ mod asserts_test_fuzz {
             case: case(function),
             context,
             test_name,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
         }
     }
 
@@ -653,11 +653,12 @@ mod asserts_test_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<AssertsTestProgram, AssertsTestArguments, AssertsTestWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
-                .run();
+            crate::common::fuzz::run::<AssertsTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+            );
 
             Ok(())
         }
@@ -673,7 +674,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_eq_1_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertEq1, context, "assert_eq_1_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -687,7 +688,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_eq_8_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertEq8, context, "assert_eq_8_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -701,7 +702,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_eq_16_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertEq16, context, "assert_eq_16_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -715,7 +716,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_eq_32_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertEq32, context, "assert_eq_32_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -729,7 +730,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_eq_64_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertEq64, context, "assert_eq_64_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -743,7 +744,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_eq_128_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertEq128, context, "assert_eq_128_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -757,7 +758,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_eq_256_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertEq256, context, "assert_eq_256_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -771,7 +772,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_eq_bool_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertEqBool, context, "assert_eq_bool_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -785,7 +786,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_none_1_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertNone1, context, "assert_none_1_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -799,7 +800,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_none_8_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertNone8, context, "assert_none_8_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -813,7 +814,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_none_16_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertNone16, context, "assert_none_16_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -827,7 +828,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_none_32_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertNone32, context, "assert_none_32_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -841,7 +842,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_none_64_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertNone64, context, "assert_none_64_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -855,7 +856,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_none_128_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertNone128, context, "assert_none_128_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -869,7 +870,7 @@ mod asserts_test_fuzz {
     #[simplex::fuzz]
     fn assert_none_256_unhappy_path(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(AssertNone256, context, "assert_none_256_unhappy_path")
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 }

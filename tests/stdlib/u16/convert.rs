@@ -158,7 +158,7 @@ mod convert_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -184,7 +184,7 @@ mod convert_tests_fuzz {
             context,
             inputs: None,
             test_name,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
         }
     }
 
@@ -238,11 +238,12 @@ mod convert_tests_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<U16ConvertTestProgram, U16ConvertTestArguments, U16ConvertTestWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
-                .run();
+            crate::common::fuzz::run::<U16ConvertTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+            );
 
             Ok(())
         }
@@ -294,7 +295,7 @@ mod convert_tests_fuzz {
     fn safe_u16_to_u1_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(SafeU16ToU1, context, "safe_u16_to_u1_overflow")
             .strategy(2u16..=u16::MAX)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -309,7 +310,7 @@ mod convert_tests_fuzz {
     fn safe_u16_to_u8_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(SafeU16ToU8, context, "safe_u16_to_u8_overflow")
             .strategy(u8::MAX as u16 + 1..=u16::MAX)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 }

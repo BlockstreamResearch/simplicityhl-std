@@ -44,9 +44,6 @@ mod math_api_tests_fuzz {
     impl TestUintFuzz for u128 {
         type Arguments = U128MathTestArguments;
 
-        const DIV_BY_ZERO_EXPECT: simplex::fuzz::fuzz_check::Expect =
-            simplex::fuzz::fuzz_check::Expect::AssertFailed;
-
         fn arguments() -> Self::Arguments {
             U128MathTestArguments {}
         }

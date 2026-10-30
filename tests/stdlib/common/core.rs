@@ -13,7 +13,7 @@ use simplex::simplicityhl::{
 };
 use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
-    FinalTransaction, PartialInput, PartialOutput, ProgramInput, RequiredSignature, UTXO,
+    FinalTransaction, NativeSignature, PartialInput, PartialOutput, ProgramInput, UTXO,
 };
 use simplicityhl_std::artifacts::tests::mock::derived_mock::MockWitness;
 
@@ -89,14 +89,18 @@ pub fn send_issued(
     let funding = signer
         .get_utxos_asset(context.get_network().policy_asset())?
         .into_iter()
-        .max_by_key(UTXO::amount)
+        .map(|utxo| Ok((utxo.amount()?, utxo)))
+        .collect::<anyhow::Result<Vec<_>>>()?
+        .into_iter()
+        .max_by_key(|(amount, _)| *amount)
+        .map(|(_, utxo)| utxo)
         .ok_or_else(|| anyhow::anyhow!("no policy asset UTXO to attach the issuance to"))?;
 
     let mut ft = FinalTransaction::new();
     let issued = ft.add_issuance_input(
         PartialInput::new(funding),
         IssuanceInput::new_issuance(amount_to_send, 0, rand::random()),
-        RequiredSignature::NativeEcdsa,
+        Some(NativeSignature::Ecdsa),
     );
     ft.add_output(PartialOutput::new(
         to.clone(),
@@ -133,7 +137,7 @@ where
     ft.add_program_input(
         PartialInput::new(program_utxo.clone()),
         ProgramInput::new(Box::new(program.as_ref().clone()), witness.into()),
-        RequiredSignature::None,
+        None,
     );
 
     if data.unwrap_or_default().is_empty() {
@@ -142,7 +146,7 @@ where
             &program_utxo,
             signer.get_blinding_public_key(),
             policy_asset,
-        );
+        )?;
     }
 
     if txids.len() > 1 {
@@ -152,9 +156,12 @@ where
         for txid in &txids[1..last] {
             let utxo = search_utxo_by_txid(txid, &unblinded_utxos)?;
 
-            ft.add_input(PartialInput::new(utxo.clone()), RequiredSignature::None);
+            ft.add_input(
+                PartialInput::new(utxo.clone()),
+                Some(NativeSignature::Ecdsa),
+            );
 
-            (ft, _) = add_mirror_output(ft, &utxo, signer.get_blinding_public_key(), policy_asset);
+            (ft, _) = add_mirror_output(ft, &utxo, signer.get_blinding_public_key(), policy_asset)?;
         }
 
         let last_utxo = match program_for_test {
@@ -165,7 +172,7 @@ where
                 ft.add_program_input(
                     PartialInput::new(last_utxo.clone()),
                     ProgramInput::new(Box::new(program_for_test.clone()), MockWitness {}),
-                    RequiredSignature::None,
+                    None,
                 );
 
                 last_utxo
@@ -175,7 +182,7 @@ where
 
                 ft.add_input(
                     PartialInput::new(last_utxo.clone()),
-                    RequiredSignature::None,
+                    Some(NativeSignature::Ecdsa),
                 );
 
                 last_utxo
@@ -187,7 +194,7 @@ where
             &last_utxo,
             signer.get_blinding_public_key(),
             policy_asset,
-        );
+        )?;
     }
 
     if let Some(leftover_asset) = leftover_asset {
@@ -241,13 +248,13 @@ fn add_mirror_output(
     utxo: &UTXO,
     binding_key: PublicKey,
     policy_asset: AssetId,
-) -> (FinalTransaction, Option<AssetId>) {
+) -> anyhow::Result<(FinalTransaction, Option<AssetId>)> {
     let mut output = PartialOutput::new(
         // scripts in input and output on the same index should be different for the test
         tweak_script(&utxo.txout.script_pubkey),
         // amounts in input and output on the same index should be different for the test
-        utxo.amount() - 1,
-        utxo.asset(),
+        utxo.amount()? - 1,
+        utxo.asset()?,
     );
 
     if utxo.txout.value.is_confidential() {
@@ -256,12 +263,12 @@ fn add_mirror_output(
 
     ft.add_output(output);
 
-    let leftover_asset = match utxo.asset() == policy_asset {
+    let leftover_asset = match utxo.asset()? == policy_asset {
         true => None,
-        false => Some(utxo.asset()),
+        false => Some(utxo.asset()?),
     };
 
-    (ft, leftover_asset)
+    Ok((ft, leftover_asset))
 }
 
 /// Change the lowest bit of the last byte (used for test purposes).

@@ -221,7 +221,7 @@ mod convert_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -243,7 +243,7 @@ mod convert_tests_fuzz {
             case: case(function),
             context,
             inputs: None,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
             name,
         }
     }
@@ -277,12 +277,12 @@ mod convert_tests_fuzz {
                     (arguments, witness)
                 });
 
-            self.context
-                .engine::<U128ConvertTestProgram, U128ConvertTestArguments, U128ConvertTestWitness>(
-                )
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.name, self.expect))
-                .run();
+            crate::common::fuzz::run::<U128ConvertTestProgram>(
+                &self.context,
+                strategy,
+                self.name,
+                self.expect,
+            );
             Ok(())
         }
     }
@@ -391,7 +391,7 @@ mod convert_tests_fuzz {
     fn safe_u128_to_u1_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(SafeU128ToU1, context, "safe u128 to u1 overflow")
             .strategy(2u128..=u128::MAX)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -410,7 +410,7 @@ mod convert_tests_fuzz {
     fn safe_u128_to_u8_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(SafeU128ToU8, context, "safe u128 to u8 overflow")
             .strategy((u128::from(u8::MAX) + 1)..=u128::MAX)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -429,7 +429,7 @@ mod convert_tests_fuzz {
     fn safe_u128_to_u16_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(SafeU128ToU16, context, "safe u128 to u16 overflow")
             .strategy((u128::from(u16::MAX) + 1)..=u128::MAX)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -448,7 +448,7 @@ mod convert_tests_fuzz {
     fn safe_u128_to_u32_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(SafeU128ToU32, context, "safe u128 to u32 overflow")
             .strategy((u128::from(u32::MAX) + 1)..=u128::MAX)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -467,7 +467,7 @@ mod convert_tests_fuzz {
     fn safe_u128_to_u64_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
         case_fuzz(SafeU128ToU64, context, "safe u128 to u64 overflow")
             .strategy((u128::from(u64::MAX) + 1)..=u128::MAX)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 }

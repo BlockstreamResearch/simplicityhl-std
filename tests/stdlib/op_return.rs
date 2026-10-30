@@ -135,18 +135,13 @@ mod op_return_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
-    use simplex::fuzz::fuzz_transaction::{FuzzTransaction, ProgramTarget};
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
-    use simplex::transaction::{
-        FinalTransaction, PartialInput, PartialOutput, RequiredSignature, UTXO,
-    };
+    use simplex::fuzz::{Expect, Scenario};
+    use simplex::transaction::{FinalTransaction, PartialInput, PartialOutput, UTXO};
     use simplex::{FuzzMode, TestContext};
 
     const EXPECTED_IS_OP_RETURN: bool = true;
-
-    const PROGRAM_TARGET: ProgramTarget = ProgramTarget::Input(0);
 
     fn arb_non_zero_u32() -> impl Strategy<Value = u32> {
         any::<u32>().prop_filter("output index should not be zero", |index| *index != 0)
@@ -170,7 +165,7 @@ mod op_return_tests_fuzz {
             context,
             indices: Just(0_u32).boxed(),
             test_name,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
         }
     }
 
@@ -197,7 +192,7 @@ mod op_return_tests_fuzz {
 
         fn build_initial_tx(data: Option<&[u8]>) -> FinalTransaction {
             let mut tx = FinalTransaction::new();
-            tx.add_input(PartialInput::new(UTXO::default()), RequiredSignature::None);
+            tx.add_input(PartialInput::new(UTXO::default()), None);
 
             if let Some(data) = data {
                 tx.add_output(PartialOutput::new_metadata(data));
@@ -223,15 +218,13 @@ mod op_return_tests_fuzz {
                 })
                 .boxed();
 
-            let transaction_builder =
-                FuzzTransaction::new(CaseFuzz::build_initial_tx(data), [PROGRAM_TARGET])?;
+            let mut scenario = Scenario::new(CaseFuzz::build_initial_tx(data));
+            scenario
+                .add::<OpReturnTestProgram>(self.test_name)
+                .spends(0)
+                .custom_strategy(strategy.prop_map(Into::into));
 
-            self.context
-                .engine::<OpReturnTestProgram, OpReturnTestArguments, OpReturnTestWitness>()
-                .with_custom_strategy(strategy)
-                .with_custom_transaction(transaction_builder)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
-                .run();
+            crate::common::fuzz::run_scenario(&self.context, scenario, self.expect);
 
             Ok(())
         }
@@ -280,7 +273,7 @@ mod op_return_tests_fuzz {
         )
         .strategy(arb_non_zero_u32())
         .op_return(DEFAULT_DATA)
-        .expect(Expect::AssertFailed)
+        .expect(Expect::Reject)
         .run()
     }
 
@@ -291,7 +284,7 @@ mod op_return_tests_fuzz {
             context,
             "assert_output_is_op_return without outputs",
         )
-        .expect(Expect::AssertFailed)
+        .expect(Expect::Reject)
         .run()
     }
 }

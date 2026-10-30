@@ -243,7 +243,7 @@ mod convert_tests_fuzz {
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
-    use simplex::fuzz::fuzz_check::{Expect, FuzzExecutionCheck};
+    use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
@@ -324,7 +324,7 @@ mod convert_tests_fuzz {
             context,
             inputs: None,
             test_name,
-            expect: Expect::Ok,
+            expect: Expect::Accept,
         }
     }
 
@@ -359,12 +359,12 @@ mod convert_tests_fuzz {
                 })
                 .boxed();
 
-            self.context
-                .engine::<U256ConvertTestProgram, U256ConvertTestArguments, U256ConvertTestWitness>(
-                )
-                .with_custom_strategy(strategy)
-                .with_custom_check(FuzzExecutionCheck::new(self.test_name, self.expect))
-                .run();
+            crate::common::fuzz::run::<U256ConvertTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+            );
 
             Ok(())
         }
@@ -444,7 +444,7 @@ mod convert_tests_fuzz {
 
         case_fuzz(SafeU256ToU1, context, "safe u256 to u1 overflow")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -467,7 +467,7 @@ mod convert_tests_fuzz {
 
         case_fuzz(SafeU256ToU8, context, "safe u256 to u8 overflow")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -490,7 +490,7 @@ mod convert_tests_fuzz {
 
         case_fuzz(SafeU256ToU16, context, "safe u256 to u16 overflow")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -513,7 +513,7 @@ mod convert_tests_fuzz {
 
         case_fuzz(SafeU256ToU32, context, "safe u256 to u32 overflow")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -536,7 +536,7 @@ mod convert_tests_fuzz {
 
         case_fuzz(SafeU256ToU64, context, "safe u256 to u64 overflow")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 
@@ -559,7 +559,7 @@ mod convert_tests_fuzz {
 
         case_fuzz(SafeU256ToU128, context, "safe u256 to u128 overflow")
             .strategy(strategy)
-            .expect(Expect::AssertFailed)
+            .expect(Expect::Reject)
             .run()
     }
 }

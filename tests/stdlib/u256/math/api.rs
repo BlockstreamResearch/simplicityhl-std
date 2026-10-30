@@ -52,9 +52,6 @@ mod u256_math_tests_fuzz {
     impl TestUintFuzz for U256Wrapper {
         type Arguments = U256MathTestArguments;
 
-        const DIV_BY_ZERO_EXPECT: simplex::fuzz::fuzz_check::Expect =
-            simplex::fuzz::fuzz_check::Expect::AssertFailed;
-
         fn arguments() -> Self::Arguments {
             U256MathTestArguments {}
         }
