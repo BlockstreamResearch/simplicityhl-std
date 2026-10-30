@@ -1,0 +1,88 @@
+/*
+ * Confidential Transactions: exact value and asset proofs.
+ *
+ * These checks prove what a commitment holds without revealing any blinding factor:
+ *
+ *     c   - v*H_0                 = vbf*G                  (exact value, explicit asset)
+ *     H_a - H_0                   = abf*G                  (exact asset)
+ *     c   + H_a - (v+1)*H_0       = ((v+1)*abf + vbf)*G    (exact value and asset)
+ */
+
+use crate::lib::asserts::{assert_eq_64, assert_eq_256};
+use crate::lib::ct::point::{conf_point_to_ge, conf_point_to_gej};
+use crate::lib::secp256k1::operations::safe_gej_normalize;
+use crate::lib::u64::convert::u64_to_u256;
+
+/// Asserts that `proof` shows knowledge of `x` with `p == x*G`.
+/// Panics if `p` is the point at infinity.
+fn assert_dlog(p: Gej, proof: Signature) {
+    let (px, _): (Fe, Fe) = safe_gej_normalize(p);
+    jet::bip_0340_verify((px, jet::sig_all_hash()), proof);
+}
+
+/// Asserts that `c` commits to `v` against the generator `h`.
+/// The prover's secret is `x` with `c - v*h == x*G`.
+pub fn assert_exact_value(c: Point, v: u64, h: Ge, proof: Signature) {
+    let neg_v_h: Gej = jet::scale(jet::scalar_negate(u64_to_u256(v)), (h, 1));
+    assert_dlog(jet::gej_ge_add(neg_v_h, conf_point_to_ge(c)), proof);
+}
+
+/// Asserts that the asset generator `h` blinds `asset_id`.
+/// The prover's secret is `abf`.
+pub fn assert_exact_asset(h: Point, asset_id: u256, proof: Signature) {
+    assert_dlog(
+        jet::gej_ge_add(conf_point_to_gej(h), jet::ge_negate(jet::hash_to_curve(asset_id))),
+        proof
+    );
+}
+
+/// Asserts that `c` commits to `v` of `asset_id`, where `h` is the asset
+/// generator of `c`. The prover's secret is `(v+1)*abf + vbf`.
+pub fn assert_exact_value_and_asset(c: Point, h: Point, asset_id: u256, v: u64, proof: Signature) {
+    let v_plus_1: Scalar = jet::scalar_add(u64_to_u256(v), 1);
+    let neg_h0: Gej = jet::scale(jet::scalar_negate(v_plus_1), (jet::hash_to_curve(asset_id), 1));
+    assert_dlog(
+        jet::gej_ge_add(jet::gej_ge_add(neg_h0, conf_point_to_ge(c)), conf_point_to_ge(h)),
+        proof
+    );
+}
+
+/// Asserts that an `(asset, amount)` pair opens to `asset_id` and `v`,
+/// but without blinding factors. The prover's secret for `proof`:
+///
+/// - confidential asset, confidential amount: `(v+1)*abf + vbf`
+/// - confidential asset, explicit amount:     `abf`
+/// - explicit asset,     confidential amount: `vbf`
+/// - explicit asset,     explicit amount:     unused
+pub fn assert_opens_to_proof(
+    asset: Asset1,
+    amount: Amount1,
+    asset_id: u256,
+    v: u64,
+    proof: Signature
+) {
+    match asset {
+        Left(conf_asset: Point) => {
+            match amount {
+                Left(conf_amount: Point) => {
+                    assert_exact_value_and_asset(conf_amount, conf_asset, asset_id, v, proof)
+                },
+                Right(explicit_amount: u64) => {
+                    assert_eq_64(explicit_amount, v);
+                    assert_exact_asset(conf_asset, asset_id, proof);
+                },
+            };
+        },
+        Right(explicit_asset: u256) => {
+            assert_eq_256(explicit_asset, asset_id);
+
+            match amount {
+                // An explicit asset commits against the unblinded generator.
+                Left(conf_amount: Point) => {
+                    assert_exact_value(conf_amount, v, jet::hash_to_curve(asset_id), proof)
+                },
+                Right(explicit_amount: u64) => assert_eq_64(explicit_amount, v),
+            };
+        },
+    };
+}
