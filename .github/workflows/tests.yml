@@ -21,13 +21,14 @@ env:
 
 jobs:
   simplex-tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     permissions:
       contents: read
     strategy:
       fail-fast: false
       matrix:
+        os: [ ubuntu-latest, macos-latest ]
         toolchain: [ "1.91.0" ]
 
     steps:
