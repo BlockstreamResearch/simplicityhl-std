@@ -12,7 +12,7 @@ pub fn ge_to_point(p: Ge) -> Point {
 }
 
 /// Decompress a `Point` into a Jacobian point with `z = 1`.
-/// 
+///
 /// ## Panics
 /// - if `x` is not the x-coordinate of a curve point
 pub fn point_to_gej(p: Point) -> Gej {
@@ -20,7 +20,7 @@ pub fn point_to_gej(p: Point) -> Gej {
 }
 
 /// Convert the point into affine coordinates.
-/// 
+///
 /// ## Panics
 /// - if `p` is the point at infinity
 pub fn safe_gej_normalize(p: Gej) -> Ge {
@@ -121,7 +121,7 @@ pub fn assert_gej_eq(a: Gej, b: Gej) {
     assert!(jet::gej_equiv(a, b));
 }
 
-/// Assert point equal an affine point (no normalize required).
+/// Assert a Jacobian point equals an affine point (no normalization required).
 /// Both points must be on the curve: `gej_ge_equiv` only rejects `y = -b.y` for a matching `x`.
 pub fn assert_gej_ge_eq(a: Gej, b: Ge) {
     assert!(jet::gej_is_on_curve(a));

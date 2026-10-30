@@ -333,56 +333,56 @@
     "section": "AssetId and Amount getters",
     "input_type": "u32, bool",
     "output_type": "(u256, u64)",
-    "description": "Returns explicit asset_id and amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id and amount are confidential."
+    "description": "Returns explicit asset_id and amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id or amount is confidential."
   },
   {
     "simplicityhl_name": "get_confidential_asset_id_with_amount",
     "section": "AssetId and Amount getters",
     "input_type": "u32, bool",
     "output_type": "(Confidential1, Confidential1)",
-    "description": "Returns confidential asset_id and amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id and amount are explicit."
+    "description": "Returns confidential asset_id and amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its asset_id or amount is explicit."
   },
   {
     "simplicityhl_name": "get_explicit_input_asset_id_with_amount",
     "section": "AssetId and Amount getters",
     "input_type": "u32",
     "output_type": "(u256, u64)",
-    "description": "Returns explicit asset_id and amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id and amount are confidential."
+    "description": "Returns explicit asset_id and amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id or amount is confidential."
   },
   {
     "simplicityhl_name": "get_confidential_input_asset_id_with_amount",
     "section": "AssetId and Amount getters",
     "input_type": "u32",
     "output_type": "(Confidential1, Confidential1)",
-    "description": "Returns confidential asset_id and amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id and amount are explicit."
+    "description": "Returns confidential asset_id and amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its asset_id or amount is explicit."
   },
   {
     "simplicityhl_name": "get_explicit_output_asset_id_with_amount",
     "section": "AssetId and Amount getters",
     "input_type": "u32",
     "output_type": "(u256, u64)",
-    "description": "Returns explicit asset_id and amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id and amount are confidential."
+    "description": "Returns explicit asset_id and amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id or amount is confidential."
   },
   {
     "simplicityhl_name": "get_confidential_output_asset_id_with_amount",
     "section": "AssetId and Amount getters",
     "input_type": "u32",
     "output_type": "(Confidential1, Confidential1)",
-    "description": "Returns confidential asset_id and amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id and amount are explicit."
+    "description": "Returns confidential asset_id and amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its asset_id or amount is explicit."
   },
   {
     "simplicityhl_name": "get_explicit_current_asset_id_with_amount",
     "section": "AssetId and Amount getters",
     "input_type": "()",
     "output_type": "(u256, u64)",
-    "description": "Returns explicit input asset_id and amount at the current_index.\n\n## Panics\nPanics if asset_id and amount are confidential."
+    "description": "Returns explicit input asset_id and amount at the current_index.\n\n## Panics\nPanics if asset_id or amount is confidential."
   },
   {
     "simplicityhl_name": "get_confidential_current_asset_id_with_amount",
     "section": "AssetId and Amount getters",
     "input_type": "()",
     "output_type": "(Confidential1, Confidential1)",
-    "description": "Returns confidential input asset_id and amount at the current_index.\n\n## Panics\nPanics if asset_id and amount are explicit."
+    "description": "Returns confidential input asset_id and amount at the current_index.\n\n## Panics\nPanics if asset_id or amount is explicit."
   },
   {
     "simplicityhl_name": "get_explicit_asset_id",
@@ -578,7 +578,7 @@
     "section": "secp256k1 operations",
     "input_type": "Gej, Point",
     "output_type": "bool",
-    "description": "Check whether a Jacobian point and a compressed `Point` represent the same curve point.\n\n## Panics\nPanics if the compressed point does not decode to a valid curve point."
+    "description": "Check whether a Jacobian point and a compressed `Point` represent the same curve point. Returns `false` if the Jacobian point is off-curve or the compressed point does not decode to a valid curve point."
   },
   {
     "simplicityhl_name": "assert_fe_eq",
@@ -613,21 +613,21 @@
     "section": "secp256k1 operations",
     "input_type": "Gej, Point",
     "output_type": "()",
-    "description": "Assert that a Jacobian point equals the point encoded by a compressed `Point`.\n\n## Panics\nThe assertion fails, or the compressed point does not decode to a valid curve point."
+    "description": "Assert that a Jacobian point equals the point encoded by a compressed `Point`.\n\n## Panics\nThe assertion fails, including when the Jacobian point is off-curve or the compressed point does not decode to a valid curve point."
   },
   {
     "simplicityhl_name": "assert_gej_eq",
     "section": "secp256k1 operations",
     "input_type": "Gej, Gej",
     "output_type": "()",
-    "description": "Assert that two Jacobian points represent the same curve point, without normalizing either one first.\n\n## Panics\nThe assertion fails."
+    "description": "Assert that two Jacobian points represent the same curve point, without normalizing either one first.\n\n## Panics\nThe assertion fails, including when either point is off-curve."
   },
   {
     "simplicityhl_name": "assert_gej_ge_eq",
     "section": "secp256k1 operations",
     "input_type": "Gej, Ge",
     "output_type": "()",
-    "description": "Assert that a Jacobian point equals an affine point, without normalizing the Jacobian point first.\n\n## Panics\nThe assertion fails."
+    "description": "Assert that a Jacobian point equals an affine point, without normalizing the Jacobian point first.\n\n## Panics\nThe assertion fails, including when either point is off-curve."
   },
   {
     "simplicityhl_name": "u1_to_u8",
@@ -753,7 +753,7 @@
     "section": "`u8` arithmetic",
     "input_type": "u8, u8, u8",
     "output_type": "u8",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u8` or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision.\n\n## Panics\nPanics if the result overflows a `u8` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u8_to_u16",
@@ -879,7 +879,7 @@
     "section": "`u16` arithmetic",
     "input_type": "u16, u16, u16",
     "output_type": "u16",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u16` or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision.\n\n## Panics\nPanics if the result overflows a `u16` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u16_to_u32",
@@ -1005,7 +1005,7 @@
     "section": "`u32` arithmetic",
     "input_type": "u32, u32, u32",
     "output_type": "u32",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u32` or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision.\n\n## Panics\nPanics if the result overflows a `u32` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u32_to_u64",
@@ -1138,7 +1138,7 @@
     "section": "`u64` arithmetic",
     "input_type": "u64, u64, u64",
     "output_type": "u64",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u64` or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision.\n\n## Panics\nPanics if the result overflows a `u64` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "u64_to_u128",
@@ -1341,7 +1341,7 @@
     "section": "`u128` arithmetic",
     "input_type": "u128, u128, u128",
     "output_type": "u128",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u128` or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision.\n\n## Panics\nPanics if the result overflows a `u128` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "and_128",
@@ -1572,7 +1572,7 @@
     "section": "`u256` arithmetic",
     "input_type": "u256, u256, u128",
     "output_type": "(u128, u256, u256)",
-    "description": "Multiply a `u512` value by a `u128` value. The full, non-truncated product is returned as a (`u128`, `u256`, `u256`) tuple, most-significant first, so this operation can never overflow."
+    "description": "Multiply a 512-bit value, given as a pair of `u256` values (most-significant first), by a `u128` value. The full, non-truncated product is returned as a (`u128`, `u256`, `u256`) tuple, most-significant first, so this operation can never overflow."
   },
   {
     "simplicityhl_name": "checked_mul_256",
@@ -1600,7 +1600,7 @@
     "section": "`u256` arithmetic",
     "input_type": "u256",
     "output_type": "u128",
-    "description": "Helper for algorithm D division algorithms. Returns the factor by which `b` should be multiplied so that its upper 128 bits are at least `2^127`, as required by those algorithms (which operate in base `2^128`).\n\n## Panics\nThe assertion fails if `b`'s upper 128 bits are zero"
+    "description": "Helper for Algorithm D division. Returns the factor by which `b` should be multiplied so that its upper 128 bits are at least `2^127`, as required by those algorithms (which operate in base `2^128`).\n\n## Panics\nThe assertion fails if `b`'s upper 128 bits are zero."
   },
   {
     "simplicityhl_name": "div_mod_256_64",
@@ -1649,7 +1649,7 @@
     "section": "`u256` arithmetic",
     "input_type": "u256, u256, u256",
     "output_type": "u256",
-    "description": "Calculate `floor(a * b / denominator)` with full precision. \n\n## Panics\nPanics if the result overflows a `u256` or if the denominator is zero."
+    "description": "Calculate `floor(a * b / denominator)` with full precision.\n\n## Panics\nPanics if the result overflows a `u256` or if the denominator is zero."
   },
   {
     "simplicityhl_name": "and_256",

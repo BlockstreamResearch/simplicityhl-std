@@ -4,17 +4,20 @@
 
 ### Breaking changes
 - Removed `safe_` prefixes from math functions, so the default versions are overflow-checked.
-- Functions that return a carry, borrow, or widened result were renamed accordingly (e.g. `add_128_carry`, `sub_128_borrow`, `mul_256_wide`).
-- Bumped Simplex to 0.0.12.
+- `u128`/`u256` functions that return a carry, borrow, or widened result got `_carry`, `_borrow`, and `_wide` suffixes (e.g. `add_128_carry`, `sub_256_borrow`, `mul_128_wide`).
+- Division functions now panic if the divisor is zero.
 
 ### Added
-- `mul_div` functions.
+- `mul_div` functions for all uint types.
 - Functions for retrieving and asserting `AssetId` and `Amount`.
 - Functions for retrieving script hashes.
+- `full_add_256`, `full_mul_256_64`, `mul_512_128_wide`, `calculate_normalizer_base_128` and `algorithm_d_256_128` helpers.
 
 ### Changed
+- Bumped Simplex to 0.0.12.
 - Organized code into modules.
 - Refactored test structure.
+- Added a CI check that keeps `docs/stdlib.json` in sync with the library.
 
 ## [0.1.0]
 

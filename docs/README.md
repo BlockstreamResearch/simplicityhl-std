@@ -34,6 +34,14 @@ of `elements.json` is very close to `stdlib.json`, and the format of
 `jets.md` is very close to `stdlib.md`.
 
 
+`check_stdlib_json.py`
+
+This Python script checks that `stdlib.json` documents exactly the
+public functions defined under `simf/lib`. Run it from the repository
+root with `python3 docs/check_stdlib_json.py`; CI runs it on every
+pull request.
+
+
 ## Workflow changes
 
 Feel free to replace this with other tools and workflows, as long as
