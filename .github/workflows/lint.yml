@@ -16,7 +16,7 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  SIMPLEX_VERSION: 0.0.12
+  SIMPLEX_VERSION: 0.1.1
 
 jobs:
   lint:

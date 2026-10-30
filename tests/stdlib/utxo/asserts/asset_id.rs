@@ -186,7 +186,7 @@ fn assert_false_explicit_asset_id_for_input(context: simplex::TestContext) -> an
     case(Explicit)
         .index(index)
         .index_type(IndexType::Input)
-        .expect(context.get_network().policy_asset().into_inner().0)
+        .expect(context.get_network().policy_asset().to_byte_array())
         .expecting(&context, Expect::AssertFailed, txids)
 }
 
@@ -224,7 +224,7 @@ fn assert_false_explicit_asset_id_for_output(context: simplex::TestContext) -> a
     case(Explicit)
         .index(index)
         .index_type(IndexType::Output)
-        .expect(context.get_network().policy_asset().into_inner().0)
+        .expect(context.get_network().policy_asset().to_byte_array())
         .expecting(&context, Expect::AssertFailed, txids)
 }
 
@@ -321,7 +321,7 @@ fn assert_false_explicit_input_asset_id(context: simplex::TestContext) -> anyhow
 
     case(ExplicitInput)
         .index(index)
-        .expect(context.get_network().policy_asset().into_inner().0)
+        .expect(context.get_network().policy_asset().to_byte_array())
         .expecting(&context, Expect::AssertFailed, txids)
 }
 
@@ -376,7 +376,7 @@ fn assert_false_explicit_output_asset_id(context: simplex::TestContext) -> anyho
 
     case(ExplicitOutput)
         .index(index)
-        .expect(context.get_network().policy_asset().into_inner().0)
+        .expect(context.get_network().policy_asset().to_byte_array())
         .expecting(&context, Expect::AssertFailed, txids)
 }
 
@@ -434,7 +434,7 @@ fn assert_false_explicit_current_asset_id(context: simplex::TestContext) -> anyh
 
     case(CurrentExplicit)
         .index(index)
-        .expect(context.get_network().policy_asset().into_inner().0)
+        .expect(context.get_network().policy_asset().to_byte_array())
         .expecting(&context, Expect::AssertFailed, txids)
 }
 
