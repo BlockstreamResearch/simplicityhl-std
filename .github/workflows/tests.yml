@@ -61,5 +61,7 @@ jobs:
           cargo build --workspace --all-features --verbose
 
       - name: Test
+        env:
+          SIMPLEX_TEST_VERBOSE: ${{ runner.debug == '1' && '-v' || '' }}
         run: |
-          simplex test --test-threads 4 -v
+          simplex test --test-threads 4 "${SIMPLEX_TEST_VERBOSE}" -- --release
