@@ -1,6 +1,6 @@
 use crate::lib::u128::bit::eq_128;
 
-/// Asserts that two `u1` are equal
+/// Asserts that two u1 are equal
 pub fn assert_eq_1(a: u1, b: u1) {
     assert!(jet::eq_1(a, b))
 }

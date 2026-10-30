@@ -17,16 +17,18 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: full
+  SIMPLEX_VERSION: 0.0.12
 
 jobs:
   simplex-tests:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     permissions:
       contents: read
     strategy:
       fail-fast: false
       matrix:
+        os: [ ubuntu-latest, macos-latest ]
         toolchain: [ "1.91.0" ]
 
     steps:
@@ -47,7 +49,7 @@ jobs:
       - name: Install simplex-cli
         uses: BlockstreamResearch/simplicityhl-toolchain@v0.0.2
         with:
-          components: simplex
+          components: simplex@${{ env.SIMPLEX_VERSION }}
 
       - name: Generate contract artifacts
         shell: bash
@@ -59,5 +61,7 @@ jobs:
           cargo build --workspace --all-features --verbose
 
       - name: Test
+        env:
+          SIMPLEX_TEST_VERBOSE: ${{ runner.debug == '1' && '-v' || '' }}
         run: |
-          simplex test --test-threads 4
+          simplex test --test-threads 4 "${SIMPLEX_TEST_VERBOSE}" -- --release
