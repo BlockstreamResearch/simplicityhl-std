@@ -48,21 +48,21 @@ simf/lib
 │   │   │   └── Functions for asserting `AssetId` in inputs and outputs.
 │   │   └── asset_id_with_amount.simf
 │   │       └── Functions for asserting `Amount` and `AssetId` in inputs and outputs.
-│   └── getters
-│       ├── amount.simf
-│       │   └── Functions for retrieving `Amount` in inputs and outputs.
-│       ├── asset_id.simf
-│       │   └── Functions for retrieving `AssetId` in inputs and outputs.
-│       ├── asset_id_with_amount.simf
-│       │   └── Functions for retrieving `Amount` and `AssetId` in inputs and outputs.
-│       └── script_hash.simf
-│           └── Functions for retrieving hash of the scriptPubKey in inputs and outputs.
+│   ├── getters
+│   │   ├── amount.simf
+│   │   │   └── Functions for retrieving `Amount` in inputs and outputs.
+│   │   ├── asset_id.simf
+│   │   │   └── Functions for retrieving `AssetId` in inputs and outputs.
+│   │   ├── asset_id_with_amount.simf
+│   │   │   └── Functions for retrieving `Amount` and `AssetId` in inputs and outputs.
+│   │   └── script_hash.simf
+│   │       └── Functions for retrieving hash of the scriptPubKey in inputs and outputs.
+│   └── op_return.simf
+│       └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
 ├── asserts.simf
 │   └── Assertion helpers: `assert_eq_*` for uints and `bool`, plus `assert_none_*` for `Option`.
-├── binary.simf
-│   └── Basic binary logic operations: `and`, `or`, `not`, `xor`.
-└── op_return.simf
-    └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
+└── binary.simf
+    └── Basic binary logic operations: `and`, `or`, `not`, `xor`.
 ```
 
 ## Installation

@@ -1,0 +1,240 @@
+use crate::lib::utxo::op_return::{
+    Entry,
+    get_entry_option,
+    pushed_data_from_entry,
+    get_pushed_data,
+    op_x_minus_1_from_entry,
+    get_op_x_minus_1,
+    negate_or_reserved_from_entry,
+    get_negate_or_reserved,
+    kind_of_entry,
+    is_output_op_return,
+    has_entry,
+    assert_output_is_op_return,
+    assert_has_entry
+};
+
+use crate::lib::binary::and;
+use crate::lib::asserts::assert_eq_8;
+use crate::lib::u8::convert::safe_u8_to_u1;
+
+use crate::tests::support::dispatch::is_selected;
+use crate::tests::support::expect::assert_bool;
+
+// todo: move to lib
+fn eq_2(a: u2, b: u2) -> bool {
+    let (a_high, a_low): (u1, u1) = <u2>::into(a);
+    let (b_high, b_low): (u1, u1) = <u2>::into(b);
+
+    and(jet::eq_1(a_high, b_high), jet::eq_1(a_low, b_low))
+}
+
+// todo: move to lib
+fn eq_4(a: u4, b: u4) -> bool {
+    let a_u8: u8 = <(u4, u4)>::into((0, a));
+    let b_u8: u8 = <(u4, u4)>::into((0, b));
+
+    jet::eq_8(a_u8, b_u8)
+}
+
+fn eq_pushed_data(a: (u2, u256), b: (u2, u256)) -> bool {
+    let (indicator_a, hash_a): (u2, u256) = a;
+    let (indicator_b, hash_b): (u2, u256) = b;
+
+    match eq_2(indicator_a, indicator_b) {
+        true => jet::eq_256(hash_a, hash_b),
+        false => false,
+    }
+}
+
+fn eq_entry(a: Entry, b: Entry) -> bool {
+    match a {
+        Left(push_a: (u2, u256)) => match b {
+            Left(push_b: (u2, u256)) => eq_pushed_data(push_a, push_b),
+            Right(_other: Either<u1, u4>) => false,
+        },
+        Right(right_a: Either<u1, u4>) => match b {
+            Left(_push_b: (u2, u256)) => false,
+            Right(right_b: Either<u1, u4>) => match right_a {
+                Left(neg_or_res_a: u1) => match right_b {
+                    Left(neg_or_res_b: u1) => jet::eq_1(neg_or_res_a, neg_or_res_b),
+                    Right(_op_x_minus_1: u4) => false,
+                },
+                Right(op_x_minus_1_a: u4) => match right_b {
+                    Left(_neg_or_res: u1) => false,
+                    Right(op_x_minus_1_b: u4) => eq_4(op_x_minus_1_a, op_x_minus_1_b),
+                },
+            },
+        },
+    }
+}
+
+fn eq_entry_option(a: Option<Entry>, b: Option<Entry>) -> bool {
+    match a {
+        Some(entry_a: Entry) => match b {
+            Some(entry_b: Entry) => eq_entry(entry_a, entry_b),
+            None => false,
+        },
+        None => match b {
+            Some(_b: Entry) => false,
+            None => true,
+        },
+    }
+}
+
+fn assert_pushed_data(
+    expected_value: Option<u8>,
+    expected_hash: u256,
+    actual_pushed_data: Option<(u2, u256)>
+) {
+    match expected_value {
+        Some(expected: u8) => {
+            let (_, _, _, expected_indicator): (u2, u2, u2, u2) = <u8>::into(expected);
+
+            assert!(
+                eq_pushed_data(unwrap(actual_pushed_data), (expected_indicator, expected_hash))
+            );
+        },
+        None => {
+            assert!(is_none::<(u2, u256)>(actual_pushed_data));
+        },
+    }
+}
+
+fn assert_op_x_minus_1(expected_value: Option<u8>, actual_op_x_minus_1: Option<u4>) {
+    match expected_value {
+        Some(expected: u8) => {
+            let (_, expected): (u4, u4) = <u8>::into(expected);
+            assert!(eq_4(unwrap(actual_op_x_minus_1), expected));
+        },
+        None => {
+            assert!(is_none::<u4>(actual_op_x_minus_1));
+        },
+    }
+}
+
+fn assert_neg_or_res(expected_value: Option<u8>, actual_neg_or_res: Option<u1>) {
+    match expected_value {
+        Some(expected: u8) => {
+            let expected: u1 = safe_u8_to_u1(expected);
+            assert!(jet::eq_1(unwrap(actual_neg_or_res), expected));
+        },
+        None => {
+            assert!(is_none::<u1>(actual_neg_or_res));
+        },
+    }
+}
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let output_index: u32 = witness::OUTPUT_INDEX;
+    let entry_index: u32 = witness::ENTRY_INDEX;
+    let entry: Entry = witness::ENTRY;
+
+    let expected_entry: Option<Entry> = witness::EXPECTED_ENTRY;
+    let expected_bool: bool = witness::EXPECTED_BOOL;
+
+    let expected_value: Option<u8> = witness::expected_value;
+    let expected_hash: u256 = witness::EXPECTED_HASH;
+
+    match is_selected(0, fn_idx) {
+        true => {
+            let result_entry: Option<Entry> = get_entry_option(output_index, entry_index);
+
+            assert!(eq_entry_option(result_entry, expected_entry));
+        },
+        false => (),
+    };
+
+    match is_selected(1, fn_idx) {
+        true => {
+            let pushed_data: Option<(u2, u256)> = pushed_data_from_entry(entry);
+
+            assert_pushed_data(expected_value, expected_hash, pushed_data);
+        },
+        false => (),
+    };
+
+    match is_selected(2, fn_idx) {
+        true => {
+            let pushed_data: Option<(u2, u256)> = get_pushed_data(output_index, entry_index);
+
+            assert_pushed_data(expected_value, expected_hash, pushed_data);
+        },
+        false => (),
+    };
+
+    match is_selected(3, fn_idx) {
+        true => {
+            let op_x_minus_1: Option<u4> = op_x_minus_1_from_entry(entry);
+
+            assert_op_x_minus_1(expected_value, op_x_minus_1);
+        },
+        false => (),
+    };
+
+    match is_selected(4, fn_idx) {
+        true => {
+            let op_x_minus_1: Option<u4> = get_op_x_minus_1(output_index, entry_index);
+
+            assert_op_x_minus_1(expected_value, op_x_minus_1);
+        },
+        false => (),
+    };
+
+    match is_selected(5, fn_idx) {
+        true => {
+            let neg_or_res: Option<u1> = negate_or_reserved_from_entry(entry);
+
+            assert_neg_or_res(expected_value, neg_or_res);
+        },
+        false => (),
+    };
+
+    match is_selected(6, fn_idx) {
+        true => {
+            let neg_or_res: Option<u1> = get_negate_or_reserved(output_index, entry_index);
+
+            assert_neg_or_res(expected_value, neg_or_res);
+        },
+        false => (),
+    };
+
+    match is_selected(7, fn_idx) {
+        true => {
+            let kind: u8 = kind_of_entry(entry);
+
+            assert_eq_8(kind, unwrap(expected_value));
+        },
+        false => (),
+    };
+
+    match is_selected(8, fn_idx) {
+        true => {
+            assert_bool(is_output_op_return(output_index), expected_bool);
+        },
+        false => (),
+    };
+
+    match is_selected(9, fn_idx) {
+        true => {
+            assert_bool(has_entry(output_index, entry_index), expected_bool);
+        },
+        false => (),
+    };
+
+    match is_selected(10, fn_idx) {
+        true => {
+            assert_output_is_op_return(output_index);
+        },
+        false => (),
+    };
+
+    match is_selected(11, fn_idx) {
+        true => {
+            assert_has_entry(output_index, entry_index);
+        },
+        false => (),
+    };
+}

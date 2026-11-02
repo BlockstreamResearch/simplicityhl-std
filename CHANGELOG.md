@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Extended functions for retrieving information from `OP_RETURN`.
+
+### Changed
 - Bumped Simplex to 0.2.0.
 - Aligned existing testing API with changes in Simplex.
 
