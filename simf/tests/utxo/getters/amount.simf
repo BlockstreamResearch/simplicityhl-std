@@ -36,7 +36,7 @@ fn main() {
                 confidential_amount
             ): Confidential1 = get_confidential_amount(index, is_input_index);
 
-            assert_eq_1(parity_bit,expected_parity);
+            assert_eq_1(parity_bit, expected_parity);
             assert_eq_256(confidential_amount, expected_confidential_amount);
         },
         false => (),
@@ -56,7 +56,7 @@ fn main() {
                 confidential_amount
             ): Confidential1 = get_confidential_input_amount(index);
 
-            assert_eq_1(parity_bit,expected_parity);
+            assert_eq_1(parity_bit, expected_parity);
             assert_eq_256(confidential_amount, expected_confidential_amount);
         },
         false => (),
@@ -76,7 +76,7 @@ fn main() {
                 confidential_amount
             ): Confidential1 = get_confidential_output_amount(index);
 
-            assert_eq_1(parity_bit,expected_parity);
+            assert_eq_1(parity_bit, expected_parity);
             assert_eq_256(confidential_amount, expected_confidential_amount);
         },
         false => (),
@@ -96,7 +96,7 @@ fn main() {
                 confidential_amount
             ): Confidential1 = get_confidential_current_amount();
 
-            assert_eq_1(parity_bit,expected_parity);
+            assert_eq_1(parity_bit, expected_parity);
             assert_eq_256(confidential_amount, expected_confidential_amount);
         },
         false => (),
