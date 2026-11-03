@@ -81,7 +81,7 @@ simplex install https://github.com/BlockstreamResearch/simplicityhl-std
 ```
 
 > [!NOTE]
-> The library works with Simplex versions 0.0.11 and 0.0.12.
+> The library contracts work with Simplex version 0.0.7 or higher.
 
 ## Documentation
 
