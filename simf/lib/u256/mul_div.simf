@@ -1,0 +1,188 @@
+use crate::lib::binary::not;
+use crate::lib::u64::convert::u64_to_u128;
+use crate::lib::u128::math::{calculate_normalizer_base_64, estimate_quotient_digit_base_64};
+use crate::lib::u128::convert::split_u128_into_u64;
+use crate::lib::u256::math::{mul_256_wide, div_256, full_mul_256_64};
+use crate::lib::u256::convert::split_u256_into_u64;
+use crate::lib::u256::comparison::{is_zero_256, lt_256};
+
+/// Shifts the 512-bit dividend and the divisor left by whole 64-bit words.
+/// Requires the divisor to be non-zero and `dividend_high < divisor`.
+fn shift_to_top_word_512_256(
+    dividend_high: u256,
+    dividend_low: u256,
+    divisor: u256
+) -> (u256, u256, u256) {
+    let (_, u6, u5, u4): (u64, u64, u64, u64) = split_u256_into_u64(dividend_high);
+    let (u3, u2, u1, u0): (u64, u64, u64, u64) = split_u256_into_u64(dividend_low);
+    let (v3, v2, v1, v0): (u64, u64, u64, u64) = split_u256_into_u64(divisor);
+
+    match jet::is_zero_64(v3) {
+        true => match jet::is_zero_64(v2) {
+            true => match jet::is_zero_64(v1) {
+                true => {
+                    (
+                        <(u64, u64, u64, u64)>::into((u4, u3, u2, u1)),
+                        <(u64, u64, u64, u64)>::into((u0, 0, 0, 0)),
+                        <(u64, u64, u64, u64)>::into((v0, 0, 0, 0))
+                    )
+                },
+                false => {
+                    (
+                        <(u64, u64, u64, u64)>::into((u5, u4, u3, u2)),
+                        <(u64, u64, u64, u64)>::into((u1, u0, 0, 0)),
+                        <(u64, u64, u64, u64)>::into((v1, v0, 0, 0))
+                    )
+                },
+            },
+            false => {
+                (
+                    <(u64, u64, u64, u64)>::into((u6, u5, u4, u3)),
+                    <(u64, u64, u64, u64)>::into((u2, u1, u0, 0)),
+                    <(u64, u64, u64, u64)>::into((v2, v1, v0, 0))
+                )
+            },
+        },
+        false => (dividend_high, dividend_low, divisor),
+    }
+}
+
+/// Normalizes the dividend and divisor for Algorithm D by shifting and
+/// multiplying them by the same factor, ensuring that
+/// the most significant word of the divisor is at least 2^63.
+/// Expects `dividend_high < divisor`
+fn normalize_to_threshold_512_256_63(
+    dividend_high: u256,
+    dividend_low: u256,
+    divisor: u256
+) -> (u256, u256, u256) {
+    let (
+        dividend_high,
+        dividend_low,
+        divisor
+    ): (u256, u256, u256) = shift_to_top_word_512_256(dividend_high, dividend_low, divisor);
+
+    let (v3, _, _, _): (u64, u64, u64, u64) = split_u256_into_u64(divisor);
+    let norm: u64 = calculate_normalizer_base_64(u64_to_u128(v3), false);
+
+    match jet::eq_64(norm, 1) {
+        true => (dividend_high, dividend_low, divisor),
+        false => {
+            // normalized divisor fits into u256 and dividend into 512 bits, so the final carries are zero
+            let (carry, dividend_low): (u64, u256) = full_mul_256_64(0, dividend_low, norm);
+            let (_, dividend_high): (u64, u256) = full_mul_256_64(carry, dividend_high, norm);
+            let (_, divisor): (u64, u256) = full_mul_256_64(0, divisor, norm);
+
+            (dividend_high, dividend_low, divisor)
+        },
+    }
+}
+
+/// Divides the 5-word window by the normalized 4-word divisor.
+/// Returns the quotient word and the 4-word remainder, which is used by Algorithm D
+fn div_step_320_256(
+    u4: u64,
+    u3: u64,
+    u2: u64,
+    u1: u64,
+    u0: u64,
+    v3: u64,
+    v2: u64,
+    v1: u64,
+    v0: u64
+) -> (u64, u64, u64, u64, u64) {
+    // q_hat is exact or one too large
+    let q_hat: u64 = estimate_quotient_digit_base_64(u4, u3, u2, v3, v2);
+
+    let (c0, p0): (u64, u64) = split_u128_into_u64(jet::multiply_64(q_hat, v0));
+    let (c1, p1): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(q_hat, v1, c0, 0));
+    let (c2, p2): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(q_hat, v2, c1, 0));
+    let (p4, p3): (u64, u64) = split_u128_into_u64(jet::full_multiply_64(q_hat, v3, c2, 0));
+
+    let (b0, r0): (bool, u64) = jet::subtract_64(u0, p0);
+    let (b1, r1): (bool, u64) = jet::full_subtract_64(b0, u1, p1);
+    let (b2, r2): (bool, u64) = jet::full_subtract_64(b1, u2, p2);
+    let (b3, r3): (bool, u64) = jet::full_subtract_64(b2, u3, p3);
+    let (borrow, _): (bool, u64) = jet::full_subtract_64(b3, u4, p4);
+
+    match borrow {
+        true => {
+            // q_hat is one too large, so add the divisor back.
+            // cannot overflow, because the borrow means q_hat is at least 1
+            let (_, q): (bool, u64) = jet::subtract_64(q_hat, 1);
+
+            // remainder is less than the divisor, so the final carry is dropped
+            let (c0, r0): (bool, u64) = jet::add_64(r0, v0);
+            let (c1, r1): (bool, u64) = jet::full_add_64(c0, r1, v1);
+            let (c2, r2): (bool, u64) = jet::full_add_64(c1, r2, v2);
+            let (_, r3): (bool, u64) = jet::full_add_64(c2, r3, v3);
+
+            (q, r3, r2, r1, r0)
+        },
+        false => (q_hat, r3, r2, r1, r0),
+    }
+}
+
+/// Divides a 512-bit integer by a 256-bit integer and returns a u256 quotient.
+/// Implements Algorithm D by Donald Knuth in base 2^64.
+/// Expects `dividend_high < divisor`, so the quotient fits into u256
+fn algorithm_d_512_256(dividend_high: u256, dividend_low: u256, divisor: u256) -> u256 {
+    let (
+        norm_dividend_high,
+        norm_dividend_low,
+        norm_divisor
+    ): (u256, u256, u256) = normalize_to_threshold_512_256_63(dividend_high, dividend_low, divisor);
+
+    let (u7, u6, u5, u4): (u64, u64, u64, u64) = split_u256_into_u64(norm_dividend_high);
+    let (u3, u2, u1, u0): (u64, u64, u64, u64) = split_u256_into_u64(norm_dividend_low);
+    let (v3, v2, v1, v0): (u64, u64, u64, u64) = split_u256_into_u64(norm_divisor);
+
+    let (
+        q3,
+        r3,
+        r2,
+        r1,
+        r0
+    ): (u64, u64, u64, u64, u64) = div_step_320_256(u7, u6, u5, u4, u3, v3, v2, v1, v0);
+    let (
+        q2,
+        r3,
+        r2,
+        r1,
+        r0
+    ): (u64, u64, u64, u64, u64) = div_step_320_256(r3, r2, r1, r0, u2, v3, v2, v1, v0);
+    let (
+        q1,
+        r3,
+        r2,
+        r1,
+        r0
+    ): (u64, u64, u64, u64, u64) = div_step_320_256(r3, r2, r1, r0, u1, v3, v2, v1, v0);
+    let (
+        q0,
+        _,
+        _,
+        _,
+        _
+    ): (u64, u64, u64, u64, u64) = div_step_320_256(r3, r2, r1, r0, u0, v3, v2, v1, v0);
+
+    <(u64, u64, u64, u64)>::into((q3, q2, q1, q0))
+}
+
+/// Calculates `floor(a * b / denominator)` with full precision.
+/// Panics if the result overflows a u256 or if the denominator is zero
+pub fn mul_div_256(a: u256, b: u256, denominator: u256) -> u256 {
+    assert!(not(is_zero_256(denominator)));
+
+    let (result_high, result_low): (u256, u256) = mul_256_wide(a, b);
+
+    match is_zero_256(result_high) {
+        true => div_256(result_low, denominator),
+        false => {
+            // if result_high >= denominator, result will overflow u256
+            assert!(lt_256(result_high, denominator));
+
+            algorithm_d_512_256(result_high, result_low, denominator)
+        },
+    }
+}

@@ -1,0 +1,81 @@
+use crate::lib::utxo::asserts::amount::{
+    assert_explicit_amount,
+    assert_confidential_amount,
+    assert_explicit_input_amount,
+    assert_confidential_input_amount,
+    assert_explicit_output_amount,
+    assert_confidential_output_amount,
+    assert_explicit_current_amount,
+    assert_confidential_current_amount
+};
+
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let index: u32 = witness::INDEX;
+    let is_input_index: bool = witness::IS_INPUT_INDEX;
+
+    let expected_amount: u64 = witness::EXPECTED;
+    let expected_parity: u1 = witness::EXPECTED_PARITY;
+    let expected_confidential_amount: u256 = witness::EXPECTED_CONF;
+
+    let expected_confidential: Confidential1 = (expected_parity, expected_confidential_amount);
+
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_explicit_amount(index, is_input_index, expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(1, fn_idx) {
+        true => {
+            assert_confidential_amount(index, is_input_index, expected_confidential);
+        },
+        false => (),
+    };
+
+    match is_selected(2, fn_idx) {
+        true => {
+            assert_explicit_input_amount(index, expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(3, fn_idx) {
+        true => {
+            assert_confidential_input_amount(index, expected_confidential);
+        },
+        false => (),
+    };
+
+    match is_selected(4, fn_idx) {
+        true => {
+            assert_explicit_output_amount(index, expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(5, fn_idx) {
+        true => {
+            assert_confidential_output_amount(index, expected_confidential);
+        },
+        false => (),
+    };
+
+    match is_selected(6, fn_idx) {
+        true => {
+            assert_explicit_current_amount(expected_amount);
+        },
+        false => (),
+    };
+
+    match is_selected(7, fn_idx) {
+        true => {
+            assert_confidential_current_amount(expected_confidential);
+        },
+        false => (),
+    };
+}

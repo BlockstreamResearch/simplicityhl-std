@@ -39,12 +39,12 @@ pub fn le_256(a: u256, b: u256) -> bool {
     }
 }
 
-/// Check if an integer is greater than another integer
+/// Checks if an integer is greater than another integer
 pub fn gt_256(a: u256, b: u256) -> bool {
     lt_256(b, a)
 }
 
-/// Check if an integer is greater than or equal to another integer
+/// Checks if an integer is greater than or equal to another integer
 pub fn ge_256(a: u256, b: u256) -> bool {
     le_256(b, a)
 }

@@ -10,7 +10,7 @@ I've heard the suggestion that calling jets directly might eventually be rare in
 
 # Boolean operators
 
-Maybe not needed if these are already rolled out as infix operators. I would somewhat prefer to have the compiler support these as `&&`, `||`, `!`.
+Implemented in `binary.simf`. Maybe not needed if these are already rolled out as infix operators. I would somewhat prefer to have the compiler support these as `&&`, `||`, `!`.
 
 * `and`
   * Implementation:
@@ -47,12 +47,12 @@ Maybe not needed if these are already rolled out as infix operators. I would som
 
 (Input/output by index.)
 
-* Get asset
-* Get asset amount
-* Get asset and amount
-* Check that the asset is equal to the passed value
-* Check that the asset amount is equal to the passed value
-* Check that the asset and amount are equal to the passed values
+* Get asset (implemented: `utxo::getters::asset_id`)
+* Get asset amount (implemented: `utxo::getters::amount`)
+* Get asset and amount (implemented: `utxo::getters::asset_id_with_amount`)
+* Check that the asset is equal to the passed value (implemented: `utxo::asserts::asset_id`)
+* Check that the asset amount is equal to the passed value (implemented: `utxo::asserts::amount`)
+* Check that the asset and amount are equal to the passed values (implemented: `utxo::asserts::asset_id_with_amount`)
 * Check that the input asset equals the output asset
 * Check that the input asset amount equals the output asset amount
 * Check that the input asset and amount equal the output asset and amount
@@ -64,7 +64,7 @@ Q. Aren't the first three directly implemented by jets? Do we just need to `unwr
 
 Input/output by index.
 
-* Get script hash
+* Get script hash (implemented: `utxo::getters::script_hash`)
 * Check that the script hash is equal to the passed value
 * Check that the input script hash equals the output script hash
 * Same as prior function, but also check that the values are equal to the passed value
@@ -73,14 +73,14 @@ Q. Isn't the first one directly implemented by a jet? Do we just need to `unwrap
 
 # `OP_RETURN`
 
-* `ensure_op_return` function
+* `ensure_op_return` function (implemented as `assert_output_is_op_return`)
 * get `OP_RETURN` data
 
 # Math
 
 * Get decimals function (10^x)
 * General integer division for all pairs of numeric types where the denominator's type is no larger than the numerator's type
-* Checked arithmetic operations (automatically assert no overflow)
+* Checked arithmetic operations (automatically assert no overflow) (implemented: `add_N`, `sub_N`, `mul_N`, `div_N`)
 
 # Storage (state management)
 
