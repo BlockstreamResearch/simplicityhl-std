@@ -473,3 +473,841 @@ fn get_explicit_output_asset_id_with_amount_for_missing_output_fail(
         .index(u32::MAX)
         .expecting(&context, Expect::PrunedBranch, txids)
 }
+
+mod fuzz {
+    use super::*;
+
+    use crate::common::utxo_helper::decode_point;
+
+    use crate::common::utxo_helper::fuzz::{
+        MAX_UTXO_INDEX, create_confidential_transaction, create_explicit_transaction,
+    };
+
+    use simplex::fuzz::proptest::prelude::*;
+    use simplex::fuzz::{Expect, Mutations, Scenario};
+    use simplex::{FuzzMode, TestContext};
+
+    use simplex::simplicityhl::elements::confidential::{Asset, Value};
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    const SPENDING_INPUT_INDEX: usize = 0;
+
+    // index 0 - explicit input/output
+
+    // Represents tests: [get_explicit_asset_id_with_amount_for_input (successful), get_explicit_asset_id_with_amount_for_random_input (successful)]
+    // Fuzzes matching explicit assets and amounts at input indices.
+    #[simplex::fuzz]
+    fn get_explicit_asset_id_with_amount_for_input_successful(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(Explicit)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(witness.index as usize);
+                witness.index = index as u32;
+                witness.expected_asset = case.input_asset(index);
+                witness.expected_amount = case.input_amount(index);
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Accept)
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_explicit_asset_id_with_amount_for_output (successful), get_explicit_asset_id_with_amount_for_random_output (successful)]
+    // Fuzzes matching explicit assets and amounts at output indices.
+    #[simplex::fuzz]
+    fn get_explicit_asset_id_with_amount_for_output_successful(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(Explicit)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.output_index(witness.index as usize);
+                witness.index = index as u32;
+                witness.expected_asset = case.output_asset(index);
+                witness.expected_amount = case.output_amount(index);
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Accept)
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_explicit_asset_id_with_amount_for_confidential_output_fail]
+    // Fuzzes rejection of confidential assets and amounts by the explicit getter at output indices.
+    #[simplex::fuzz]
+    fn get_explicit_asset_id_with_amount_for_confidential_output_fail(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(Explicit)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_confidential_transaction(&context);
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.output_index(witness.index as usize);
+                witness.index = index as u32;
+            });
+
+        context
+            .engine(scenario)
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_confidential_asset_id_with_amount_for_input (failing)]
+    // Fuzzes rejection of confidential assets and amounts by the explicit getter at input indices.
+    #[simplex::fuzz]
+    fn get_confidential_asset_id_with_amount_for_input_failing(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(Explicit)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_confidential_transaction(&context);
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(witness.index as usize);
+                witness.index = index as u32;
+            });
+
+        context
+            .engine(scenario)
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // index 1 - confidential input/output
+
+    // Represents tests: [get_explicit_asset_id_with_amount_for_input (failing)]
+    // Fuzzes rejection of explicit assets and amounts by the confidential getter at input indices.
+    #[simplex::fuzz]
+    fn get_explicit_asset_id_with_amount_for_input_failing(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(Confidential)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(witness.index as usize);
+                witness.index = index as u32;
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_explicit_asset_id_with_amount_for_output (failing)]
+    // Fuzzes rejection of explicit assets and amounts by the confidential getter at output indices.
+    #[simplex::fuzz]
+    fn get_explicit_asset_id_with_amount_for_output_failing(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(Confidential)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.output_index(witness.index as usize);
+                witness.index = index as u32;
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_confidential_asset_id_with_amount_for_input (successful)]
+    // Fuzzes matching confidential assets and amounts at input indices.
+    #[simplex::fuzz]
+    fn get_confidential_asset_id_with_amount_for_input_successful(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(Confidential)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_confidential_transaction(&context);
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(witness.index as usize);
+                witness.index = index as u32;
+
+                let output = &case.transaction().inputs()[index]
+                    .partial_input
+                    .witness_utxo;
+
+                let Asset::Confidential(asset) = output.asset else {
+                    panic!("expected a confidential input asset");
+                };
+                let Value::Confidential(amount) = output.value else {
+                    panic!("expected a confidential input amount");
+                };
+
+                let (asset_parity, asset_data) = decode_point(asset.serialize());
+                let (amount_parity, amount_data) = decode_point(amount.serialize());
+                witness.expected_asset_parity = asset_parity;
+                witness.expected_conf_asset = asset_data;
+                witness.expected_amount_parity = amount_parity;
+                witness.expected_conf_amount = amount_data;
+            });
+
+        context.engine(scenario).spec(|_| Expect::Accept).run();
+        Ok(())
+    }
+
+    // index 2 - explicit input
+
+    // Represents tests: [get_explicit_input_asset_id_with_amount (successful)]
+    // Fuzzes matching explicit assets and amounts at input indices.
+    #[simplex::fuzz]
+    fn get_explicit_input_asset_id_with_amount_successful(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(ExplicitInput)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(witness.index as usize);
+                witness.index = index as u32;
+                witness.expected_asset = case.input_asset(index);
+                witness.expected_amount = case.input_amount(index);
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Accept)
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_confidential_input_asset_id_with_amount (failing)]
+    // Fuzzes rejection of confidential assets and amounts by the explicit getter at input indices.
+    #[simplex::fuzz]
+    fn get_confidential_input_asset_id_with_amount_failing(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(ExplicitInput)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_confidential_transaction(&context);
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(witness.index as usize);
+                witness.index = index as u32;
+            });
+
+        context
+            .engine(scenario)
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_explicit_input_asset_id_with_amount_for_missing_input_fail]
+    // Fuzzes transaction layouts and checks rejection of a missing input index.
+    #[simplex::fuzz]
+    fn get_explicit_input_asset_id_with_amount_for_missing_input_fail(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        const MISSING_INDEX: u32 = u32::MAX;
+
+        let strategy = Just(MISSING_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(ExplicitInput)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy);
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // index 3 - confidential input
+
+    // Represents tests: [get_explicit_input_asset_id_with_amount (failing)]
+    // Fuzzes rejection of explicit assets and amounts by the confidential getter at input indices.
+    #[simplex::fuzz]
+    fn get_explicit_input_asset_id_with_amount_failing(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(ConfidentialInput)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(witness.index as usize);
+                witness.index = index as u32;
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_confidential_input_asset_id_with_amount (successful)]
+    // Fuzzes matching confidential assets and amounts at input indices.
+    #[simplex::fuzz]
+    fn get_confidential_input_asset_id_with_amount_successful(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(ConfidentialInput)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_confidential_transaction(&context);
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(witness.index as usize);
+                witness.index = index as u32;
+
+                let output = &case.transaction().inputs()[index]
+                    .partial_input
+                    .witness_utxo;
+
+                let Asset::Confidential(asset) = output.asset else {
+                    panic!("expected a confidential input asset");
+                };
+                let Value::Confidential(amount) = output.value else {
+                    panic!("expected a confidential input amount");
+                };
+
+                let (asset_parity, asset_data) = decode_point(asset.serialize());
+                let (amount_parity, amount_data) = decode_point(amount.serialize());
+                witness.expected_asset_parity = asset_parity;
+                witness.expected_conf_asset = asset_data;
+                witness.expected_amount_parity = amount_parity;
+                witness.expected_conf_amount = amount_data;
+            });
+
+        context.engine(scenario).spec(|_| Expect::Accept).run();
+        Ok(())
+    }
+
+    // index 4 - explicit output
+
+    // Represents tests: [get_explicit_output_asset_id_with_amount (successful)]
+    // Fuzzes matching explicit assets and amounts at output indices.
+    #[simplex::fuzz]
+    fn get_explicit_output_asset_id_with_amount_successful(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(ExplicitOutput)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.output_index(witness.index as usize);
+                witness.index = index as u32;
+                witness.expected_asset = case.output_asset(index);
+                witness.expected_amount = case.output_amount(index);
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Accept)
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_explicit_output_asset_id_with_amount_for_confidential_fail]
+    // Fuzzes rejection of confidential assets and amounts by the explicit getter at output indices.
+    #[simplex::fuzz]
+    fn get_explicit_output_asset_id_with_amount_for_confidential_fail(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(ExplicitOutput)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_confidential_transaction(&context);
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.output_index(witness.index as usize);
+                witness.index = index as u32;
+            });
+
+        context
+            .engine(scenario)
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_explicit_output_asset_id_with_amount_for_missing_output_fail]
+    // Fuzzes transaction layouts and checks rejection of a missing output index.
+    #[simplex::fuzz]
+    fn get_explicit_output_asset_id_with_amount_for_missing_output_fail(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        const MISSING_INDEX: u32 = u32::MAX;
+
+        let strategy = Just(MISSING_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(ExplicitOutput)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy);
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // index 5 - confidential output
+
+    // Represents tests: [get_explicit_output_asset_id_with_amount (failing)]
+    // Fuzzes rejection of explicit assets and amounts by the confidential getter at output indices.
+    #[simplex::fuzz]
+    fn get_explicit_output_asset_id_with_amount_failing(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(ConfidentialOutput)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.output_index(witness.index as usize);
+                witness.index = index as u32;
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // index 6 - explicit current input
+
+    // Represents tests: [get_explicit_current_asset_id_with_amount (successful)]
+    // Fuzzes matching explicit assets and amounts at the spending input.
+    #[simplex::fuzz]
+    fn get_explicit_current_asset_id_with_amount_successful(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        const UNUSED_WITNESS_INDEX: u32 = 0;
+
+        let strategy = Just(UNUSED_WITNESS_INDEX).prop_map(|unused_index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(CurrentExplicit)
+                .index(unused_index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(SPENDING_INPUT_INDEX);
+                witness.index = index as u32;
+                witness.expected_asset = case.input_asset(index);
+                witness.expected_amount = case.input_amount(index);
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Accept)
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_confidential_current_asset_id_with_amount (failing)]
+    // Fuzzes rejection of confidential assets and amounts by the explicit getter at the spending input.
+    #[simplex::fuzz]
+    fn get_confidential_current_asset_id_with_amount_failing(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        const UNUSED_WITNESS_INDEX: u32 = 0;
+
+        let strategy = Just(UNUSED_WITNESS_INDEX).prop_map(|unused_index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(CurrentExplicit)
+                .index(unused_index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_confidential_transaction(&context);
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(SPENDING_INPUT_INDEX);
+                witness.index = index as u32;
+            });
+
+        context
+            .engine(scenario)
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // index 7 - confidential current input
+
+    // Represents tests: [get_explicit_current_asset_id_with_amount (failing)]
+    // Fuzzes rejection of explicit assets and amounts by the confidential getter at the spending input.
+    #[simplex::fuzz]
+    fn get_explicit_current_asset_id_with_amount_failing(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        const UNUSED_WITNESS_INDEX: u32 = 0;
+
+        let strategy = Just(UNUSED_WITNESS_INDEX).prop_map(|unused_index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(CurrentConfidential)
+                .index(unused_index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(SPENDING_INPUT_INDEX);
+                witness.index = index as u32;
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_confidential_current_asset_id_with_amount (successful)]
+    // Fuzzes matching confidential assets and amounts at the spending input.
+    #[simplex::fuzz]
+    fn get_confidential_current_asset_id_with_amount_successful(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        const UNUSED_WITNESS_INDEX: u32 = 0;
+
+        let strategy = Just(UNUSED_WITNESS_INDEX).prop_map(|unused_index| {
+            let arguments: Arguments = TestAssetIdWithAmountArguments {}.into();
+            let witness: WitnessValues = case(CurrentConfidential)
+                .index(unused_index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_confidential_transaction(&context);
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestAssetIdWithAmountProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(SPENDING_INPUT_INDEX);
+                witness.index = index as u32;
+
+                let output = &case.transaction().inputs()[index]
+                    .partial_input
+                    .witness_utxo;
+
+                let Asset::Confidential(asset) = output.asset else {
+                    panic!("expected a confidential input asset");
+                };
+                let Value::Confidential(amount) = output.value else {
+                    panic!("expected a confidential input amount");
+                };
+
+                let (asset_parity, asset_data) = decode_point(asset.serialize());
+                let (amount_parity, amount_data) = decode_point(amount.serialize());
+                witness.expected_asset_parity = asset_parity;
+                witness.expected_conf_asset = asset_data;
+                witness.expected_amount_parity = amount_parity;
+                witness.expected_conf_amount = amount_data;
+            });
+
+        context.engine(scenario).spec(|_| Expect::Accept).run();
+        Ok(())
+    }
+}

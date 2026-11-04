@@ -194,3 +194,311 @@ fn get_output_script_hash_missing_output_fail(context: simplex::TestContext) -> 
         .index(u32::MAX)
         .expecting(&context, Expect::PrunedBranch, txids)
 }
+
+mod fuzz {
+    use super::*;
+
+    use crate::common::utxo_helper::fuzz::{MAX_UTXO_INDEX, create_explicit_transaction};
+
+    use simplex::fuzz::proptest::prelude::*;
+    use simplex::fuzz::{Expect, Mutations, Scenario};
+    use simplex::{FuzzMode, TestContext};
+
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    const SPENDING_INPUT_INDEX: usize = 0;
+
+    // index 0 - input/output script hash
+
+    // Represents tests: [get_script_hash_for_random_input]
+    // Fuzzes matching script hashes at input indices.
+    #[simplex::fuzz]
+    fn get_script_hash_for_random_input(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestScriptHashArguments {}.into();
+            let witness: WitnessValues = case(Script)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestScriptHashProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(witness.index as usize);
+                witness.index = index as u32;
+                witness.expected = case.input_script_hash(index);
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Accept)
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_script_hash_for_random_output]
+    // Fuzzes matching script hashes at output indices.
+    #[simplex::fuzz]
+    fn get_script_hash_for_random_output(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestScriptHashArguments {}.into();
+            let witness: WitnessValues = case(Script)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestScriptHashProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.output_index(witness.index as usize);
+                witness.index = index as u32;
+                witness.expected = case.output_script_hash(index);
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Accept)
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_script_hash_for_missing_input_fail]
+    // Fuzzes transaction layouts and checks rejection of a missing input index.
+    #[simplex::fuzz]
+    fn get_script_hash_for_missing_input_fail(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        const MISSING_INDEX: u32 = u32::MAX;
+
+        let strategy = Just(MISSING_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestScriptHashArguments {}.into();
+            let witness: WitnessValues = case(Script)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestScriptHashProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy);
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_script_hash_for_missing_output_fail]
+    // Fuzzes transaction layouts and checks rejection of a missing output index.
+    #[simplex::fuzz]
+    fn get_script_hash_for_missing_output_fail(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        const MISSING_INDEX: u32 = u32::MAX;
+
+        let strategy = Just(MISSING_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestScriptHashArguments {}.into();
+            let witness: WitnessValues = case(Script)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestScriptHashProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy);
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // index 1 - input script hash
+
+    // Represents tests: [get_input_script_hash]
+    // Fuzzes matching script hashes at input indices.
+    #[simplex::fuzz]
+    fn get_input_script_hash(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestScriptHashArguments {}.into();
+            let witness: WitnessValues = case(InputScript)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestScriptHashProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.input_index(witness.index as usize);
+                witness.index = index as u32;
+                witness.expected = case.input_script_hash(index);
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Accept)
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_input_script_hash_missing_input_fail]
+    // Fuzzes transaction layouts and checks rejection of a missing input index.
+    #[simplex::fuzz]
+    fn get_input_script_hash_missing_input_fail(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        const MISSING_INDEX: u32 = u32::MAX;
+
+        let strategy = Just(MISSING_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestScriptHashArguments {}.into();
+            let witness: WitnessValues = case(InputScript)
+                .index(index)
+                .index_type(IndexType::Input)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestScriptHashProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy);
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+
+    // index 2 - output script hash
+
+    // Represents tests: [get_output_script_hash]
+    // Fuzzes matching script hashes at output indices.
+    #[simplex::fuzz]
+    fn get_output_script_hash(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (0u32..=MAX_UTXO_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestScriptHashArguments {}.into();
+            let witness: WitnessValues = case(OutputScript)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestScriptHashProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy)
+            .bind_witness(|witness, case| {
+                let index = case.output_index(witness.index as usize);
+                witness.index = index as u32;
+                witness.expected = case.output_script_hash(index);
+            });
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Accept)
+            .run();
+        Ok(())
+    }
+
+    // Represents tests: [get_output_script_hash_missing_output_fail]
+    // Fuzzes transaction layouts and checks rejection of a missing output index.
+    #[simplex::fuzz]
+    fn get_output_script_hash_missing_output_fail(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        const MISSING_INDEX: u32 = u32::MAX;
+
+        let strategy = Just(MISSING_INDEX).prop_map(|index| {
+            let arguments: Arguments = TestScriptHashArguments {}.into();
+            let witness: WitnessValues = case(OutputScript)
+                .index(index)
+                .index_type(IndexType::Output)
+                .witness
+                .into();
+            (arguments, witness).into()
+        });
+
+        let transaction = create_explicit_transaction();
+
+        let mut scenario = Scenario::new(transaction);
+
+        scenario
+            .add::<TestScriptHashProgram>("utxo getter")
+            .spends(SPENDING_INPUT_INDEX)
+            .custom_strategy(strategy);
+
+        context
+            .engine(scenario)
+            .mutations(Mutations::none().layout())
+            .spec(|_| Expect::Reject)
+            .allow_unspendable()
+            .run();
+        Ok(())
+    }
+}
