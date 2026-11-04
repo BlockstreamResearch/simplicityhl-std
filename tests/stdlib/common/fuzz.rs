@@ -1,6 +1,7 @@
+use simplex::simplicityhl::{Arguments, WitnessValues};
+
 use simplex::fuzz::proptest::strategy::Strategy;
 use simplex::fuzz::{Expect, FuzzProgramTrait, Scenario};
-use simplex::simplicityhl::{Arguments, WitnessValues};
 use simplex::{FuzzMode, TestContext};
 
 /// Keep the existing reference-generated arguments and witness in a one-input scenario.

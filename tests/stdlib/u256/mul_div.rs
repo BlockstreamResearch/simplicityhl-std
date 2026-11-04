@@ -1,6 +1,7 @@
-use primitive_types::U256;
 use std::cmp::max;
 use std::ops::Div;
+
+use primitive_types::U256;
 
 use crate::common::core::{Expect, run};
 use crate::common::helper::generate_u256;
@@ -280,8 +281,6 @@ fn mul_div_256_div_step_320_256_add_back(context: simplex::TestContext) -> anyho
 }
 
 mod mul_div_tests_fuzz {
-    use primitive_types::U512;
-
     use super::*;
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
@@ -290,6 +289,8 @@ mod mul_div_tests_fuzz {
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
+
+    use primitive_types::U512;
 
     // (A, B, C, Result)
     type MulDivInputs = (U256, U256, U256, U256);

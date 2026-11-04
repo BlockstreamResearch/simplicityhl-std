@@ -34,12 +34,12 @@ impl TestUint for u128 {
 crate::uint_tests!(u128);
 
 mod math_api_tests_fuzz {
-    use crate::common::uint_fuzz::TestUintFuzz;
-
     use super::*;
 
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+
+    use crate::common::uint_fuzz::TestUintFuzz;
 
     impl TestUintFuzz for u128 {
         type Arguments = U128MathTestArguments;

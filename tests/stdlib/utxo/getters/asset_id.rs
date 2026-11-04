@@ -1,6 +1,7 @@
+use simplex::simplicityhl::elements::Txid;
+
 use anyhow::Context;
 use rand::Rng;
-use simplex::simplicityhl::elements::Txid;
 
 use crate::common::core::Expect;
 use crate::common::core::run_with_inputs_outputs;
@@ -359,18 +360,17 @@ fn get_explicit_output_asset_id_for_missing_output_fail(
 mod fuzz {
     use super::*;
 
-    use crate::common::utxo_helper::decode_point;
-
-    use crate::common::utxo_helper::fuzz::{
-        MAX_UTXO_INDEX, create_confidential_transaction, create_explicit_transaction,
-    };
+    use simplex::simplicityhl::elements::confidential::Asset;
+    use simplex::simplicityhl::{Arguments, WitnessValues};
 
     use simplex::fuzz::proptest::prelude::*;
     use simplex::fuzz::{Expect, Mutations, Scenario};
     use simplex::{FuzzMode, TestContext};
 
-    use simplex::simplicityhl::elements::confidential::Asset;
-    use simplex::simplicityhl::{Arguments, WitnessValues};
+    use crate::common::utxo_helper::decode_point;
+    use crate::common::utxo_helper::fuzz::{
+        MAX_UTXO_INDEX, create_confidential_transaction, create_explicit_transaction,
+    };
 
     const SPENDING_INPUT_INDEX: usize = 0;
 

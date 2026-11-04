@@ -440,14 +440,9 @@ fn div_mod_256_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> 
 }
 
 mod div_tests_fuzz {
-    use std::cmp::max;
-
-    use crate::common::u256_wrapper::U256Wrapper;
-    use crate::common::uint_fuzz::{
-        run_uint_fuzz, safe_div_by_zero_strategy, safe_div_fitting_strategy,
-    };
-
     use super::*;
+
+    use std::cmp::max;
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
@@ -455,6 +450,11 @@ mod div_tests_fuzz {
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
+
+    use crate::common::u256_wrapper::U256Wrapper;
+    use crate::common::uint_fuzz::{
+        run_uint_fuzz, safe_div_by_zero_strategy, safe_div_fitting_strategy,
+    };
 
     fn arb_u64() -> impl Strategy<Value = u64> {
         any::<u64>()

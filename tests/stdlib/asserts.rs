@@ -359,14 +359,14 @@ fn assert_none_256_unhappy_path(context: simplex::TestContext) -> anyhow::Result
 mod asserts_test_fuzz {
     use std::fmt::Debug;
 
-    use super::*;
-
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
     use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
+
+    use super::*;
 
     fn arb_u1() -> impl Strategy<Value = u8> {
         any::<bool>().prop_map(u8::from)

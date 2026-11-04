@@ -1,5 +1,6 @@
-use rand::Rng;
 use simplex::simplicityhl::elements::Txid;
+
+use rand::Rng;
 
 use crate::common::core::Expect;
 use crate::common::core::run_with_inputs_outputs;
@@ -695,17 +696,17 @@ fn assert_false_confidential_current_asset_id_with_amount(
 mod fuzz {
     use super::*;
 
-    use crate::common::utxo_helper::fuzz::{
-        MAX_UTXO_INDEX, create_confidential_transaction, create_explicit_transaction,
-    };
+    use simplex::simplicityhl::elements::confidential::{Asset, Value};
+    use simplex::simplicityhl::{Arguments, WitnessValues};
 
     use simplex::fuzz::proptest::prelude::*;
     use simplex::fuzz::{Expect, Mutations, Scenario};
     use simplex::{FuzzMode, TestContext};
 
     use crate::common::utxo_helper::decode_point;
-    use simplex::simplicityhl::elements::confidential::{Asset, Value};
-    use simplex::simplicityhl::{Arguments, WitnessValues};
+    use crate::common::utxo_helper::fuzz::{
+        MAX_UTXO_INDEX, create_confidential_transaction, create_explicit_transaction,
+    };
 
     const SPENDING_INPUT_INDEX: usize = 0;
 

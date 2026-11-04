@@ -131,8 +131,6 @@ fn assert_output_is_op_return_fail(context: simplex::TestContext) -> anyhow::Res
 }
 
 mod op_return_tests_fuzz {
-    use super::*;
-
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
     use simplex::fuzz::proptest::prelude::{Just, any};
@@ -140,6 +138,8 @@ mod op_return_tests_fuzz {
     use simplex::fuzz::{Expect, Scenario};
     use simplex::transaction::{FinalTransaction, PartialInput, PartialOutput, UTXO};
     use simplex::{FuzzMode, TestContext};
+
+    use super::*;
 
     const EXPECTED_IS_OP_RETURN: bool = true;
 

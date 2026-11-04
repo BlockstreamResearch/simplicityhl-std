@@ -1,5 +1,6 @@
-use crate::common::core::{Expect, run};
 use rand::Rng;
+
+use crate::common::core::{Expect, run};
 
 use simplicityhl_std::artifacts::tests::u8::mul_div::MulDivProgram as U8MulDivTestProgram;
 use simplicityhl_std::artifacts::tests::u8::mul_div::derived_mul_div::{

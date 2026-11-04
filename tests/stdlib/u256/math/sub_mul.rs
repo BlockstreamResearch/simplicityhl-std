@@ -276,9 +276,9 @@ fn mul_256_128_overflow(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 mod sub_mul_tests_fuzz {
-    use std::cmp::max;
-
     use super::*;
+
+    use std::cmp::max;
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 

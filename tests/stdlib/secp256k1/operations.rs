@@ -445,14 +445,14 @@ fn safe_gej_normalize_roundtrip(context: simplex::TestContext) -> anyhow::Result
 mod fuzz {
     use std::fmt::Debug;
 
-    use super::*;
-
     use simplex::simplicityhl::{Arguments, WitnessValues};
 
     use simplex::fuzz::Expect;
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
+
+    use super::*;
 
     fn arb_fe() -> impl Strategy<Value = Fe> {
         any::<[u8; 32]>().prop_filter("valid secp256k1 field element", |value| *value < SECP_P)

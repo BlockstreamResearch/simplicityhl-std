@@ -4,14 +4,14 @@
 
 use std::fmt::Debug;
 
-use super::uint::{CommonOp, TestUint};
-
 use simplex::simplicityhl::{Arguments, WitnessValues};
 
 use simplex::fuzz::proptest::prelude::Just;
 use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
 use simplex::fuzz::{Expect, FuzzProgramTrait};
 use simplex::{FuzzMode, TestContext};
+
+use super::uint::{CommonOp, TestUint};
 
 /// Fuzz-specific program data and number generators for a common unsigned
 /// integer width.

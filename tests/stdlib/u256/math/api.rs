@@ -42,12 +42,12 @@ impl TestUint for U256Wrapper {
 crate::uint_tests!(U256Wrapper);
 
 mod u256_math_tests_fuzz {
-    use crate::common::uint_fuzz::TestUintFuzz;
-
     use super::*;
 
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+
+    use crate::common::uint_fuzz::TestUintFuzz;
 
     impl TestUintFuzz for U256Wrapper {
         type Arguments = U256MathTestArguments;

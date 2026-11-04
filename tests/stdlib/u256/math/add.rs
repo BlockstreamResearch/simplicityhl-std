@@ -195,9 +195,9 @@ fn full_add_256_overflow_carry_low_true(context: simplex::TestContext) -> anyhow
 }
 
 mod add_tests_fuzz {
-    use std::cmp::max;
-
     use super::*;
+
+    use std::cmp::max;
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
 

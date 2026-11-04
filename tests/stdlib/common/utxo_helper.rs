@@ -1,17 +1,19 @@
-use primitive_types::U256;
-use rand::Rng;
-
-use simplex::program::Program;
 use simplex::simplicityhl::elements::AssetId;
 use simplex::simplicityhl::elements::OutPoint;
 use simplex::simplicityhl::elements::Script;
 use simplex::simplicityhl::elements::Txid;
 use simplex::simplicityhl::elements::pset::serialize::Serialize;
+
+use simplex::program::Program;
 use simplex::transaction::UTXO;
+
+use primitive_types::U256;
+use rand::Rng;
 
 use crate::common::core::tweak_script;
 use crate::common::core::{send_blinded, send_explicit, send_issued};
 use crate::common::helper::generate_u256;
+
 pub const DEFAULT_SEND_AMOUNT: u64 = 50;
 
 /// The funding transaction holds around 10^16 satoshis, so 10_000 is used
@@ -253,6 +255,7 @@ pub mod fuzz {
     };
     use simplex::simplicityhl::elements::secp256k1_zkp::Secp256k1;
     use simplex::simplicityhl::elements::{AssetId, OutPoint, Script, TxOutSecrets, Txid};
+
     use simplex::transaction::{FinalTransaction, PartialInput, PartialOutput, UTXO};
     use simplex::{FuzzMode, TestContext};
 

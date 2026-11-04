@@ -1,6 +1,7 @@
 use primitive_types::U256;
 
 use crate::common::core::{Expect, run};
+use crate::common::helper::generate_u256;
 
 use simplicityhl_std::artifacts::tests::u256::convert::ConvertProgram as U256ConvertTestProgram;
 use simplicityhl_std::artifacts::tests::u256::convert::derived_convert::{
@@ -65,8 +66,6 @@ impl Case {
         run(context, program(), self.witness, expect)
     }
 }
-
-use crate::common::helper::generate_u256;
 
 #[simplex::test]
 fn u256_into_u8(context: simplex::TestContext) -> anyhow::Result<()> {

@@ -638,10 +638,6 @@ fn div_mod_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> 
 }
 
 mod primitives_tests_fuzz {
-    use crate::common::uint_fuzz::{
-        run_uint_fuzz, safe_div_by_zero_strategy, safe_div_fitting_strategy,
-    };
-
     use super::*;
 
     use simplex::simplicityhl::{Arguments, WitnessValues};
@@ -650,6 +646,10 @@ mod primitives_tests_fuzz {
     use simplex::fuzz::proptest::prelude::{Just, any};
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
     use simplex::{FuzzMode, TestContext};
+
+    use crate::common::uint_fuzz::{
+        run_uint_fuzz, safe_div_by_zero_strategy, safe_div_fitting_strategy,
+    };
 
     const EXPECT_CARRY: bool = true;
     const EXPECT_BORROW: bool = true;

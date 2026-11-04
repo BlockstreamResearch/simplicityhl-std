@@ -34,12 +34,12 @@ impl TestUint for u16 {
 crate::uint_tests!(u16);
 
 mod math_tests_fuzz {
-    use crate::common::uint_fuzz::TestUintFuzz;
-
     use super::*;
 
     use simplex::fuzz::proptest::prelude::any;
     use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+
+    use crate::common::uint_fuzz::TestUintFuzz;
 
     impl TestUintFuzz for u16 {
         type Arguments = U16MathTestArguments;

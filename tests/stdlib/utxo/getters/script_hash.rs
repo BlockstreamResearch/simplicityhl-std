@@ -1,5 +1,6 @@
-use rand::Rng;
 use simplex::simplicityhl::elements::Txid;
+
+use rand::Rng;
 
 use crate::common::core::Expect;
 use crate::common::core::run_with_inputs_outputs;
@@ -196,15 +197,15 @@ fn get_output_script_hash_missing_output_fail(context: simplex::TestContext) -> 
 }
 
 mod fuzz {
-    use super::*;
-
-    use crate::common::utxo_helper::fuzz::{MAX_UTXO_INDEX, create_explicit_transaction};
+    use simplex::simplicityhl::{Arguments, WitnessValues};
 
     use simplex::fuzz::proptest::prelude::*;
     use simplex::fuzz::{Expect, Mutations, Scenario};
     use simplex::{FuzzMode, TestContext};
 
-    use simplex::simplicityhl::{Arguments, WitnessValues};
+    use crate::common::utxo_helper::fuzz::{MAX_UTXO_INDEX, create_explicit_transaction};
+
+    use super::*;
 
     const SPENDING_INPUT_INDEX: usize = 0;
 
