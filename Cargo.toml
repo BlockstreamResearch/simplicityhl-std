@@ -11,7 +11,9 @@ keywords = ["simplicity", "liquid", "elements", "smart-contracts"]
 categories = ["cryptography::cryptocurrencies"]
 
 [dependencies]
-# TODO: Needs to be replaced with a new Simplex version (we should use a fixed one because of a breaking change in `ExecutionError`).
+# TODO: Replace this with a new Simplex version that includes the fix from simplicity-lang
+#  (For now, we must use a patched smplx dependency because of a breaking change in `ExecutionError`
+#  where the fix is represented).
 smplx-std = { git = "https://github.com/BlockstreamResearch/smplx", branch = "fix/bump-simplicity-lang", features = ["test"] }
 
 [dev-dependencies]
@@ -22,6 +24,6 @@ num-bigint = { version = "0.5.1" }
 num-traits = { version = "0.2.19" }
 secp256k1-zkp = { version = "0.11.0", features = ["rand"] }
 
-# TODO: Remove patch after publishing a new version of Simplex.
+# TODO: Remove this patch only when SimplicityHL uses a simplicity-lang release with the pruning fix.
 [patch.crates-io]
 simplicity-lang = { git = "https://github.com/BlockstreamResearch/rust-simplicity.git", rev = "2c5a066" }
