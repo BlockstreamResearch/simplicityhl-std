@@ -9,6 +9,15 @@ The standard library implementation for [SimplicityHL](https://github.com/Blocks
 
 ```md
 simf/lib
+├── ct
+│   ├── commitment.simf
+│   │   └── Asset generators, value commitments, and openings checked with blinding factors.
+│   ├── point.simf
+│   │   └── Decoding of confidential asset and amount `Point`s.
+│   ├── proofs.simf
+│   │   └── Exact value and asset proofs that keep blinding factors secret.
+│   └── relations.simf
+│       └── Relations between commitments (sums, ratios, equal values and assets) that keep values hidden.
 ├── secp256k1
 │   └── operations.simf
 │       ├── Conversions between `Ge`, `Gej`, and compressed `Point`.

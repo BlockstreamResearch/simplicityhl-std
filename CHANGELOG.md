@@ -1,7 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
 - Bumped Simplex to 0.2.0.
 - Aligned existing testing API with changes in Simplex.
+- Confidential Transactions functions in `ct`: decoding confidential points, building and opening commitments, exact value and asset proofs, and relations between commitments.
+- `point_to_ge` in `secp256k1::operations`.
 
 ## [0.2.0]
 
