@@ -1,17 +1,19 @@
-use primitive_types::U256;
-use rand::Rng;
-
-use simplex::program::Program;
 use simplex::simplicityhl::elements::AssetId;
 use simplex::simplicityhl::elements::OutPoint;
 use simplex::simplicityhl::elements::Script;
 use simplex::simplicityhl::elements::Txid;
 use simplex::simplicityhl::elements::pset::serialize::Serialize;
+
+use simplex::program::Program;
 use simplex::transaction::UTXO;
+
+use primitive_types::U256;
+use rand::Rng;
 
 use crate::common::core::tweak_script;
 use crate::common::core::{send_blinded, send_explicit, send_issued};
 use crate::common::helper::generate_u256;
+
 pub const DEFAULT_SEND_AMOUNT: u64 = 50;
 
 /// The funding transaction holds around 10^16 satoshis, so 10_000 is used
@@ -194,11 +196,8 @@ fn get_asset_id_amount_from_conf_utxo(conf_utxo: UTXO) -> anyhow::Result<Confide
     // 0x0b = 00001011 & 1 = 1
     // 0x08 = 00001000 & 1 = 0
     // 0x09 = 00001001 & 1 = 1
-    let asset_parity_bit = confidential_asset[0] & 1;
-    let amount_parity_bit = confidential_amount[0] & 1;
-
-    let asset_id: [u8; 32] = confidential_asset[1..33].try_into()?;
-    let amount: [u8; 32] = confidential_amount[1..33].try_into()?;
+    let (asset_parity_bit, asset_id) = decode_point(confidential_asset.as_slice().try_into()?);
+    let (amount_parity_bit, amount) = decode_point(confidential_amount.as_slice().try_into()?);
 
     Ok((
         ConfidentialAssetId {
@@ -241,4 +240,94 @@ pub fn generate_random_confidential() -> (u8, [u8; 32]) {
     let asset = generate_u256(U256::zero(), U256::MAX).to_big_endian();
 
     (parity_bit, asset)
+}
+
+/// Decodes a 33-byte point encoding into its parity bit and x coordinate.
+pub fn decode_point(data: [u8; 33]) -> (u8, [u8; 32]) {
+    let mut coordinate = [0; 32];
+    coordinate.copy_from_slice(&data[1..]);
+    (data[0] & 1, coordinate)
+}
+
+pub mod fuzz {
+    use simplex::simplicityhl::elements::confidential::{
+        Asset, AssetBlindingFactor, Value, ValueBlindingFactor,
+    };
+    use simplex::simplicityhl::elements::secp256k1_zkp::Secp256k1;
+    use simplex::simplicityhl::elements::{AssetId, OutPoint, Script, TxOutSecrets, Txid};
+
+    use simplex::transaction::{FinalTransaction, PartialInput, PartialOutput, UTXO};
+    use simplex::{FuzzMode, TestContext};
+
+    pub const MAX_UTXO_INDEX: u32 = 20;
+    pub const FUZZ_UTXO_COUNT: u32 = MAX_UTXO_INDEX + 1;
+
+    /// Builds a balanced explicit transaction with distinct UTXOs.
+    pub fn create_explicit_transaction() -> FinalTransaction {
+        let mut transaction = FinalTransaction::new();
+
+        for index in 0..FUZZ_UTXO_COUNT {
+            let amount = u64::from(index + 1) * 1_000;
+            let tag = index as u8 + 1;
+            let asset = AssetId::from_byte_array([tag; 32]);
+            let input = UTXO::explicit(
+                OutPoint::new(Txid::from_byte_array([1; 32]), index),
+                Script::from(vec![0x51, tag]),
+                amount,
+                asset,
+            );
+            let output = PartialOutput::new(Script::from(vec![0x52, tag]), amount, asset);
+
+            transaction.add_input(PartialInput::new(input), None);
+            transaction.add_output(output);
+        }
+
+        // Keep the transaction balanced while giving each position a different output.
+        transaction.outputs_mut().reverse();
+        transaction
+    }
+
+    /// Builds a balanced confidential transaction with distinct UTXOs.
+    pub fn create_confidential_transaction(context: &TestContext<FuzzMode>) -> FinalTransaction {
+        let mut transaction = FinalTransaction::new();
+        let signer = context.get_default_signer();
+        let secp = Secp256k1::new();
+        let asset_blinder = AssetBlindingFactor::from_slice(&[1; 32]).unwrap();
+        let value_blinder = ValueBlindingFactor::from_slice(&[2; 32]).unwrap();
+
+        for index in 0..FUZZ_UTXO_COUNT {
+            let amount = u64::from(index + 1) * 1_000;
+            let tag = index as u8 + 1;
+            let asset = AssetId::from_byte_array([tag; 32]);
+            let mut input = UTXO::explicit(
+                OutPoint::new(Txid::from_byte_array([1; 32]), index),
+                Script::from(vec![0x51, tag]),
+                amount,
+                asset,
+            );
+            input.txout.asset = Asset::new_confidential(&secp, asset, asset_blinder);
+            input.txout.value = Value::new_confidential_from_assetid(
+                &secp,
+                amount,
+                asset,
+                value_blinder,
+                asset_blinder,
+            );
+            input.secrets = Some(TxOutSecrets::new(
+                asset,
+                asset_blinder,
+                amount,
+                value_blinder,
+            ));
+            let output = PartialOutput::new(signer.get_address().script_pubkey(), amount, asset)
+                .with_blinding_key(signer.get_blinding_public_key());
+
+            transaction.add_input(PartialInput::new(input), None);
+            transaction.add_output(output);
+        }
+
+        // Keep the transaction balanced while giving each position a different output.
+        transaction.outputs_mut().reverse();
+        transaction
+    }
 }

@@ -193,3 +193,381 @@ fn full_add_256_overflow_carry_low_true(context: simplex::TestContext) -> anyhow
         .flag(result_carry)
         .run(&context)
 }
+
+mod add_tests_fuzz {
+    use super::*;
+
+    use std::cmp::max;
+
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    use simplex::fuzz::Expect;
+    use simplex::fuzz::proptest::prelude::{Just, any};
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::{FuzzMode, TestContext};
+
+    use crate::common::fuzz;
+
+    fn arb_u256() -> impl Strategy<Value = U256> {
+        any::<[u8; 32]>().prop_map(|bytes| U256::from_big_endian(&bytes))
+    }
+
+    fn arb_non_zero_u256() -> impl Strategy<Value = U256> {
+        arb_u256().prop_map(|value| max(value, U256::one()))
+    }
+
+    fn arb_u256_in_range(low: U256, high: U256) -> impl Strategy<Value = U256> {
+        assert!(low <= high);
+
+        let range = high - low;
+
+        arb_u256().prop_map(move |value| {
+            if range == U256::MAX {
+                value
+            } else {
+                low + value % (range + U256::one())
+            }
+        })
+    }
+
+    const EXPECT_CARRY: bool = true;
+    const EXPECT_NO_CARRY: bool = false;
+
+    /// Alias for `first_arg`, `second_arg` and `expected` in [`Case`] entry.
+    type ConvertInputs = U256;
+
+    #[derive(Debug)]
+    struct FuzzCase {
+        first_arg: ConvertInputs,
+        second_arg: ConvertInputs,
+        carry_in: bool,
+        expected: ConvertInputs,
+        expected_bool: bool,
+    }
+
+    impl FuzzCase {
+        fn new(first_arg: ConvertInputs, second_arg: ConvertInputs) -> Self {
+            Self {
+                first_arg,
+                second_arg,
+                carry_in: false,
+                expected: U256::zero(),
+                expected_bool: false,
+            }
+        }
+
+        fn carry_in(mut self, carry_in: bool) -> Self {
+            self.carry_in = carry_in;
+            self
+        }
+
+        fn expect(mut self, expected: ConvertInputs) -> Self {
+            self.expected = expected;
+            self
+        }
+
+        fn expect_bool(mut self, expected_bool: bool) -> Self {
+            self.expected_bool = expected_bool;
+            self
+        }
+
+        fn into_witness(self, witness: U256TestAddWitness) -> WitnessValues {
+            Case { witness }
+                .args(
+                    self.first_arg.to_big_endian(),
+                    self.second_arg.to_big_endian(),
+                )
+                .third_arg(self.carry_in)
+                .expect(self.expected.to_big_endian())
+                .flag(self.expected_bool)
+                .witness
+                .into()
+        }
+    }
+
+    struct CaseFuzz {
+        case: Case,
+        context: TestContext<FuzzMode>,
+        inputs: Option<BoxedStrategy<FuzzCase>>,
+        test_name: &'static str,
+    }
+
+    fn case_fuzz(
+        function: FunctionToTest,
+        context: TestContext<FuzzMode>,
+        test_name: &'static str,
+    ) -> CaseFuzz {
+        CaseFuzz {
+            case: case(function),
+            context,
+            inputs: None,
+            test_name,
+        }
+    }
+
+    impl CaseFuzz {
+        fn strategy(mut self, inputs: impl Strategy<Value = FuzzCase> + 'static) -> Self {
+            self.inputs = Some(inputs.boxed());
+            self
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let Case { witness } = self.case;
+            let inputs = self.inputs.expect("a fuzz strategy must be specified");
+
+            let strategy = inputs
+                .prop_map(move |case| {
+                    let arguments: Arguments = U256TestAddArguments {}.into();
+                    let witness = case.into_witness(witness.clone());
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            fuzz::run::<U256TestAddProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                Expect::Accept,
+                None,
+            );
+
+            Ok(())
+        }
+    }
+
+    // Custom full-width a; 0<=b<=MAX-a guarantees no output carry.
+    //
+    // Represents tests: [add_256_carry_not_overflow]
+    #[simplex::fuzz]
+    fn add_256_not_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_u256();
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(U256::zero(), U256::MAX - a);
+
+                b.prop_map(move |b| FuzzCase::new(a, b).expect(a + b))
+            })
+        };
+
+        case_fuzz(Add256Carry, context, "u256 add without overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Custom a>0; MAX-a+1<=b<=MAX guarantees overflow; checks wrapped result and carry.
+    //
+    // Represents tests: [add_256_carry_overflow]
+    #[simplex::fuzz]
+    fn add_256_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_non_zero_u256();
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(U256::MAX - a + U256::one(), U256::MAX);
+
+                b.prop_map(move |b| {
+                    let (expected, carry) = a.overflowing_add(b);
+
+                    FuzzCase::new(a, b).expect(expected).expect_bool(carry)
+                })
+            })
+        };
+
+        case_fuzz(Add256Carry, context, "u256 add with overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Custom full-width a; 0<=b<=min(MAX-a,u128::MAX) guarantees a fitting sum.
+    //
+    // Represents tests: [add_256_128_carry_not_overflow]
+    #[simplex::fuzz]
+    fn add_256_128_not_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_u256();
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(U256::zero(), (U256::MAX - a).min(u128::MAX.into()));
+
+                b.prop_map(move |b| FuzzCase::new(a, b).expect(a + b))
+            })
+        };
+
+        case_fuzz(Add256_128Carry, context, "u256 add u128 without overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // MAX-u128::MAX+1<=a<=MAX; MAX-a+1<=b<=u128::MAX guarantees overflow.
+    //
+    // Represents tests: [add_256_128_carry_overflow]
+    #[simplex::fuzz]
+    fn add_256_128_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let max_u128 = U256::from(u128::MAX);
+        let strategy = {
+            let a = arb_u256_in_range(U256::MAX - max_u128 + U256::one(), U256::MAX);
+
+            a.prop_flat_map(move |a| {
+                let b = arb_u256_in_range(U256::MAX - a + U256::one(), max_u128);
+
+                b.prop_map(move |b| {
+                    let (expected, carry) = a.overflowing_add(b);
+
+                    FuzzCase::new(a, b).expect(expected).expect_bool(carry)
+                })
+            })
+        };
+
+        case_fuzz(Add256_128Carry, context, "u256 add u128 with overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // carry_in=false; 0<=a<=MAX and 0<=b<=MAX-a; expects sum=a+b and carry_out=false.
+    //
+    // Represents tests: [full_add_256_not_overflow_carry_low_false]
+    #[simplex::fuzz]
+    fn full_add_256_not_overflow_carry_in_false(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_u256();
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(U256::zero(), U256::MAX - a);
+
+                b.prop_map(move |b| {
+                    FuzzCase::new(a, b)
+                        .carry_in(false)
+                        .expect(a + b)
+                        .expect_bool(EXPECT_NO_CARRY)
+                })
+            })
+        };
+
+        case_fuzz(
+            FullAdd256,
+            context,
+            "u256 full add without overflow and input carry false",
+        )
+        .strategy(strategy)
+        .run()
+    }
+
+    // carry_in=false; a>0 and MAX-a+1<=b<=MAX; checks wrapped sum and carry_out=true.
+    //
+    // Represents tests: [full_add_256_overflow_carry_low_false]
+    #[simplex::fuzz]
+    fn full_add_256_overflow_carry_in_false(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_non_zero_u256();
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(U256::MAX - a + U256::one(), U256::MAX);
+
+                b.prop_map(move |b| {
+                    let (expected, carry) = a.overflowing_add(b);
+
+                    FuzzCase::new(a, b)
+                        .carry_in(false)
+                        .expect(expected)
+                        .expect_bool(carry)
+                })
+            })
+        };
+
+        case_fuzz(
+            FullAdd256,
+            context,
+            "u256 full add with overflow and input carry false",
+        )
+        .strategy(strategy)
+        .run()
+    }
+
+    // carry_in=true; 0<=a<MAX and 0<=b<=MAX-1-a; expects a+b+1 and carry_out=false.
+    //
+    // Represents tests: [full_add_256_not_overflow_carry_low_true]
+    #[simplex::fuzz]
+    fn full_add_256_not_overflow_carry_in_true(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_u256_in_range(U256::zero(), U256::MAX - U256::one());
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(U256::zero(), U256::MAX - U256::one() - a);
+
+                b.prop_map(move |b| {
+                    FuzzCase::new(a, b)
+                        .carry_in(true)
+                        .expect(a + b + U256::one())
+                        .expect_bool(EXPECT_NO_CARRY)
+                })
+            })
+        };
+
+        case_fuzz(
+            FullAdd256,
+            context,
+            "u256 full add without overflow and input carry true",
+        )
+        .strategy(strategy)
+        .run()
+    }
+
+    // carry_in=true; 0<=a<=MAX and MAX-a<=b<=MAX; checks wrapped a+b+1 and carry_out=true.
+    //
+    // Represents tests: [full_add_256_overflow_carry_low_true]
+    #[simplex::fuzz]
+    fn full_add_256_overflow_carry_in_true(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_u256();
+
+            a.prop_flat_map(|a| {
+                let b = arb_u256_in_range(U256::MAX - a, U256::MAX);
+
+                b.prop_map(move |b| {
+                    let (result, carry) = a.overflowing_add(b);
+                    let (expected, carry_from_input) = result.overflowing_add(U256::one());
+
+                    FuzzCase::new(a, b)
+                        .carry_in(true)
+                        .expect(expected)
+                        .expect_bool(carry || carry_from_input)
+                })
+            })
+        };
+
+        case_fuzz(
+            FullAdd256,
+            context,
+            "u256 full add with overflow and input carry true",
+        )
+        .strategy(strategy)
+        .run()
+    }
+
+    // a=MAX, b=0, carry_in=true; the input carry causes result=0 and carry_out=true.
+    //
+    // Represents none of the tests.
+    #[simplex::fuzz]
+    fn full_add_256_carry_in_causes_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = Just(U256::MAX).prop_map(|a| {
+            FuzzCase::new(a, U256::zero())
+                .carry_in(true)
+                .expect(U256::zero())
+                .expect_bool(EXPECT_CARRY)
+        });
+
+        case_fuzz(
+            FullAdd256,
+            context,
+            "u256 input carry alone causes overflow",
+        )
+        .strategy(strategy)
+        .run()
+    }
+}
