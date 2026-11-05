@@ -8,6 +8,8 @@ use simplex::program::Program;
 use simplex::signer::Signer;
 use simplex::simplicityhl::WitnessValues;
 use simplex::simplicityhl::elements::bitcoin::PublicKey;
+use simplex::simplicityhl::elements::opcodes::{self, All};
+use simplex::simplicityhl::elements::script::Builder;
 use simplex::simplicityhl::elements::{AssetId, Script, Txid};
 use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
@@ -209,10 +211,30 @@ where
     }
 
     if let Some(data) = data {
-        ft.add_output(PartialOutput::new_metadata(data))
+        ft.add_output(PartialOutput::new(
+            create_op_return_script(data),
+            0,
+            AssetId::default(),
+        ));
     };
 
     Ok(ft)
+}
+
+/// Create an op return script from bytes, where the first byte indicates whether
+/// the bytes are an immediate push or raw opcodes
+fn create_op_return_script(data: &[u8]) -> Script {
+    let mut builder = Builder::new().push_opcode(opcodes::all::OP_RETURN);
+
+    if data[0] == 0x00 {
+        builder = builder.push_slice(&data[1..]);
+    } else {
+        for i in &data[1..] {
+            builder = builder.push_opcode(All::from(*i));
+        }
+    }
+
+    builder.into_script()
 }
 
 /// Fetch the UTXO for script, unblind if confidential.
@@ -249,11 +271,11 @@ fn unblind(signer: &Signer, mut utxo: UTXO) -> anyhow::Result<UTXO> {
     Ok(utxo)
 }
 
-// Add an output mirroring utxo's asset with amount - 1 and the tweaked script.
+/// Add an output mirroring utxo's asset with amount - 1 and the tweaked script.
 fn add_mirror_output(
     mut ft: FinalTransaction,
     utxo: &UTXO,
-    binding_key: PublicKey,
+    blinding_key: PublicKey,
     policy_asset: AssetId,
 ) -> anyhow::Result<(FinalTransaction, Option<AssetId>)> {
     let mut output = PartialOutput::new(
@@ -265,7 +287,7 @@ fn add_mirror_output(
     );
 
     if utxo.txout.value.is_confidential() {
-        output = output.with_blinding_key(binding_key)
+        output = output.with_blinding_key(blinding_key)
     }
 
     ft.add_output(output);
