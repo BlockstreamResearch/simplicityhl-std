@@ -17,7 +17,7 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: full
-  SIMPLEX_VERSION: 0.0.12
+  SIMPLEX_VERSION: 0.2.0
 
 jobs:
   simplex-tests:
@@ -64,4 +64,4 @@ jobs:
         env:
           SIMPLEX_TEST_VERBOSE: ${{ runner.debug == '1' && '-v' || '' }}
         run: |
-          simplex test --test-threads 4 "${SIMPLEX_TEST_VERBOSE}" -- --release
+          simplex test --test-threads 2 "${SIMPLEX_TEST_VERBOSE}" -- --release
