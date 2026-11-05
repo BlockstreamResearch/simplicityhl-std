@@ -1,10 +1,10 @@
-pub type Entry = Either<(u2, u256), Either<u1, u4>>;
+pub type OpReturnEntry = Either<(u2, u256), Either<u1, u4>>;
 
 /// Returns specified entry at the specified OP_RETURN output and entry index.
 /// Returns `None` if the output doesn't exist, isn't null data, or has no such entry.
-pub fn get_entry_option(output_index: u32, entry_index: u32) -> Option<Entry> {
+pub fn get_entry_option(output_index: u32, entry_index: u32) -> Option<OpReturnEntry> {
     match jet::output_null_datum(output_index, entry_index) {
-        Some(entry_option: Option<Entry>) => entry_option,
+        Some(entry_option: Option<OpReturnEntry>) => entry_option,
         None => None,
     }
 }
@@ -15,7 +15,7 @@ pub fn get_entry_option(output_index: u32, entry_index: u32) -> Option<Entry> {
 /// 
 /// 0 is an immediate 0 to 75 bytes, 1 is an OP_PUSHDATA1,
 /// 2 is an OP_PUSHDATA2 and 3 is an OP_PUSHDATA4.
-pub fn pushed_data_from_entry(entry: Entry) -> Option<(u2, u256)> {
+pub fn pushed_data_from_entry(entry: OpReturnEntry) -> Option<(u2, u256)> {
     match entry {
         Left(pushed_data: (u2, u256)) => Some(pushed_data),
         Right(_other: Either<u1, u4>) => None,
@@ -29,16 +29,16 @@ pub fn pushed_data_from_entry(entry: Entry) -> Option<(u2, u256)> {
 /// 0 is an immediate 0 to 75 bytes, 1 is an OP_PUSHDATA1,
 /// 2 is an OP_PUSHDATA2 and 3 is an OP_PUSHDATA4.
 pub fn get_pushed_data(output_index: u32, entry_index: u32) -> Option<(u2, u256)> {
-    let entry: Option<Entry> = get_entry_option(output_index, entry_index);
+    let entry: Option<OpReturnEntry> = get_entry_option(output_index, entry_index);
 
     match entry {
-        Some(entry: Entry) => pushed_data_from_entry(entry),
+        Some(entry: OpReturnEntry) => pushed_data_from_entry(entry),
         None => None,
     }
 }
 
 /// Returns `x - 1` from the specified entry if it is `OP_x` for x in the range 1..=16 and `None` otherwise
-pub fn op_x_minus_1_from_entry(entry: Entry) -> Option<u4> {
+pub fn op_x_minus_1_from_entry(entry: OpReturnEntry) -> Option<u4> {
     match entry {
         Left(_pushed_data: (u2, u256)) => None,
         Right(right: Either<u1, u4>) => match right {
@@ -50,16 +50,16 @@ pub fn op_x_minus_1_from_entry(entry: Entry) -> Option<u4> {
 
 /// Returns `x - 1` if the specified entry at the specified output is `OP_x` for x in the range 1..=16 and `None` otherwise
 pub fn get_op_x_minus_1(output_index: u32, entry_index: u32) -> Option<u4> {
-    let entry: Option<Entry> = get_entry_option(output_index, entry_index);
+    let entry: Option<OpReturnEntry> = get_entry_option(output_index, entry_index);
 
     match entry {
-        Some(entry: Entry) => op_x_minus_1_from_entry(entry),
+        Some(entry: OpReturnEntry) => op_x_minus_1_from_entry(entry),
         None => None,
     }
 }
 
 /// Returns Some(0) if the specified entry is OP_1NEGATE, Some(1) if the entry is OP_RESERVED and `None` otherwise
-pub fn negate_or_reserved_from_entry(entry: Entry) -> Option<u1> {
+pub fn negate_or_reserved_from_entry(entry: OpReturnEntry) -> Option<u1> {
     match entry {
         Left(_pushed_data: (u2, u256)) => None,
         Right(right: Either<u1, u4>) => match right {
@@ -72,17 +72,17 @@ pub fn negate_or_reserved_from_entry(entry: Entry) -> Option<u1> {
 /// Returns Some(0) if the the entry at entry_index of the specified output is OP_1NEGATE,
 /// Some(1) if the entry is OP_RESERVED and `None` otherwise
 pub fn get_negate_or_reserved(output_index: u32, entry_index: u32) -> Option<u1> {
-    let entry: Option<Entry> = get_entry_option(output_index, entry_index);
+    let entry: Option<OpReturnEntry> = get_entry_option(output_index, entry_index);
 
     match entry {
-        Some(entry: Entry) => negate_or_reserved_from_entry(entry),
+        Some(entry: OpReturnEntry) => negate_or_reserved_from_entry(entry),
         None => None,
     }
 }
 
 /// Returns the kind of the entry.
 /// 0 is pushed data, 1 is OP_1..OP_16 and 2 is OP_1NEGATE or OP_RESERVED
-pub fn kind_of_entry(entry: Entry) -> u8 {
+pub fn kind_of_entry(entry: OpReturnEntry) -> u8 {
     match entry {
         Left(_pushed_data: (u2, u256)) => 0,
         Right(right_branch: Either<u1, u4>) => match right_branch {
@@ -95,7 +95,7 @@ pub fn kind_of_entry(entry: Entry) -> u8 {
 /// Returns true if the specified output is an OP_RETURN (null data) output.
 pub fn is_output_op_return(output_index: u32) -> bool {
     match jet::output_null_datum(output_index, 0) {
-        Some(_entry_option: Option<Entry>) => true,
+        Some(_entry_option: Option<OpReturnEntry>) => true,
         None => false,
     }
 }
@@ -103,7 +103,7 @@ pub fn is_output_op_return(output_index: u32) -> bool {
 /// Returns true if the specified output is an OP_RETURN output that has an entry at entry_index
 pub fn has_entry(output_index: u32, entry_index: u32) -> bool {
     match get_entry_option(output_index, entry_index) {
-        Some(_entry: Entry) => true,
+        Some(_entry: OpReturnEntry) => true,
         None => false,
     }
 }

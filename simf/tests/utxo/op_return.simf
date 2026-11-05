@@ -1,5 +1,5 @@
 use crate::lib::utxo::op_return::{
-    Entry,
+    OpReturnEntry,
     get_entry_option,
     pushed_data_from_entry,
     get_pushed_data,
@@ -47,7 +47,7 @@ fn eq_pushed_data(a: (u2, u256), b: (u2, u256)) -> bool {
     }
 }
 
-fn eq_entry(a: Entry, b: Entry) -> bool {
+fn eq_entry(a: OpReturnEntry, b: OpReturnEntry) -> bool {
     match a {
         Left(push_a: (u2, u256)) => match b {
             Left(push_b: (u2, u256)) => eq_pushed_data(push_a, push_b),
@@ -69,14 +69,14 @@ fn eq_entry(a: Entry, b: Entry) -> bool {
     }
 }
 
-fn eq_entry_option(a: Option<Entry>, b: Option<Entry>) -> bool {
+fn eq_entry_option(a: Option<OpReturnEntry>, b: Option<OpReturnEntry>) -> bool {
     match a {
-        Some(entry_a: Entry) => match b {
-            Some(entry_b: Entry) => eq_entry(entry_a, entry_b),
+        Some(entry_a: OpReturnEntry) => match b {
+            Some(entry_b: OpReturnEntry) => eq_entry(entry_a, entry_b),
             None => false,
         },
         None => match b {
-            Some(_b: Entry) => false,
+            Some(_b: OpReturnEntry) => false,
             None => true,
         },
     }
@@ -130,9 +130,9 @@ fn main() {
 
     let output_index: u32 = witness::OUTPUT_INDEX;
     let entry_index: u32 = witness::ENTRY_INDEX;
-    let entry: Entry = witness::ENTRY;
+    let entry: OpReturnEntry = witness::ENTRY;
 
-    let expected_entry: Option<Entry> = witness::EXPECTED_ENTRY;
+    let expected_entry: Option<OpReturnEntry> = witness::EXPECTED_ENTRY;
     let expected_bool: bool = witness::EXPECTED_BOOL;
 
     let expected_value: Option<u8> = witness::expected_value;
@@ -140,7 +140,7 @@ fn main() {
 
     match is_selected(0, fn_idx) {
         true => {
-            let result_entry: Option<Entry> = get_entry_option(output_index, entry_index);
+            let result_entry: Option<OpReturnEntry> = get_entry_option(output_index, entry_index);
 
             assert!(eq_entry_option(result_entry, expected_entry));
         },

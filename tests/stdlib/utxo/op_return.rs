@@ -28,7 +28,7 @@ enum FunctionToTest {
     AssertHasEntry,
 }
 
-type Entry = Either<(u8, [u8; 32]), Either<u8, u8>>;
+type OpReturnEntry = Either<(u8, [u8; 32]), Either<u8, u8>>;
 
 const DEFAULT_DATA: &[u8; 2] = &[0, 1];
 const OP_PUSHNUM_NEG1: &[u8] = &[0x01, 0x4f];
@@ -75,13 +75,13 @@ impl Case {
     }
 
     /// `entry`:the entry passed to the arm.
-    fn entry(mut self, entry: Entry) -> Self {
+    fn entry(mut self, entry: OpReturnEntry) -> Self {
         self.witness.entry = entry;
         self
     }
 
     /// `expected_entry`: the entry the arm expects.
-    fn expected_entry(mut self, expected_entry: Option<Entry>) -> Self {
+    fn expected_entry(mut self, expected_entry: Option<OpReturnEntry>) -> Self {
         self.witness.expected_entry = expected_entry;
         self
     }
@@ -135,7 +135,7 @@ fn get_entry_option(context: simplex::TestContext) -> anyhow::Result<()> {
     const MIXED_ENTRIES: &[u8] = &[1, 0x02, 0x12, 0x23, 0x51, 0x4f, 0x50];
     const PUSHED_DATA: &[u8] = &[0x12, 0x23];
 
-    let cases: [(u32, Entry); 4] = [
+    let cases: [(u32, OpReturnEntry); 4] = [
         (0, Either::Left((0, hash_of_pushed_data(PUSHED_DATA)))),
         (1, Either::Right(Either::Right(0))),
         (2, Either::Right(Either::Left(0))),
@@ -158,7 +158,7 @@ fn get_entry_option(context: simplex::TestContext) -> anyhow::Result<()> {
 fn get_entry_option_nonexistent_output(context: simplex::TestContext) -> anyhow::Result<()> {
     let output_index = u32::MAX;
     let entry_index = 0;
-    let expected_entry: Option<Entry> = None;
+    let expected_entry: Option<OpReturnEntry> = None;
 
     case(GetEntryOption)
         .output_index(output_index)
@@ -172,7 +172,7 @@ fn get_entry_option_nonexistent_output(context: simplex::TestContext) -> anyhow:
 fn get_entry_option_not_op_return_output(context: simplex::TestContext) -> anyhow::Result<()> {
     let output_index = 0;
     let entry_index = 0;
-    let expected_entry: Option<Entry> = None;
+    let expected_entry: Option<OpReturnEntry> = None;
 
     case(GetEntryOption)
         .output_index(output_index)
@@ -185,7 +185,7 @@ fn get_entry_option_not_op_return_output(context: simplex::TestContext) -> anyho
 fn get_entry_option_out_of_range_entry(context: simplex::TestContext) -> anyhow::Result<()> {
     let output_index = 0;
     let entry_index = u32::MAX;
-    let expected_entry: Option<Entry> = None;
+    let expected_entry: Option<OpReturnEntry> = None;
 
     case(GetEntryOption)
         .output_index(output_index)
@@ -200,7 +200,7 @@ fn pushed_data_from_entry(context: simplex::TestContext) -> anyhow::Result<()> {
     let indicator = 0_u8;
     let hash = hash_of_pushed_data(&DEFAULT_DATA[1..]);
 
-    let entry: Entry = Either::Left((indicator, hash));
+    let entry: OpReturnEntry = Either::Left((indicator, hash));
 
     case(PushedDataFromEntry)
         .entry(entry)
@@ -345,7 +345,7 @@ fn get_pushed_data_neg1_returns_none(context: simplex::TestContext) -> anyhow::R
 #[simplex::test]
 fn op_x_minus_1_from_entry(context: simplex::TestContext) -> anyhow::Result<()> {
     for i in 0..16 {
-        let entry: Entry = Either::Right(Either::Right(i));
+        let entry: OpReturnEntry = Either::Right(Either::Right(i));
 
         case(OpXMinus1FromEntry)
             .entry(entry)
@@ -359,7 +359,7 @@ fn op_x_minus_1_from_entry(context: simplex::TestContext) -> anyhow::Result<()> 
 
 #[simplex::test]
 fn op_x_minus_1_from_entry_returns_none(context: simplex::TestContext) -> anyhow::Result<()> {
-    let entry: Entry = Either::Right(Either::Left(1)); // OP_RESERVED
+    let entry: OpReturnEntry = Either::Right(Either::Left(1)); // OP_RESERVED
 
     case(OpXMinus1FromEntry)
         .entry(entry)
@@ -446,7 +446,7 @@ fn get_op_x_minus_1_returns_none(context: simplex::TestContext) -> anyhow::Resul
 fn negate_or_reserved_from_entry_negate(context: simplex::TestContext) -> anyhow::Result<()> {
     let indicator = 0_u8;
 
-    let entry: Entry = Either::Right(Either::Left(indicator));
+    let entry: OpReturnEntry = Either::Right(Either::Left(indicator));
 
     case(NegateOrReservedFromEntry)
         .entry(entry)
@@ -458,7 +458,7 @@ fn negate_or_reserved_from_entry_negate(context: simplex::TestContext) -> anyhow
 fn negate_or_reserved_from_entry_reserved(context: simplex::TestContext) -> anyhow::Result<()> {
     let indicator = 1_u8;
 
-    let entry: Entry = Either::Right(Either::Left(indicator));
+    let entry: OpReturnEntry = Either::Right(Either::Left(indicator));
 
     case(NegateOrReservedFromEntry)
         .entry(entry)
@@ -468,7 +468,7 @@ fn negate_or_reserved_from_entry_reserved(context: simplex::TestContext) -> anyh
 
 #[simplex::test]
 fn negate_or_reserved_from_entry_returns_none(context: simplex::TestContext) -> anyhow::Result<()> {
-    let entry: Entry = Either::Left((0, hash_of_pushed_data(&[1])));
+    let entry: OpReturnEntry = Either::Left((0, hash_of_pushed_data(&[1])));
 
     case(NegateOrReservedFromEntry)
         .entry(entry)
@@ -559,7 +559,7 @@ fn get_negate_or_reserved_returns_none(context: simplex::TestContext) -> anyhow:
 
 #[simplex::test]
 fn kind_of_entry_pushed_data(context: simplex::TestContext) -> anyhow::Result<()> {
-    let entry: Entry = Either::Left((0, hash_of_pushed_data(&[1])));
+    let entry: OpReturnEntry = Either::Left((0, hash_of_pushed_data(&[1])));
 
     case(KindOfEntry)
         .entry(entry)
@@ -571,7 +571,7 @@ fn kind_of_entry_pushed_data(context: simplex::TestContext) -> anyhow::Result<()
 #[simplex::test]
 fn kind_of_entry_op_x_minus_1(context: simplex::TestContext) -> anyhow::Result<()> {
     let op_x_minus_1 = rand::thread_rng().gen_range(0..16);
-    let entry: Entry = Either::Right(Either::Right(op_x_minus_1));
+    let entry: OpReturnEntry = Either::Right(Either::Right(op_x_minus_1));
 
     case(KindOfEntry)
         .entry(entry)
@@ -583,7 +583,7 @@ fn kind_of_entry_op_x_minus_1(context: simplex::TestContext) -> anyhow::Result<(
 #[simplex::test]
 fn kind_of_entry_negate_or_reserved_negate(context: simplex::TestContext) -> anyhow::Result<()> {
     let indicator = 0_u8;
-    let entry: Entry = Either::Right(Either::Left(indicator));
+    let entry: OpReturnEntry = Either::Right(Either::Left(indicator));
 
     case(KindOfEntry)
         .entry(entry)
@@ -595,7 +595,7 @@ fn kind_of_entry_negate_or_reserved_negate(context: simplex::TestContext) -> any
 #[simplex::test]
 fn kind_of_entry_negate_or_reserved_reserved(context: simplex::TestContext) -> anyhow::Result<()> {
     let indicator = 1_u8;
-    let entry: Entry = Either::Right(Either::Left(indicator));
+    let entry: OpReturnEntry = Either::Right(Either::Left(indicator));
 
     case(KindOfEntry)
         .entry(entry)
