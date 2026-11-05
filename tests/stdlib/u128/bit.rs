@@ -166,3 +166,339 @@ fn right_shift_128_out_of_range(context: simplex::TestContext) -> anyhow::Result
 
     case(RightShift128).args(shift, val).expect(0).run(&context)
 }
+
+mod bit_tests_fuzz {
+    use super::*;
+
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    use simplex::fuzz::Expect;
+    use simplex::fuzz::proptest::prelude::any;
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::{FuzzMode, TestContext};
+
+    use crate::common::fuzz;
+
+    fn arb_u8() -> impl Strategy<Value = u8> {
+        any::<u8>()
+    }
+
+    fn arb_u128() -> impl Strategy<Value = u128> {
+        any::<u128>()
+    }
+
+    const OPERANDS_EQUAL: bool = true;
+    const OPERANDS_DIFFER: bool = false;
+    const UNUSED_EXPECTED_BOOL: bool = false;
+
+    /// Alias for `first_arg`, `second_arg`, `third_arg` in [`Case`] entry.
+    type ConvertInputs = u128;
+
+    /// Values for one bit operation before building the contract witness.
+    #[derive(Debug, Default)]
+    struct FuzzCase {
+        first_arg: Option<ConvertInputs>,
+        second_arg: Option<ConvertInputs>,
+        expected: Option<ConvertInputs>,
+        expected_bool: Option<bool>,
+    }
+
+    impl FuzzCase {
+        fn first_arg(first_arg: ConvertInputs) -> Self {
+            let mut x = Self::default();
+            let _ = x.first_arg.insert(first_arg);
+            x
+        }
+
+        fn second_arg(mut self, second_arg: ConvertInputs) -> Self {
+            let _ = self.second_arg.insert(second_arg);
+            self
+        }
+
+        fn expect(mut self, expected: ConvertInputs) -> Self {
+            let _ = self.expected.insert(expected);
+            self
+        }
+
+        fn expected_bool(mut self, expected_bool: bool) -> Self {
+            let _ = self.expected_bool.insert(expected_bool);
+            self
+        }
+
+        fn into_witness(self, witness: U128TestBitsWitness) -> WitnessValues {
+            Case { witness }
+                .args(
+                    self.first_arg.expect("no first_arg in witness"),
+                    self.second_arg.expect("no second_arg in witness"),
+                )
+                .expect(self.expected.expect("no expected in witness"))
+                .flag(self.expected_bool.expect("no expected_bool in witness"))
+                .witness
+                .into()
+        }
+    }
+
+    struct FuzzCaseBuilder {
+        case: Case,
+        context: TestContext<FuzzMode>,
+        inputs: Option<BoxedStrategy<FuzzCase>>,
+        name: &'static str,
+    }
+
+    fn case_fuzz(
+        function: FunctionToTest,
+        context: TestContext<FuzzMode>,
+        name: &'static str,
+    ) -> FuzzCaseBuilder {
+        FuzzCaseBuilder {
+            case: case(function),
+            context,
+            inputs: None,
+            name,
+        }
+    }
+
+    impl FuzzCaseBuilder {
+        fn strategy(mut self, inputs: impl Strategy<Value = FuzzCase> + 'static) -> Self {
+            self.inputs = Some(inputs.boxed());
+            self
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let witness = self.case.witness;
+
+            let strategy = self
+                .inputs
+                .expect("a fuzz strategy must be specified")
+                .prop_map(move |case| {
+                    let arguments: Arguments = U128TestBitsArguments {}.into();
+                    let witness = case.into_witness(witness.clone());
+
+                    (arguments, witness)
+                });
+
+            fuzz::run::<U128TestBitsProgram>(
+                &self.context,
+                strategy,
+                self.name,
+                Expect::Accept,
+                None,
+            );
+            Ok(())
+        }
+    }
+
+    // Both operands are full-width u128; compares against the independent host bitwise result.
+    //
+    // Represents tests: [and_128]
+    #[simplex::fuzz]
+    fn and(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                FuzzCase::first_arg(a)
+                    .second_arg(b)
+                    .expect(a & b)
+                    .expected_bool(UNUSED_EXPECTED_BOOL)
+            })
+        };
+
+        case_fuzz(And128, context, "u128 bitwise and")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Both operands are full-width u128; compares against the independent host bitwise result.
+    //
+    // Represents tests: [or_128]
+    #[simplex::fuzz]
+    fn or(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                FuzzCase::first_arg(a)
+                    .second_arg(b)
+                    .expect(a | b)
+                    .expected_bool(UNUSED_EXPECTED_BOOL)
+            })
+        };
+
+        case_fuzz(Or128, context, "u128 bitwise or")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Both operands are full-width u128; compares the equality flag, with dedicated equal/different
+    // cases below.
+    //
+    // Represents tests: [eq_128_true, eq_128_false]
+    #[simplex::fuzz]
+    fn eq(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                FuzzCase::first_arg(a)
+                    .second_arg(b)
+                    .expected_bool(a == b)
+                    .expect(0)
+            })
+        };
+
+        case_fuzz(Eq128, context, "u128 equality")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a=b across the full width; expected equality=true.
+    //
+    // Represents tests: [eq_128_true]
+    #[simplex::fuzz]
+    fn eq_same(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_u128().prop_map(|a| {
+                FuzzCase::first_arg(a)
+                    .second_arg(a)
+                    .expect(0)
+                    .expected_bool(OPERANDS_EQUAL)
+            })
+        };
+
+        case_fuzz(Eq128, context, "u128 equality with equal operands")
+            .strategy(strategy)
+            .run()
+    }
+
+    // b=a.wrapping_add(1); operands are guaranteed different, including wraparound at MAX.
+    //
+    // Represents tests: [eq_128_false]
+    #[simplex::fuzz]
+    fn eq_different(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_u128().prop_map(|a| {
+                FuzzCase::first_arg(a)
+                    .second_arg(a.wrapping_add(1))
+                    .expect(0)
+                    .expected_bool(OPERANDS_DIFFER)
+            })
+        };
+
+        case_fuzz(Eq128, context, "u128 inequality")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 0<=shift<=255; shifts below 128 use the host result and larger shifts expect zero.
+    //
+    // Represents tests: [left_shift_128]
+    #[simplex::fuzz]
+    fn left_shift(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u8(), arb_u128()).prop_map(|(shift, value)| {
+                let expected = if shift >= 128 { 0 } else { value << shift };
+
+                FuzzCase::first_arg(shift as u128)
+                    .second_arg(value)
+                    .expect(expected)
+                    .expected_bool(UNUSED_EXPECTED_BOOL)
+            })
+        };
+
+        case_fuzz(LeftShift128, context, "u128 left shift")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 0<=shift<=255; shifts below 128 use the host result and larger shifts expect zero.
+    //
+    // Represents tests: [right_shift_128]
+    #[simplex::fuzz]
+    fn right_shift(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u8(), arb_u128()).prop_map(|(shift, value)| {
+                let expected = if shift >= 128 { 0 } else { value >> shift };
+
+                FuzzCase::first_arg(shift as u128)
+                    .second_arg(value)
+                    .expect(expected)
+                    .expected_bool(UNUSED_EXPECTED_BOOL)
+            })
+        };
+
+        case_fuzz(RightShift128, context, "u128 right shift")
+            .strategy(strategy)
+            .run()
+    }
+
+    // shift=0 and value is full-width u128; expected result=value.
+    //
+    // Represents tests: [left_shift_128_by_zero]
+    #[simplex::fuzz]
+    fn left_shift_by_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_u128().prop_map(|value| {
+                FuzzCase::first_arg(0)
+                    .second_arg(value)
+                    .expect(value)
+                    .expected_bool(UNUSED_EXPECTED_BOOL)
+            })
+        };
+
+        case_fuzz(LeftShift128, context, "u128 left shift by zero")
+            .strategy(strategy)
+            .run()
+    }
+
+    // shift=0 and value is full-width u128; expected result=value.
+    //
+    // Represents tests: [right_shift_128_by_zero]
+    #[simplex::fuzz]
+    fn right_shift_by_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_u128().prop_map(|value| {
+                FuzzCase::first_arg(0)
+                    .second_arg(value)
+                    .expect(value)
+                    .expected_bool(UNUSED_EXPECTED_BOOL)
+            })
+        };
+
+        case_fuzz(RightShift128, context, "u128 right shift by zero")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 128<=shift<=255 and value is full-width u128; expected result=0.
+    //
+    // Represents tests: [left_shift_128_out_of_range]
+    #[simplex::fuzz]
+    fn left_shift_out_of_range(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (128u8..=u8::MAX, arb_u128()).prop_map(|(shift, value)| {
+                FuzzCase::first_arg(shift as u128)
+                    .second_arg(value)
+                    .expect(0)
+                    .expected_bool(UNUSED_EXPECTED_BOOL)
+            })
+        };
+
+        case_fuzz(LeftShift128, context, "u128 left shift out of range")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 128<=shift<=255 and value is full-width u128; expected result=0.
+    //
+    // Represents tests: [right_shift_128_out_of_range]
+    #[simplex::fuzz]
+    fn right_shift_out_of_range(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (128u8..=u8::MAX, arb_u128()).prop_map(|(shift, value)| {
+                FuzzCase::first_arg(shift as u128)
+                    .second_arg(value)
+                    .expect(0)
+                    .expected_bool(UNUSED_EXPECTED_BOOL)
+            })
+        };
+
+        case_fuzz(RightShift128, context, "u128 right shift out of range")
+            .strategy(strategy)
+            .run()
+    }
+}

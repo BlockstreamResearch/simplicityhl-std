@@ -1,6 +1,7 @@
-use primitive_types::U256;
 use std::cmp::max;
 use std::ops::Div;
+
+use primitive_types::U256;
 
 use crate::common::core::{Expect, run};
 use crate::common::helper::generate_u256;
@@ -277,4 +278,451 @@ fn mul_div_256_div_step_320_256_add_back(context: simplex::TestContext) -> anyho
         .args(a.to_big_endian(), b.to_big_endian(), c.to_big_endian())
         .expect(res)
         .run(&context)
+}
+
+mod mul_div_tests_fuzz {
+    use super::*;
+
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    use simplex::fuzz::Expect;
+    use simplex::fuzz::proptest::prelude::{Just, any};
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::{FuzzMode, TestContext};
+
+    use primitive_types::U512;
+
+    use crate::common::fuzz;
+
+    // Failure cases need an expected witness even though the operation fails first.
+    const FAILURE_EXPECTED_PLACEHOLDER: [u8; 32] = [0; 32];
+
+    // (A, B, C, Result)
+    type MulDivInputs = (U256, U256, U256, U256);
+
+    fn arb_u128() -> impl Strategy<Value = u128> {
+        any::<u128>()
+    }
+
+    fn arb_non_zero_u128() -> impl Strategy<Value = u128> {
+        arb_u128().prop_map(|value| max(value, 1))
+    }
+
+    fn arb_128bit_u256() -> impl Strategy<Value = U256> {
+        arb_u128().prop_map(U256::from)
+    }
+
+    fn arb_non_zero_128bit_u256() -> impl Strategy<Value = U256> {
+        arb_non_zero_u128().prop_map(U256::from)
+    }
+
+    fn arb_u256() -> impl Strategy<Value = U256> {
+        any::<[u8; 32]>().prop_map(|bytes| U256::from_big_endian(&bytes))
+    }
+
+    fn arb_non_zero_u256() -> impl Strategy<Value = U256> {
+        arb_u256().prop_map(|value| max(value, U256::one()))
+    }
+
+    fn arb_u256_in_range(low: U256, high: U256) -> impl Strategy<Value = U256> {
+        assert!(low <= high);
+
+        let range = high - low;
+
+        arb_u256().prop_map(move |value| {
+            if range == U256::MAX {
+                value
+            } else {
+                low + value % (range + U256::one())
+            }
+        })
+    }
+
+    #[inline]
+    fn safe_u512_to_u256_typed(a: U512) -> U256 {
+        let a = a.to_big_endian();
+        let high = U256::from_big_endian(&a[0..32]);
+        let low = U256::from_big_endian(&a[32..64]);
+
+        assert_eq!(high, U256::zero());
+
+        low
+    }
+
+    fn product_high(a: U256, b: U256) -> U256 {
+        safe_u512_to_u256_typed(a.full_mul(b) >> 256)
+    }
+
+    struct CaseFuzz {
+        case: Case,
+        context: TestContext<FuzzMode>,
+        inputs: Option<BoxedStrategy<MulDivInputs>>,
+        test_name: &'static str,
+        expect: Expect,
+    }
+
+    fn case_fuzz(
+        function: FunctionToTest,
+        context: TestContext<FuzzMode>,
+        test_name: &'static str,
+    ) -> CaseFuzz {
+        CaseFuzz {
+            case: case(function),
+            context,
+            inputs: None,
+            test_name,
+            expect: Expect::Accept,
+        }
+    }
+
+    impl CaseFuzz {
+        fn strategy(mut self, inputs: impl Strategy<Value = MulDivInputs> + 'static) -> Self {
+            self.inputs = Some(inputs.boxed());
+            self
+        }
+
+        fn expect(mut self, expect: Expect) -> Self {
+            self.expect = expect;
+            self
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let Case { witness } = self.case;
+            let inputs = self.inputs.expect("a fuzz strategy must be specified");
+            let expect_failure = matches!(self.expect, Expect::Reject);
+
+            let strategy = inputs
+                .prop_map(move |(a, b, c, expected)| {
+                    (
+                        a.to_big_endian(),
+                        b.to_big_endian(),
+                        c.to_big_endian(),
+                        expected.to_big_endian(),
+                    )
+                })
+                .prop_map(move |(a, b, c, expected)| {
+                    let arguments: Arguments = U256MulDivTestArguments {}.into();
+
+                    let case = Case {
+                        witness: witness.clone(),
+                    }
+                    .args(a, b, c);
+
+                    let case = if expect_failure {
+                        case.expect(FAILURE_EXPECTED_PLACEHOLDER)
+                    } else {
+                        case.expect(expected)
+                    };
+
+                    let witness: WitnessValues = case.witness.into();
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            fuzz::run::<U256MulDivTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+                None,
+            );
+
+            Ok(())
+        }
+    }
+
+    // 0<=a,b<=u128::MAX and c>0; checks floor(a*b/c) with a U512 reference.
+    //
+    // Represents tests: [mul_div_256_product_fits_into_u256]
+    #[simplex::fuzz]
+    fn mul_div_256_product_fits_into_u256(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_128bit_u256();
+            let b = arb_128bit_u256();
+            let c = arb_non_zero_u256();
+
+            (a, b, c).prop_map(|(a, b, c)| {
+                let expected = safe_u512_to_u256_typed(a.full_mul(b).div(c));
+
+                (a, b, c, expected)
+            })
+        };
+
+        case_fuzz(MulDiv, context, "mul_div_256 product fits into u256")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 2<=a<=MAX, b=MAX, a<=c<=MAX; product exceeds MAX but quotient fits.
+    //
+    // Represents tests: [mul_div_256_intermediate_overflow]
+    #[simplex::fuzz]
+    fn mul_div_256_intermediate_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_u256_in_range(U256::from(2), U256::MAX);
+            let b = Just(U256::MAX);
+
+            (a, b).prop_flat_map(|(a, b)| {
+                arb_u256_in_range(a, U256::MAX).prop_map(move |c| {
+                    let expected = safe_u512_to_u256_typed(a.full_mul(b).div(c));
+
+                    (a, b, c, expected)
+                })
+            })
+        };
+
+        case_fuzz(MulDiv, context, "mul_div_256 intermediate overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 2<=a<=MAX, b=MAX, 1<=c<a; excludes the valid c=a boundary allowed by the original.
+    //
+    // Represents tests: [mul_div_256_result_overflow]
+    #[simplex::fuzz]
+    fn mul_div_256_result_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_u256_in_range(U256::from(2), U256::MAX);
+            let b = Just(U256::MAX);
+
+            (a, b).prop_flat_map(|(a, b)| {
+                arb_u256_in_range(U256::one(), a - U256::one())
+                    .prop_map(move |c| (a, b, c, U256::zero()))
+            })
+        };
+
+        case_fuzz(MulDiv, context, "mul_div_256 result overflow")
+            .strategy(strategy)
+            .expect(Expect::Reject)
+            .run()
+    }
+
+    // 2^128<=a,b<=MAX and c=a; division is exact and expected result=b.
+    //
+    // Represents tests: [mul_div_256_remainder_is_zero]
+    #[simplex::fuzz]
+    fn mul_div_256_remainder_is_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let pow2_128 = U256::one() << 128;
+        let strategy = {
+            let a = arb_u256_in_range(pow2_128, U256::MAX);
+            let b = arb_u256_in_range(pow2_128, U256::MAX);
+
+            (a, b).prop_map(|(a, b)| (a, b, a, b))
+        };
+
+        case_fuzz(MulDiv, context, "mul_div_256 remainder is zero")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a>0 and 1<=b<=c<=u128::MAX; quotient is guaranteed to fit u256.
+    //
+    // Represents tests: [mul_div_256_denominator_is_u128]
+    #[simplex::fuzz]
+    fn mul_div_256_denominator_is_u128(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_non_zero_u256();
+            let b = arb_non_zero_128bit_u256();
+
+            (a, b).prop_flat_map(|(a, b)| {
+                arb_u256_in_range(b, U256::from(u128::MAX)).prop_map(move |c| {
+                    let expected = safe_u512_to_u256_typed(a.full_mul(b).div(c));
+
+                    (a, b, c, expected)
+                })
+            })
+        };
+
+        case_fuzz(MulDiv, context, "mul_div_256 denominator is u128")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 2^128<=a,b<=2^129 and 2^128<=c<2^129; checks a divisor with the smallest nonzero high half.
+    //
+    // Represents tests: [mul_div_256_min_denom_high]
+    #[simplex::fuzz]
+    fn mul_div_256_min_denom_high(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let pow2_128 = U256::one() << 128;
+        let pow2_129 = U256::one() << 129;
+        let strategy = {
+            let a = arb_u256_in_range(pow2_128, pow2_129);
+            let b = arb_u256_in_range(pow2_128, pow2_129);
+            let c = arb_u256_in_range(pow2_128, pow2_129 - U256::one());
+
+            (a, b, c).prop_map(|(a, b, c)| {
+                let expected = safe_u512_to_u256_typed(a.full_mul(b).div(c));
+
+                (a, b, c, expected)
+            })
+        };
+
+        case_fuzz(MulDiv, context, "mul_div_256 minimal denominator high")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a,b>0 and c=0; expects an assertion failure with a placeholder expected result.
+    //
+    // Represents tests: [mul_div_256_div_by_zero]
+    #[simplex::fuzz]
+    fn mul_div_256_div_by_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            let a = arb_non_zero_u256();
+            let b = arb_non_zero_u256();
+
+            (a, b).prop_map(|(a, b)| (a, b, U256::zero(), U256::zero()))
+        };
+
+        case_fuzz(MulDiv, context, "mul_div_256 division by zero")
+            .strategy(strategy)
+            .expect(Expect::Reject)
+            .run()
+    }
+
+    // a,b>=2^128, b<=MAX-2^128, c>=max(2^128,product_high+1); quotient fits.
+    //
+    // Represents tests: [mul_div_256_algorithm_d_512_256_check]
+    #[simplex::fuzz]
+    fn mul_div_256_algorithm_d_512_256_check(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let pow2_128 = U256::one() << 128;
+        let strategy = {
+            let a = arb_u256_in_range(pow2_128, U256::MAX);
+            let b = arb_u256_in_range(pow2_128, U256::MAX - pow2_128);
+
+            (a, b).prop_flat_map(move |(a, b)| {
+                let min_c = max(pow2_128, product_high(a, b) + U256::one());
+
+                arb_u256_in_range(min_c, U256::MAX).prop_map(move |c| {
+                    let expected = safe_u512_to_u256_typed(a.full_mul(b).div(c));
+
+                    (a, b, c, expected)
+                })
+            })
+        };
+
+        case_fuzz(MulDiv, context, "mul_div_256 algorithm D")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a,b>=2^128, b<=MAX-2^128, c=product_high+1; tests the tight fitting-divisor boundary.
+    //
+    // Represents tests: [mul_div_256_algorithm_d_512_256_c_is_res_high]
+    #[simplex::fuzz]
+    fn mul_div_256_algorithm_d_512_256_c_is_res_high(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let pow2_128 = U256::one() << 128;
+
+        let strategy = {
+            let a = arb_u256_in_range(pow2_128, U256::MAX);
+            let b = arb_u256_in_range(pow2_128, U256::MAX - pow2_128);
+
+            (a, b).prop_map(|(a, b)| {
+                let c = product_high(a, b) + U256::one();
+
+                let expected = safe_u512_to_u256_typed(a.full_mul(b).div(c));
+
+                (a, b, c, expected)
+            })
+        };
+
+        case_fuzz(
+            MulDiv,
+            context,
+            "mul_div_256 denominator just above product high",
+        )
+        .strategy(strategy)
+        .run()
+    }
+
+    // a,b>=2^128, b<=MAX-2^128, c>=max(2^255,product_high+1); normalization factor is one.
+    //
+    // Represents tests: [mul_div_256_normalize_to_threshold_512_256_63_norm_is_1]
+    #[simplex::fuzz]
+    fn mul_div_256_normalize_to_threshold_512_127_norm_is_1(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let pow2_128 = U256::one() << 128;
+        let pow2_255 = U256::one() << 255;
+
+        let strategy = {
+            let a = arb_u256_in_range(pow2_128, U256::MAX);
+            let b = arb_u256_in_range(pow2_128, U256::MAX - pow2_128);
+
+            (a, b).prop_flat_map(move |(a, b)| {
+                let min_c = max(pow2_255, product_high(a, b) + U256::one());
+
+                arb_u256_in_range(min_c, U256::MAX).prop_map(move |c| {
+                    let expected = safe_u512_to_u256_typed(a.full_mul(b).div(c));
+
+                    (a, b, c, expected)
+                })
+            })
+        };
+
+        case_fuzz(MulDiv, context, "mul_div_256 normalizer is one")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a>=2^128, 2^128<=b<=2^192, max(2^128,product_high+1)<=c<2^255; normalization factor exceeds
+    // one.
+    //
+    // Represents tests: [mul_div_256_normalize_to_threshold_512_256_63_norm_greater_than_1]
+    #[simplex::fuzz]
+    fn mul_div_256_normalize_to_threshold_512_127_norm_greater_than_1(
+        context: TestContext<FuzzMode>,
+    ) -> anyhow::Result<()> {
+        let pow2_128 = U256::one() << 128;
+        let pow2_192 = U256::one() << 192;
+        let pow2_255 = U256::one() << 255;
+
+        let strategy = {
+            let a = arb_u256_in_range(pow2_128, U256::MAX);
+            let b = arb_u256_in_range(pow2_128, pow2_192);
+
+            (a, b).prop_flat_map(move |(a, b)| {
+                let min_c = max(pow2_128, product_high(a, b) + U256::one());
+
+                arb_u256_in_range(min_c, pow2_255 - U256::one()).prop_map(move |c| {
+                    let expected = safe_u512_to_u256_typed(a.full_mul(b).div(c));
+
+                    (a, b, c, expected)
+                })
+            })
+        };
+
+        case_fuzz(
+            MulDiv,
+            context,
+            "mul_div_256 normalizer is greater than one",
+        )
+        .strategy(strategy)
+        .run()
+    }
+
+    // Correlated operands exercise the division add-back case; checks the quotient against U512.
+    //
+    // Represents tests: [mul_div_256_div_step_320_256_add_back]
+    #[simplex::fuzz]
+    fn mul_div_256_div_step_320_256_add_back(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (
+            arb_u256_in_range(U256::one() << 255, U256::MAX),
+            1u64..=u64::MAX,
+        )
+            .prop_map(|(c, q)| {
+                let c = c | U256::one();
+                let a = (c >> 128) << 128;
+                let b = U256::from(q) << 192;
+                let expected = safe_u512_to_u256_typed(a.full_mul(b).div(c));
+
+                (a, b, c, expected)
+            });
+        case_fuzz(MulDiv, context, "u256 correlated division add back")
+            .strategy(strategy)
+            .run()
+    }
 }
