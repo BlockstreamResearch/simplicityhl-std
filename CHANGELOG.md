@@ -1,5 +1,8 @@
 # Changelog
 
+- Bumped Simplex to 0.2.0.
+- Aligned existing testing API with changes in Simplex.
+
 ## [0.2.0]
 
 ### Breaking changes

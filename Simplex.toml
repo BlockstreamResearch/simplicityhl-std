@@ -6,7 +6,7 @@
 # out_dir = "./src/artifacts"
 
 # [dependencies]
-# some_dep = { git = "<git url>", path = "<or a relative path>" } 
+# some_dep = { git = "<git url>", path = "<or relative path>", <tag | rev | branch> = "<tag name | commit | branch name>", package = "<dir path>" }
 
 # [regtest]
 # mnemonic = "exist carry drive collect lend cereal occur much tiger just involve mean"
@@ -23,6 +23,11 @@
 
 # [test.esplora]
 # url = "<esplora url>"
+# network = "<Liquid, LiquidTestnet, ElementsRegtest>"
+
+# [test.fuzz]
+# cases = 10
+# seed = 12345
 # network = "<Liquid, LiquidTestnet, ElementsRegtest>"
 
 # [test.rpc]
