@@ -1,5 +1,4 @@
 use rand::Rng;
-use secp256k1_zkp::hashes::Hash;
 
 use simplex::either::Either;
 use simplex::simplicityhl::elements::Script;
