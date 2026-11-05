@@ -1,5 +1,6 @@
-use crate::common::core::{Expect, run};
 use rand::Rng;
+
+use crate::common::core::{Expect, run};
 
 use simplicityhl_std::artifacts::tests::u16::mul_div::MulDivProgram as U16MulDivTestProgram;
 use simplicityhl_std::artifacts::tests::u16::mul_div::derived_mul_div::{
@@ -104,4 +105,184 @@ fn mul_div_16_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> {
         .args(a, b, c)
         .expect(0)
         .expecting(&context, Expect::AssertFailed)
+}
+
+mod mul_div_tests_fuzz {
+    use super::*;
+
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    use simplex::fuzz::Expect;
+    use simplex::fuzz::proptest::prelude::any;
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::{FuzzMode, TestContext};
+
+    fn arb_u8() -> impl Strategy<Value = u8> {
+        any::<u8>()
+    }
+
+    fn arb_non_zero_u16() -> impl Strategy<Value = u16> {
+        any::<u16>().prop_filter("u16 should not be zero", |index| *index != 0)
+    }
+
+    #[derive(Debug, Default)]
+    struct FuzzCase {
+        first_numerator: Option<u16>,
+        second_numerator: Option<u16>,
+        denominator: Option<u16>,
+        expected: Option<u16>,
+    }
+
+    impl FuzzCase {
+        fn from_numerator(first_numerator: u16) -> Self {
+            let mut x = Self::default();
+            let _ = x.first_numerator.insert(first_numerator);
+            x
+        }
+
+        fn mul(mut self, second_numerator: u16) -> Self {
+            let _ = self.second_numerator.insert(second_numerator);
+            self
+        }
+
+        fn div(mut self, denominator: u16) -> Self {
+            let _ = self.denominator.insert(denominator);
+            self
+        }
+
+        fn expect(mut self, expected: u16) -> Self {
+            let _ = self.expected.insert(expected);
+            self
+        }
+
+        fn into_witness(
+            self,
+            witness: U16MulDivTestWitness,
+            expect_failure: bool,
+        ) -> WitnessValues {
+            let case = Case { witness }.args(
+                self.first_numerator.expect("no first numerator in witness"),
+                self.second_numerator
+                    .expect("no second numerator in witness"),
+                self.denominator.expect("no denominator in witness"),
+            );
+
+            let case = if expect_failure {
+                case.expect(0)
+            } else {
+                case.expect(self.expected.expect("no expected arg in witness"))
+            };
+
+            case.witness.into()
+        }
+    }
+
+    struct FuzzCaseBuilder {
+        case: Case,
+        context: TestContext<FuzzMode>,
+        inputs: Option<BoxedStrategy<FuzzCase>>,
+        test_name: &'static str,
+        expect: Expect,
+    }
+
+    fn case_fuzz(context: TestContext<FuzzMode>, test_name: &'static str) -> FuzzCaseBuilder {
+        FuzzCaseBuilder {
+            case: case(MulDiv),
+            context,
+            inputs: None,
+            test_name,
+            expect: Expect::Accept,
+        }
+    }
+
+    impl FuzzCaseBuilder {
+        fn strategy(mut self, inputs: impl Strategy<Value = FuzzCase> + 'static) -> Self {
+            self.inputs = Some(inputs.boxed());
+            self
+        }
+
+        fn expect(mut self, expect: Expect) -> Self {
+            self.expect = expect;
+            self
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let Case { witness } = self.case;
+            let inputs = self.inputs.expect("a fuzz strategy must be specified");
+            let expect_failure = matches!(self.expect, Expect::Reject);
+
+            let strategy = inputs
+                .prop_map(move |fuzz_case| {
+                    let arguments: Arguments = U16MulDivTestArguments {}.into();
+                    let witness: WitnessValues =
+                        fuzz_case.into_witness(witness.clone(), expect_failure);
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            crate::common::fuzz::run::<U16MulDivTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+                None,
+            );
+
+            Ok(())
+        }
+    }
+
+    #[simplex::fuzz]
+    fn mul_div_16_product_is_u16(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (arb_u8(), arb_u8(), arb_non_zero_u16()).prop_map(|(a, b, c)| {
+            let a = u16::from(a);
+            let b = u16::from(b);
+
+            FuzzCase::from_numerator(a).mul(b).div(c).expect(a * b / c)
+        });
+
+        case_fuzz(context, "mul_div_16_product_is_u16")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn mul_div_16_intermediate_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (2u16..=u16::MAX).prop_flat_map(|a| {
+            (a..=u16::MAX).prop_map(move |c| {
+                let b = u16::MAX;
+                let expected = ((u32::from(a) * u32::from(b)) / u32::from(c)) as u16;
+
+                FuzzCase::from_numerator(a).mul(b).div(c).expect(expected)
+            })
+        });
+
+        case_fuzz(context, "mul_div_16_intermediate_overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn mul_div_16_result_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (2u16..=u16::MAX).prop_flat_map(|a| {
+            (1u16..a).prop_map(move |c| FuzzCase::from_numerator(a).mul(u16::MAX).div(c))
+        });
+
+        case_fuzz(context, "mul_div_16_result_overflow")
+            .strategy(strategy)
+            .expect(Expect::Reject)
+            .run()
+    }
+
+    #[simplex::fuzz]
+    fn mul_div_16_div_by_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = (arb_non_zero_u16(), arb_non_zero_u16())
+            .prop_map(|(a, b)| FuzzCase::from_numerator(a).mul(b).div(0).expect(0));
+
+        case_fuzz(context, "mul_div_16_div_by_zero")
+            .strategy(strategy)
+            .expect(Expect::Reject)
+            .run()
+    }
 }
