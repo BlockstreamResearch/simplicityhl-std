@@ -1,0 +1,117 @@
+use crate::lib::ct::relations::{
+    asset_to_ge,
+    amount_to_gej,
+    zero,
+    add_amount,
+    sub_amount,
+    is_balanced,
+    assert_balanced,
+    is_scaled_eq,
+    assert_scaled_eq,
+    is_value_eq,
+    assert_value_eq,
+    is_asset_eq,
+    assert_asset_eq,
+    assert_ratio_eq,
+    assert_sum_eq
+};
+use crate::lib::secp256k1::operations::{assert_ge_eq, assert_gej_ge_eq};
+
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    // Commitments or asset generators, depending on the function index
+    let p: Point = witness::P;
+    let q: Point = witness::Q;
+    let r: Point = witness::R;
+    let k: u64 = witness::K;
+    let k2: u64 = witness::K2;
+    let s: Scalar = witness::S;
+
+    // Two inputs `a`, `b` and one output `c`
+    let asset_a: Asset1 = witness::ASSET_A;
+    let amount_a: Amount1 = witness::AMOUNT_A;
+    let asset_b: Asset1 = witness::ASSET_B;
+    let amount_b: Amount1 = witness::AMOUNT_B;
+    let asset_c: Asset1 = witness::ASSET_C;
+    let amount_c: Amount1 = witness::AMOUNT_C;
+
+    let exp_ge: Ge = witness::EXPECTED_GE;
+
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_ge_eq(asset_to_ge(asset_a), exp_ge);
+        },
+        false => (),
+    };
+    match is_selected(1, fn_idx) {
+        true => {
+            assert_gej_ge_eq(amount_to_gej(asset_a, amount_a), exp_ge);
+        },
+        false => (),
+    };
+    match is_selected(2, fn_idx) {
+        true => {
+            let inputs: Gej = add_amount(add_amount(zero(), asset_a, amount_a), asset_b, amount_b);
+            assert_balanced(sub_amount(inputs, asset_c, amount_c), s);
+        },
+        false => (),
+    };
+    match is_selected(3, fn_idx) {
+        true => {
+            let inputs: Gej = add_amount(add_amount(zero(), asset_a, amount_a), asset_b, amount_b);
+            assert!(is_balanced(sub_amount(inputs, asset_c, amount_c), s));
+        },
+        false => (),
+    };
+    match is_selected(4, fn_idx) {
+        true => {
+            assert_sum_eq(p, q, r, s);
+        },
+        false => (),
+    };
+    match is_selected(5, fn_idx) {
+        true => {
+            assert_value_eq(q, p, s);
+        },
+        false => (),
+    };
+    match is_selected(6, fn_idx) {
+        true => {
+            assert!(is_value_eq(q, p, s));
+        },
+        false => (),
+    };
+    match is_selected(7, fn_idx) {
+        true => {
+            assert_asset_eq(q, p, s);
+        },
+        false => (),
+    };
+    match is_selected(8, fn_idx) {
+        true => {
+            assert!(is_asset_eq(q, p, s));
+        },
+        false => (),
+    };
+    match is_selected(9, fn_idx) {
+        true => {
+            assert_scaled_eq(q, k, p, s);
+        },
+        false => (),
+    };
+    match is_selected(10, fn_idx) {
+        true => {
+            assert!(is_scaled_eq(q, k, p, s));
+        },
+        false => (),
+    };
+    match is_selected(11, fn_idx) {
+        true => {
+            assert_ratio_eq(k, p, k2, q, s);
+        },
+        false => (),
+    };
+}

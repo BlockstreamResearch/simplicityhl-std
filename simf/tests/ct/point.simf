@@ -1,0 +1,24 @@
+use crate::lib::ct::point::{conf_point_to_ge, conf_point_to_gej};
+use crate::lib::secp256k1::operations::{assert_ge_eq, assert_gej_ge_eq};
+
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let point: Point = witness::POINT;
+    let exp_ge: Ge = witness::EXPECTED_GE;
+
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_ge_eq(conf_point_to_ge(point), exp_ge);
+        },
+        false => (),
+    };
+    match is_selected(1, fn_idx) {
+        true => {
+            assert_gej_ge_eq(conf_point_to_gej(point), exp_ge);
+        },
+        false => (),
+    };
+}

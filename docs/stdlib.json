@@ -511,6 +511,13 @@
     "description": "Compress an affine point to `(parity, x)`, where `parity = 1` if and only if `y` is odd."
   },
   {
+    "simplicityhl_name": "point_to_ge",
+    "section": "secp256k1 operations",
+    "input_type": "Point",
+    "output_type": "Ge",
+    "description": "Decompress a compressed `Point` into affine coordinates.\n\n## Panics\nPanics if the compressed point does not decode to a valid curve point."
+  },
+  {
     "simplicityhl_name": "point_to_gej",
     "section": "secp256k1 operations",
     "input_type": "Point",
@@ -628,6 +635,230 @@
     "input_type": "Gej, Ge",
     "output_type": "()",
     "description": "Assert that a Jacobian point equals an affine point, without normalizing the Jacobian point first.\n\n## Panics\nThe assertion fails, including when either point is off-curve."
+  },
+  {
+    "simplicityhl_name": "conf_point_to_ge",
+    "section": "Confidential points",
+    "input_type": "Point",
+    "output_type": "Ge",
+    "description": "Decode a confidential asset or amount `Point` into affine coordinates. Elements sets the parity bit when `y` is not a square, while `jet::decompress` reads it as \"`y` is odd\", so confidential points must be decoded with this function rather than `point_to_ge` (see [simplicity#349](https://github.com/BlockstreamResearch/simplicity/issues/349)).\n\n## Panics\nPanics if `x` is not the x-coordinate of a curve point."
+  },
+  {
+    "simplicityhl_name": "conf_point_to_gej",
+    "section": "Confidential points",
+    "input_type": "Point",
+    "output_type": "Gej",
+    "description": "Decode a confidential asset or amount `Point` into a Jacobian point with `z = 1`; see `conf_point_to_ge`.\n\n## Panics\nPanics if `x` is not the x-coordinate of a curve point."
+  },
+  {
+    "simplicityhl_name": "is_x_eq",
+    "section": "Confidential commitments",
+    "input_type": "Point, Gej",
+    "output_type": "bool",
+    "description": "Check whether `p` has the same x-coordinate as `expected`, i.e. `p` equals `expected` or its negation. Only use it on points taken from the transaction, where consensus rules out the negation; a `Point` from the witness could have either sign."
+  },
+  {
+    "simplicityhl_name": "assert_x_eq",
+    "section": "Confidential commitments",
+    "input_type": "Point, Gej",
+    "output_type": "()",
+    "description": "Assert that `p` has the same x-coordinate as `expected`; see `is_x_eq`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "asset_generator",
+    "section": "Confidential commitments",
+    "input_type": "u256, Scalar",
+    "output_type": "Gej",
+    "description": "Build the asset generator `H_a = hash_to_curve(asset_id) + abf*G` from an asset id and its asset blinding factor `abf`."
+  },
+  {
+    "simplicityhl_name": "value_commitment",
+    "section": "Confidential commitments",
+    "input_type": "u64, Gej, Scalar",
+    "output_type": "Gej",
+    "description": "Build the value commitment `C = v*asset_gen + vbf*G` from an amount `v`, an asset generator and the value blinding factor `vbf`."
+  },
+  {
+    "simplicityhl_name": "assert_asset_generator",
+    "section": "Confidential commitments",
+    "input_type": "Point, u256, Scalar",
+    "output_type": "()",
+    "description": "Assert that the asset generator `h` is `hash_to_curve(asset_id) + abf*G`. `h` is compared by x-coordinate only; see `is_x_eq`. Passing blinding factors makes the committed values public to anyone reading the witness.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_value_commitment",
+    "section": "Confidential commitments",
+    "input_type": "Point, u64, Gej, Scalar",
+    "output_type": "()",
+    "description": "Assert that the value commitment `c` is `v*asset_gen + vbf*G`. `c` is compared by x-coordinate only; see `is_x_eq`. Passing blinding factors makes the committed values public to anyone reading the witness.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_opens_to",
+    "section": "Confidential commitments",
+    "input_type": "Asset1, Amount1, u256, u64, Scalar, Scalar",
+    "output_type": "()",
+    "description": "Assert that an `(asset, amount)` pair opens to `expected_asset_id` and `expected_amount` with the blinding factors `abf` and `vbf`. Explicit parts are compared directly, and a confidential amount under an explicit asset is checked against the unblinded generator `hash_to_curve(expected_asset_id)`; blinding factors of explicit parts are ignored. Passing blinding factors makes the committed values public to anyone reading the witness.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_exact_value",
+    "section": "Confidential proofs",
+    "input_type": "Point, u64, Ge, Signature",
+    "output_type": "()",
+    "description": "Assert that the value commitment `c` holds the amount `v` against the generator `h`, without revealing any blinding factor. `proof` is a BIP-340 signature over `sig_all_hash` by the secret `x` with `c - v*h = x*G`, so it is only valid for the spending transaction.\n\n## Panics\nThe assertion fails, including when the proven point is the point at infinity or a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "assert_exact_asset",
+    "section": "Confidential proofs",
+    "input_type": "Point, u256, Signature",
+    "output_type": "()",
+    "description": "Assert that the asset generator `h` blinds `asset_id`, without revealing `abf`. `proof` is a BIP-340 signature over `sig_all_hash` by the secret `abf`, since `h - hash_to_curve(asset_id) = abf*G`, so it is only valid for the spending transaction.\n\n## Panics\nThe assertion fails, including when the proven point is the point at infinity or a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "assert_exact_value_and_asset",
+    "section": "Confidential proofs",
+    "input_type": "Point, Point, u256, u64, Signature",
+    "output_type": "()",
+    "description": "Assert that the value commitment `c` holds `v` units of `asset_id`, where `h` is the asset generator of `c`, without revealing any blinding factor. `proof` is a BIP-340 signature over `sig_all_hash` by the secret `(v+1)*abf + vbf`, since `c + h - (v+1)*hash_to_curve(asset_id)` is that multiple of `G`, so it is only valid for the spending transaction.\n\n## Panics\nThe assertion fails, including when the proven point is the point at infinity or a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "assert_opens_to_proof",
+    "section": "Confidential proofs",
+    "input_type": "Asset1, Amount1, u256, u64, Signature",
+    "output_type": "()",
+    "description": "Assert that an `(asset, amount)` pair opens to `asset_id` and `v`, without revealing any blinding factor. Explicit parts are compared directly. The secret that signs `proof` depends on which parts are confidential: `(v+1)*abf + vbf` for a confidential asset and amount, `abf` for a confidential asset with an explicit amount, and `vbf` for an explicit asset with a confidential amount; `proof` is unused when both are explicit.\n\n## Panics\nThe assertion fails, including when the proven point is the point at infinity or a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "asset_to_ge",
+    "section": "Confidential relations",
+    "input_type": "Asset1",
+    "output_type": "Ge",
+    "description": "Return the generator that an amount of `asset` commits against: the blinded generator if `asset` is confidential, otherwise `hash_to_curve(asset_id)`.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "amount_to_gej",
+    "section": "Confidential relations",
+    "input_type": "Asset1, Amount1",
+    "output_type": "Gej",
+    "description": "Return the value commitment of an `(asset, amount)` pair. An explicit amount `v` becomes the unblinded commitment `v*H_a`, as in Elements.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "zero",
+    "section": "Confidential relations",
+    "input_type": "",
+    "output_type": "Gej",
+    "description": "Return the empty accumulator (the point at infinity) for `add`, `sub` and the other accumulating functions."
+  },
+  {
+    "simplicityhl_name": "add",
+    "section": "Confidential relations",
+    "input_type": "Gej, Point",
+    "output_type": "Gej",
+    "description": "Add the confidential point `c` to the accumulator: `acc + c`.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "sub",
+    "section": "Confidential relations",
+    "input_type": "Gej, Point",
+    "output_type": "Gej",
+    "description": "Subtract the confidential point `c` from the accumulator: `acc - c`.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "add_amount",
+    "section": "Confidential relations",
+    "input_type": "Gej, Asset1, Amount1",
+    "output_type": "Gej",
+    "description": "Add the value commitment of an `(asset, amount)` pair to the accumulator: `acc + amount_to_gej(asset, amount)`.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "sub_amount",
+    "section": "Confidential relations",
+    "input_type": "Gej, Asset1, Amount1",
+    "output_type": "Gej",
+    "description": "Subtract the value commitment of an `(asset, amount)` pair from the accumulator: `acc - amount_to_gej(asset, amount)`.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "add_scaled",
+    "section": "Confidential relations",
+    "input_type": "Gej, u64, Point",
+    "output_type": "Gej",
+    "description": "Add `k` times the confidential point `c` to the accumulator: `acc + k*c`.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "sub_scaled",
+    "section": "Confidential relations",
+    "input_type": "Gej, u64, Point",
+    "output_type": "Gej",
+    "description": "Subtract `k` times the confidential point `c` from the accumulator: `acc - k*c`.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "is_balanced",
+    "section": "Confidential relations",
+    "input_type": "Gej, Scalar",
+    "output_type": "bool",
+    "description": "Check whether `acc == s*G`, i.e. the accumulated commitments balance up to the blinding factor difference `s`."
+  },
+  {
+    "simplicityhl_name": "assert_balanced",
+    "section": "Confidential relations",
+    "input_type": "Gej, Scalar",
+    "output_type": "()",
+    "description": "Assert that `acc == s*G`; see `is_balanced`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "is_scaled_eq",
+    "section": "Confidential relations",
+    "input_type": "Point, u64, Point, Scalar",
+    "output_type": "bool",
+    "description": "Check whether `q == k*p + s*G`, i.e. `q` holds `k` times the value of `p`. `q` is compared by x-coordinate only; see `is_x_eq`.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "assert_scaled_eq",
+    "section": "Confidential relations",
+    "input_type": "Point, u64, Point, Scalar",
+    "output_type": "()",
+    "description": "Assert that `q == k*p + s*G`, i.e. `q` holds `k` times the value of `p`; see `is_scaled_eq`.\n\n## Panics\nThe assertion fails, including when a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "is_value_eq",
+    "section": "Confidential relations",
+    "input_type": "Point, Point, Scalar",
+    "output_type": "bool",
+    "description": "Check whether `q == p + s*G`, i.e. two value commitments hold the same value. `q` is compared by x-coordinate only; see `is_x_eq`.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "assert_value_eq",
+    "section": "Confidential relations",
+    "input_type": "Point, Point, Scalar",
+    "output_type": "()",
+    "description": "Assert that `q == p + s*G`, i.e. two value commitments hold the same value; see `is_value_eq`.\n\n## Panics\nThe assertion fails, including when a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "is_asset_eq",
+    "section": "Confidential relations",
+    "input_type": "Point, Point, Scalar",
+    "output_type": "bool",
+    "description": "Check whether `q == p + s*G` for two asset generators, i.e. they blind the same asset id, with `s = abf_q - abf_p`. `q` is compared by x-coordinate only; see `is_x_eq`.\n\n## Panics\nPanics if a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "assert_asset_eq",
+    "section": "Confidential relations",
+    "input_type": "Point, Point, Scalar",
+    "output_type": "()",
+    "description": "Assert that `q == p + s*G` for two asset generators, i.e. they blind the same asset id, with `s = abf_q - abf_p`; see `is_asset_eq`.\n\n## Panics\nThe assertion fails, including when a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "assert_ratio_eq",
+    "section": "Confidential relations",
+    "input_type": "u64, Point, u64, Point, Scalar",
+    "output_type": "()",
+    "description": "Assert that `a*x == b*y + s*G`, i.e. the values committed in `x` and `y` are in the ratio `b : a`.\n\n## Panics\nThe assertion fails, including when a confidential point does not decode to a curve point."
+  },
+  {
+    "simplicityhl_name": "assert_sum_eq",
+    "section": "Confidential relations",
+    "input_type": "Point, Point, Point, Scalar",
+    "output_type": "()",
+    "description": "Assert that `c1 + c2 == c_sum + s*G`. `c_sum` is compared by x-coordinate only; see `is_x_eq`.\n\n## Panics\nThe assertion fails, including when a confidential point does not decode to a curve point."
   },
   {
     "simplicityhl_name": "u1_to_u8",

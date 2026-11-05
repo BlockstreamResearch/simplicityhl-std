@@ -2,6 +2,7 @@ mod common;
 
 mod asserts;
 mod binary;
+mod ct;
 mod op_return;
 mod secp256k1;
 mod u1;
