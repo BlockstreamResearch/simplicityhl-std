@@ -110,3 +110,208 @@ fn mul_div_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> 
         .expect(0)
         .expecting(&context, Expect::AssertFailed)
 }
+
+mod mul_div_tests_fuzz {
+    use super::*;
+
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    use simplex::fuzz::Expect;
+    use simplex::fuzz::proptest::prelude::any;
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::{FuzzMode, TestContext};
+
+    fn arb_u64() -> impl Strategy<Value = u64> {
+        any::<u64>()
+    }
+
+    fn arb_non_zero_u128() -> impl Strategy<Value = u128> {
+        any::<u128>().prop_filter("u128 should not be zero", |value| *value != 0)
+    }
+
+    /// Alias for `first_arg`, `second_arg`, `third_arg` and `expected` in [`Case`] entry.
+    type ConvertInputs = u128;
+
+    #[derive(Debug, Default)]
+    struct FuzzCase {
+        first_numerator: Option<ConvertInputs>,
+        second_numerator: Option<ConvertInputs>,
+        denominator: Option<ConvertInputs>,
+        expected: Option<ConvertInputs>,
+    }
+
+    impl FuzzCase {
+        fn from_numerator(first_numerator: ConvertInputs) -> Self {
+            Self {
+                first_numerator: Some(first_numerator),
+                ..Self::default()
+            }
+        }
+
+        fn mul(mut self, second_numerator: ConvertInputs) -> Self {
+            self.second_numerator = Some(second_numerator);
+            self
+        }
+
+        fn div(mut self, denominator: ConvertInputs) -> Self {
+            self.denominator = Some(denominator);
+            self
+        }
+
+        fn expect(mut self, expected: ConvertInputs) -> Self {
+            self.expected = Some(expected);
+            self
+        }
+
+        fn into_witness(
+            self,
+            witness: U128MulDivTestWitness,
+            expect_failure: bool,
+        ) -> WitnessValues {
+            let case = Case { witness }.args(
+                self.first_numerator.expect("no first numerator in witness"),
+                self.second_numerator
+                    .expect("no second numerator in witness"),
+                self.denominator.expect("no denominator in witness"),
+            );
+
+            let case = if expect_failure {
+                case.expect(0)
+            } else {
+                case.expect(self.expected.expect("no expected result in witness"))
+            };
+
+            case.witness.into()
+        }
+    }
+
+    struct FuzzCaseBuilder {
+        case: Case,
+        context: TestContext<FuzzMode>,
+        inputs: Option<BoxedStrategy<FuzzCase>>,
+        expect: Expect,
+        test_name: &'static str,
+    }
+
+    fn case_fuzz(context: TestContext<FuzzMode>, test_name: &'static str) -> FuzzCaseBuilder {
+        FuzzCaseBuilder {
+            case: case(MulDiv),
+            context,
+            inputs: None,
+            expect: Expect::Accept,
+            test_name,
+        }
+    }
+
+    impl FuzzCaseBuilder {
+        fn strategy(mut self, inputs: impl Strategy<Value = FuzzCase> + 'static) -> Self {
+            self.inputs = Some(inputs.boxed());
+            self
+        }
+
+        fn expect(mut self, expect: Expect) -> Self {
+            self.expect = expect;
+            self
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let Case { witness } = self.case;
+            let inputs = self.inputs.expect("a fuzz strategy must be specified");
+            let expect_failure = matches!(self.expect, Expect::Reject);
+
+            let strategy = inputs
+                .prop_map(move |case| {
+                    let arguments: Arguments = U128MulDivTestArguments {}.into();
+                    let witness = case.into_witness(witness.clone(), expect_failure);
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            crate::common::fuzz::run::<U128MulDivTestProgram>(
+                &self.context,
+                strategy,
+                self.test_name,
+                self.expect,
+                None,
+            );
+
+            Ok(())
+        }
+    }
+
+    // 0<=a,b<=u64::MAX and c>0; a*b fits u128; checks floor(a*b/c).
+    //
+    // Represents tests: [mul_div_128_product_is_u128]
+    #[simplex::fuzz]
+    fn product_fits_u128(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u64(), arb_u64(), arb_non_zero_u128()).prop_map(|(a, b, c)| {
+                let (a, b) = (a as u128, b as u128);
+
+                FuzzCase::from_numerator(a).mul(b).div(c).expect(a * b / c)
+            })
+        };
+
+        case_fuzz(context, "u128 mul div with fitting product")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 2<=a<=MAX, b=MAX, a<=c<=MAX; the widened product overflows u128 but the quotient fits.
+    //
+    // Represents tests: [mul_div_128_intermediate_overflow]
+    #[simplex::fuzz]
+    fn intermediate_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (2u128..=u128::MAX).prop_flat_map(|a| {
+                (a..=u128::MAX).prop_map(move |c| {
+                    let expected =
+                        (U256::from(a) * U256::from(u128::MAX) / U256::from(c)).low_u128();
+
+                    FuzzCase::from_numerator(a)
+                        .mul(u128::MAX)
+                        .div(c)
+                        .expect(expected)
+                })
+            })
+        };
+
+        case_fuzz(context, "u128 mul div with intermediate overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 2<=a<=MAX, b=MAX, 1<=c<a; the quotient exceeds MAX and must fail.
+    //
+    // Represents tests: [mul_div_128_result_overflow]
+    #[simplex::fuzz]
+    fn result_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (2u128..=u128::MAX).prop_flat_map(|a| {
+                (1..a).prop_map(move |c| FuzzCase::from_numerator(a).mul(u128::MAX).div(c))
+            })
+        };
+
+        case_fuzz(context, "u128 mul div result overflow")
+            .strategy(strategy)
+            .expect(Expect::Reject)
+            .run()
+    }
+
+    // a,b>0 and c=0; expects an assertion failure; the failure witness sets expected=0.
+    //
+    // Represents tests: [mul_div_128_div_by_zero]
+    #[simplex::fuzz]
+    fn divide_by_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_non_zero_u128(), arb_non_zero_u128())
+                .prop_map(|(a, b)| FuzzCase::from_numerator(a).mul(b).div(0))
+        };
+
+        case_fuzz(context, "u128 mul div by zero")
+            .strategy(strategy)
+            .expect(Expect::Reject)
+            .run()
+    }
+}
