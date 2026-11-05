@@ -636,3 +636,965 @@ fn div_mod_128_div_by_zero(context: simplex::TestContext) -> anyhow::Result<()> 
         .expect(0)
         .expecting(&context, Expect::AssertFailed)
 }
+
+mod primitives_tests_fuzz {
+    use super::*;
+
+    use simplex::simplicityhl::{Arguments, WitnessValues};
+
+    use simplex::fuzz::Expect;
+    use simplex::fuzz::proptest::prelude::{Just, any};
+    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
+    use simplex::{FuzzMode, TestContext};
+
+    use crate::common::fuzz;
+    use crate::common::uint_fuzz::{
+        run_uint_fuzz, safe_div_by_zero_strategy, safe_div_fitting_strategy,
+    };
+
+    fn arb_u64() -> impl Strategy<Value = u64> {
+        any::<u64>()
+    }
+
+    fn arb_non_zero_u64() -> impl Strategy<Value = u64> {
+        any::<u64>().prop_filter("u64 should not be zero", |index| *index != 0)
+    }
+
+    fn arb_non_zero_u64_u128() -> impl Strategy<Value = u128> {
+        any::<u64>()
+            .prop_filter("u64 should not be zero", |index| *index != 0)
+            .prop_map(u128::from)
+    }
+
+    fn arb_u128() -> impl Strategy<Value = u128> {
+        any::<u128>()
+    }
+
+    fn arb_non_zero_u128() -> impl Strategy<Value = u128> {
+        arb_u128().prop_filter("u128 should not be zero", |index| *index != 0)
+    }
+
+    const EXPECT_CARRY: bool = true;
+    const EXPECT_BORROW: bool = true;
+    const NORMALIZER_U128_DIVISOR: bool = true;
+    const MIN_64_BIT_VALUE: u128 = 1u128 << 63;
+
+    /// Alias for `first_arg`, `second_arg`, `expected` and `second_expected` in [`Case`] entry.
+    type ConvertInputs = u128;
+
+    #[derive(Debug, Default, Clone)]
+    struct FuzzCase {
+        first_arg: Option<ConvertInputs>,
+        second_arg: Option<ConvertInputs>,
+        expected: Option<ConvertInputs>,
+        expected_bool: bool,
+        second_expected: ConvertInputs,
+    }
+
+    impl FuzzCase {
+        fn first_argument(first_arg: ConvertInputs) -> Self {
+            Self {
+                first_arg: Some(first_arg),
+                ..Self::default()
+            }
+        }
+
+        fn second_argument(mut self, second_arg: ConvertInputs) -> Self {
+            self.second_arg = Some(second_arg);
+            self
+        }
+
+        fn expect(mut self, expected: ConvertInputs) -> Self {
+            self.expected = Some(expected);
+            self
+        }
+
+        fn expect_bool(mut self, expected_bool: bool) -> Self {
+            self.expected_bool = expected_bool;
+            self
+        }
+
+        fn second_expected(mut self, second_expected: ConvertInputs) -> Self {
+            self.second_expected = second_expected;
+            self
+        }
+
+        fn into_witness(
+            mut self,
+            witness: U128BasicMathTestWitness,
+            expect_failure: bool,
+        ) -> WitnessValues {
+            if expect_failure {
+                self.expected = Some(0);
+                self.second_expected = 0;
+            }
+
+            Case { witness }
+                .args(
+                    self.first_arg.expect("no first arg in witness"),
+                    self.second_arg.expect("no second arg in witness"),
+                )
+                .expect(self.expected.expect("no expected result in witness"))
+                .flag(self.expected_bool)
+                .second(self.second_expected)
+                .witness
+                .into()
+        }
+    }
+
+    fn div_mod_case(a: ConvertInputs, b: ConvertInputs) -> FuzzCase {
+        FuzzCase::first_argument(a)
+            .second_argument(b)
+            .expect(a / b)
+            .second_expected(a % b)
+    }
+
+    struct CaseFuzz {
+        case: Case,
+        context: TestContext<FuzzMode>,
+        inputs: Option<BoxedStrategy<FuzzCase>>,
+        expect: Expect,
+        name: &'static str,
+    }
+
+    fn case_fuzz(
+        function: FunctionToTest,
+        context: TestContext<FuzzMode>,
+        name: &'static str,
+    ) -> CaseFuzz {
+        CaseFuzz {
+            case: case(function),
+            context,
+            inputs: None,
+            expect: Expect::Accept,
+            name,
+        }
+    }
+
+    impl CaseFuzz {
+        fn strategy(mut self, inputs: impl Strategy<Value = FuzzCase> + 'static) -> Self {
+            self.inputs = Some(inputs.boxed());
+            self
+        }
+
+        fn expect(mut self, expect: Expect) -> Self {
+            self.expect = expect;
+            self
+        }
+
+        fn run(self) -> anyhow::Result<()> {
+            let Case { witness } = self.case;
+            let inputs = self.inputs.expect("a fuzz strategy must be specified");
+            let expect_failure = self.expect == Expect::Reject;
+
+            let strategy = inputs
+                .prop_map(move |fuzz_case| {
+                    let arguments: Arguments = U128BasicMathTestArguments {}.into();
+                    let witness = fuzz_case.into_witness(witness.clone(), expect_failure);
+
+                    (arguments, witness)
+                })
+                .boxed();
+
+            fuzz::run::<U128BasicMathTestProgram>(
+                &self.context,
+                strategy,
+                self.name,
+                self.expect,
+                None,
+            );
+            Ok(())
+        }
+    }
+
+    // Full-width a and b; checks the wrapped sum and output carry for either outcome.
+    //
+    // Represents tests: [add_128_carry_not_overflow, add_128_carry_overflow]
+    #[simplex::fuzz]
+    fn add(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                let (sum, carry) = a.overflowing_add(b);
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .expect(sum)
+                    .expect_bool(carry)
+            })
+        };
+
+        case_fuzz(Add128Carry, context, "add")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a is u128 and b is u64; checks the wrapped sum and output carry for either outcome.
+    //
+    // Represents tests: [add_128_64_carry_not_overflow, add_128_64_carry_overflow]
+    #[simplex::fuzz]
+    fn add_128_64(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u64()).prop_map(|(a, b)| {
+                let b = b as u128;
+                let (sum, carry) = a.overflowing_add(b);
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .expect(sum)
+                    .expect_bool(carry)
+            })
+        };
+
+        case_fuzz(Add128_64Carry, context, "add_128_64")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Full-width a and b; carry_in=0; checks a+b and its output carry, including overflow.
+    //
+    // Represents tests: [full_add_128_not_overflow_carry_low_false, full_add_128_overflow_carry_low_false]
+    #[simplex::fuzz]
+    fn full_add_no_carry(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                let (sum, carry) = a.overflowing_add(b);
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .second_expected(0)
+                    .expect(sum)
+                    .expect_bool(carry)
+            })
+        };
+
+        case_fuzz(FullAdd128, context, "full_add_no_carry")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Full-width a and b; carry_in=1; checks wrapped a+b+1 and both carry steps.
+    //
+    // Represents tests: [full_add_128_not_overflow_carry_low_true, full_add_128_overflow_carry_low_true]
+    #[simplex::fuzz]
+    fn full_add_with_carry(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                let (sum, carry1) = a.overflowing_add(b);
+                let (sum, carry2) = sum.overflowing_add(1);
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .second_expected(1)
+                    .expect(sum)
+                    .expect_bool(carry1 || carry2)
+            })
+        };
+
+        case_fuzz(FullAdd128, context, "full_add_with_carry")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Full-width a and b; checks wrapped a-b and its output borrow for either outcome.
+    //
+    // Represents tests: [sub_128_borrow_not_overflow, sub_128_borrow_overflow]
+    #[simplex::fuzz]
+    fn sub(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                let (diff, borrow) = a.overflowing_sub(b);
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .expect(diff)
+                    .expect_bool(borrow)
+            })
+        };
+
+        case_fuzz(Sub128Borrow, context, "sub")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a=b across the full width; expected result=0 and output borrow=false.
+    //
+    // Represents tests: [sub_128_borrow_a_eq_b]
+    #[simplex::fuzz]
+    fn sub_equal(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy =
+            { arb_u128().prop_map(|a| FuzzCase::first_argument(a).second_argument(a).expect(0)) };
+
+        case_fuzz(Sub128Borrow, context, "sub_equal")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a and b share the low u64 word; high words vary independently.
+    //
+    // Represents tests: [sub_128_borrow_a_low_eq_b_low]
+    #[simplex::fuzz]
+    fn sub_equal_low_words(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u64()).prop_map(|(a, high)| {
+                let b = ((high as u128) << 64) | (a as u64 as u128);
+                let (diff, borrow) = a.overflowing_sub(b);
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .expect(diff)
+                    .expect_bool(borrow)
+            })
+        };
+
+        case_fuzz(Sub128Borrow, context, "sub_equal_low_words")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a_low=u64::MAX and b_low=0; high words vary independently.
+    //
+    // Represents tests: [sub_128_borrow_diff_is_u64_max]
+    #[simplex::fuzz]
+    fn sub_max_low_word(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u64(), arb_u64()).prop_map(|(a_high, b_high)| {
+                let a = ((a_high as u128) << 64) | (u64::MAX as u128);
+                let b = (b_high as u128) << 64;
+                let (diff, borrow) = a.overflowing_sub(b);
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .expect(diff)
+                    .expect_bool(borrow)
+            })
+        };
+
+        case_fuzz(Sub128Borrow, context, "sub_max_low_word")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Full-width a and b; borrow_in=0; checks a-b and its output borrow, including underflow.
+    //
+    // Represents tests: [full_sub_128_borrow_low_false, full_sub_128_overflow_borrow_low_false]
+    #[simplex::fuzz]
+    fn full_sub_no_borrow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                let (diff, borrow) = a.overflowing_sub(b);
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .second_expected(0)
+                    .expect(diff)
+                    .expect_bool(borrow)
+            })
+        };
+
+        case_fuzz(FullSub128, context, "full_sub_no_borrow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Full-width a and b; borrow_in=1; checks wrapped a-b-1 and both borrow steps.
+    //
+    // Represents tests: [full_sub_128_borrow_low_true, full_sub_128_overflow_borrow_low_true]
+    #[simplex::fuzz]
+    fn full_sub_with_borrow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                let (diff, borrow1) = a.overflowing_sub(b);
+                let (diff, borrow2) = diff.overflowing_sub(1);
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .second_expected(1)
+                    .expect(diff)
+                    .expect_bool(borrow1 || borrow2)
+            })
+        };
+
+        case_fuzz(FullSub128, context, "full_sub_with_borrow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Full-width u128 operands; checks both product halves, including the high half.
+    //
+    // Represents tests: [mul_128_wide]
+    #[simplex::fuzz]
+    fn mul(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u128()).prop_map(|(a, b)| {
+                let (high, low) = split_helper(U256::from(a) * U256::from(b));
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .expect(high)
+                    .second_expected(low)
+            })
+        };
+
+        case_fuzz(Mul128Wide, context, "mul")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a is u128 and b is u64; checks both halves of the widened product.
+    //
+    // Represents tests: [mul_128_64_wide]
+    #[simplex::fuzz]
+    fn mul_128_64(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_u64()).prop_map(|(a, b)| {
+                let b = b as u128;
+                let (high, low) = split_helper(U256::from(a) * U256::from(b));
+
+                FuzzCase::first_argument(a)
+                    .second_argument(b)
+                    .expect(high)
+                    .second_expected(low)
+            })
+        };
+
+        case_fuzz(Mul128_64Wide, context, "mul_128_64")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 1<=b<2^63; selects the low word; expected normalizer=ceil(2^63/b).
+    //
+    // Represents tests: [calculate_normalizer_base_64_b_is_u64]
+    #[simplex::fuzz]
+    fn normalizer_u64_small(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (1u128..MIN_64_BIT_VALUE).prop_map(|b| {
+                FuzzCase::first_argument(0)
+                    .second_argument(b)
+                    .expect(MIN_64_BIT_VALUE.div_ceil(b))
+            })
+        };
+
+        case_fuzz(CalculateNormalizerBase64, context, "normalizer_u64_small")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 2^63<=b<=u64::MAX; selects the low word; expected normalizer=1.
+    //
+    // Represents tests: [calculate_normalizer_base_64_b_is_big_enough_not_normalize]
+    #[simplex::fuzz]
+    fn normalizer_u64_large(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (MIN_64_BIT_VALUE..=u64::MAX as u128)
+                .prop_map(|b| FuzzCase::first_argument(0).second_argument(b).expect(1))
+        };
+
+        case_fuzz(CalculateNormalizerBase64, context, "normalizer_u64_large")
+            .strategy(strategy)
+            .run()
+    }
+
+    // u64::MAX<b<=u128::MAX; selects the high word; expects ceil(2^63/b_high).
+    //
+    // Represents tests: [calculate_normalizer_base_64_b_is_u128]
+    #[simplex::fuzz]
+    fn normalizer_u128(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            ((u64::MAX as u128 + 1)..=u128::MAX).prop_map(|b| {
+                FuzzCase::first_argument(0)
+                    .second_argument(b)
+                    .expect(MIN_64_BIT_VALUE.div_ceil(b >> 64))
+                    .expect_bool(NORMALIZER_U128_DIVISOR)
+            })
+        };
+
+        case_fuzz(CalculateNormalizerBase64, context, "normalizer_u128")
+            .strategy(strategy)
+            .run()
+    }
+
+    // b>u64::MAX with the low-word selector; expects an assertion failure.
+    //
+    // Represents tests: [calculate_normalizer_base_64_b_is_u64_fail]
+    #[simplex::fuzz]
+    fn normalizer_u64_wrong_width(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            ((u64::MAX as u128 + 1)..=u128::MAX)
+                .prop_map(|b| FuzzCase::first_argument(0).second_argument(b).expect(0))
+        };
+
+        case_fuzz(
+            CalculateNormalizerBase64,
+            context,
+            "normalizer_u64_wrong_width",
+        )
+        .strategy(strategy)
+        .expect(Expect::Reject)
+        .run()
+    }
+
+    // 1<=b<=u64::MAX with the high-word selector; expects an assertion failure.
+    //
+    // Represents tests: [calculate_normalizer_base_64_b_is_u128_fail]
+    #[simplex::fuzz]
+    fn normalizer_u128_wrong_width(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_non_zero_u64_u128().prop_map(|value| {
+                FuzzCase::first_argument(0)
+                    .second_argument(value)
+                    .expect(0)
+                    .expect_bool(NORMALIZER_U128_DIVISOR)
+            })
+        };
+
+        case_fuzz(
+            CalculateNormalizerBase64,
+            context,
+            "normalizer_u128_wrong_width",
+        )
+        .strategy(strategy)
+        .expect(Expect::Reject)
+        .run()
+    }
+
+    // b=0 is fixed with Just; expects an assertion failure.
+    //
+    // Represents tests: [calculate_normalizer_base_64_b_is_zero_fail]
+    #[simplex::fuzz]
+    fn normalizer_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = { Just(FuzzCase::first_argument(0).second_argument(0).expect(0)) };
+
+        case_fuzz(CalculateNormalizerBase64, context, "normalizer_zero")
+            .strategy(strategy)
+            .expect(Expect::Reject)
+            .run()
+    }
+
+    // 2^63<=b_high<=u64::MAX and a_high<b_high; the reference quotient fits u64.
+    //
+    // Represents tests: [estimate_quotient_digit_base_64]
+    #[simplex::fuzz]
+    fn quotient_digit(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            ((1u64 << 63)..=u64::MAX).prop_flat_map(|b_high| {
+                (Just(b_high), arb_u64(), 0..b_high, arb_u128()).prop_map(
+                    |(b_high, b_low, a_high, a_low)| {
+                        let a = (U256::from(a_high) << 128) | U256::from(a_low);
+                        let b = ((b_high as u128) << 64) | (b_low as u128);
+
+                        FuzzCase::first_argument(a_high as u128)
+                            .second_argument(a_low)
+                            .expect((a / U256::from(b)).as_u128())
+                            .second_expected(b)
+                    },
+                )
+            })
+        };
+
+        case_fuzz(EstimateQuotientDigitBase64, context, "quotient_digit")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 2^63<=b_high<u64::MAX and a_high>b_high; expects the original assertion-failure outcome.
+    //
+    // Represents tests: [estimate_quotient_digit_base_64_fail]
+    #[simplex::fuzz]
+    fn quotient_digit_too_large(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            ((1u64 << 63)..u64::MAX).prop_flat_map(|b_high| {
+                (Just(b_high), arb_u64(), (b_high + 1)..=u64::MAX, arb_u128()).prop_map(
+                    |(b_high, b_low, a_high, a_low)| {
+                        let a = (U256::from(a_high) << 128) | U256::from(a_low);
+                        let b = ((b_high as u128) << 64) | (b_low as u128);
+
+                        FuzzCase::first_argument(a_high as u128)
+                            .second_argument(a_low)
+                            .expect((a / U256::from(b)).as_u128())
+                            .second_expected(b)
+                    },
+                )
+            })
+        };
+
+        case_fuzz(
+            EstimateQuotientDigitBase64,
+            context,
+            "quotient_digit_too_large",
+        )
+        .strategy(strategy)
+        .expect(Expect::Reject)
+        .run()
+    }
+
+    // a is full-width u128; 1<=b<=u64::MAX; checks quotient and remainder.
+    //
+    // Represents tests: [div_mod_128_64]
+    #[simplex::fuzz]
+    fn div_mod_128_64(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_u128(), arb_non_zero_u64().prop_map(u128::from))
+                .prop_map(|(a, b)| div_mod_case(a, b))
+        };
+
+        case_fuzz(DivMod128_64, context, "div_mod_128_64")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a is full-width u128 and b=0; expects an assertion failure.
+    //
+    // Represents tests: [div_mod_128_64_div_by_zero]
+    #[simplex::fuzz]
+    fn div_mod_128_64_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy =
+            { arb_u128().prop_map(|a| FuzzCase::first_argument(a).second_argument(0).expect(0)) };
+
+        case_fuzz(DivMod128_64, context, "div_mod_128_64_zero")
+            .strategy(strategy)
+            .expect(Expect::Reject)
+            .run()
+    }
+
+    // a is full-width u128 and b is nonzero u128; checks quotient and remainder across branches.
+    //
+    // Represents tests: [div_mod_128_a_less_than_b, div_mod_128_b_is_u64, div_mod_128_b_is_u128, div_mod_128_a_equal_b]
+    #[simplex::fuzz]
+    fn div_mod_128(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = { (arb_u128(), arb_non_zero_u128()).prop_map(|(a, b)| div_mod_case(a, b)) };
+
+        case_fuzz(DivMod128, context, "div_mod_128")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 0<=a<u128::MAX and a<b<=u128::MAX; expects q=0 and r=a.
+    //
+    // Represents tests: [div_mod_128_a_less_than_b]
+    #[simplex::fuzz]
+    fn div_mod_a_less_than_b(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (0u128..u128::MAX)
+                .prop_flat_map(|a| (a + 1..=u128::MAX).prop_map(move |b| div_mod_case(a, b)))
+        };
+
+        case_fuzz(DivMod128, context, "div_mod_a_less_than_b")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a=b>0; expects q=1 and r=0.
+    //
+    // Represents tests: [div_mod_128_a_equal_b]
+    #[simplex::fuzz]
+    fn div_mod_equal(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = { arb_non_zero_u128().prop_map(|value| div_mod_case(value, value)) };
+
+        case_fuzz(DivMod128, context, "div_mod_equal")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a_high=b_high>0; low words are independent, covering q=0 or q=1.
+    //
+    // Represents tests: [div_mod_128_q_is_1, div_mod_128_eq_high_words_a_less_than_b]
+    #[simplex::fuzz]
+    fn div_mod_same_high_words(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_non_zero_u64(), arb_u64(), arb_u64()).prop_map(|(high, a_low, b_low)| {
+                let a = ((high as u128) << 64) | (a_low as u128);
+                let b = ((high as u128) << 64) | (b_low as u128);
+
+                div_mod_case(a, b)
+            })
+        };
+
+        case_fuzz(DivMod128, context, "div_mod_same_high_words")
+            .strategy(strategy)
+            .run()
+    }
+
+    // Additional API division property; a is u128 and b>0; checks floor(a/b).
+    //
+    // Represents tests: [api::div_fitting]
+    #[simplex::fuzz]
+    fn div(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        run_uint_fuzz::<u128>(context, safe_div_fitting_strategy::<u128>(), Expect::Accept)
+    }
+
+    // Uses API div_128, which calls div_mod_128 indirectly; a is u128, b=0, and assertion failure
+    // is expected.
+    //
+    // Represents tests: [div_mod_128_div_by_zero]
+    #[simplex::fuzz]
+    fn div_by_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        run_uint_fuzz::<u128>(context, safe_div_by_zero_strategy::<u128>(), Expect::Reject)
+    }
+
+    // Explicit edge families complement the unrestricted arithmetic properties.
+    // a=u128::MAX and b>0; wrapped result=b-1 and output carry=true.
+    //
+    // Represents tests: [add_128_carry_overflow]
+    #[simplex::fuzz]
+    fn add_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_non_zero_u128().prop_map(|value| {
+                FuzzCase::first_argument(u128::MAX)
+                    .second_argument(value)
+                    .expect(value - 1)
+                    .expect_bool(EXPECT_CARRY)
+            })
+        };
+
+        case_fuzz(Add128Carry, context, "add_overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a=u128::MAX and 1<=b<=u64::MAX; result=b-1 and output carry=true.
+    //
+    // Represents tests: [add_128_64_carry_overflow]
+    #[simplex::fuzz]
+    fn add_128_64_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_non_zero_u64_u128().prop_map(|value| {
+                FuzzCase::first_argument(u128::MAX)
+                    .second_argument(value)
+                    .expect(value - 1)
+                    .expect_bool(EXPECT_CARRY)
+            })
+        };
+
+        case_fuzz(Add128_64Carry, context, "add_128_64_overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a=u128::MAX, b>0, carry_in=1; wrapped result=b and output carry=true.
+    //
+    // Represents tests: [full_add_128_overflow_carry_low_true]
+    #[simplex::fuzz]
+    fn full_add_overflow_with_carry(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_non_zero_u128().prop_map(|value| {
+                FuzzCase::first_argument(u128::MAX)
+                    .second_argument(value)
+                    .second_expected(1)
+                    .expect(value)
+                    .expect_bool(EXPECT_CARRY)
+            })
+        };
+
+        case_fuzz(FullAdd128, context, "full_add_overflow_with_carry")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 0<=a<u128::MAX and b=u128::MAX; wrapped result=a+1 and output borrow=true.
+    //
+    // Represents tests: [sub_128_borrow_overflow]
+    #[simplex::fuzz]
+    fn sub_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (0u128..u128::MAX).prop_map(|a| {
+                FuzzCase::first_argument(a)
+                    .second_argument(u128::MAX)
+                    .expect(a + 1)
+                    .expect_bool(EXPECT_BORROW)
+            })
+        };
+
+        case_fuzz(Sub128Borrow, context, "sub_overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 0<=a<u128::MAX, b=u128::MAX, borrow_in=1; result=a and output borrow=true.
+    //
+    // Represents tests: [full_sub_128_overflow_borrow_low_true]
+    #[simplex::fuzz]
+    fn full_sub_overflow_with_borrow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (0..u128::MAX).prop_map(|a| {
+                FuzzCase::first_argument(a)
+                    .second_argument(u128::MAX)
+                    .second_expected(1)
+                    .expect(a)
+                    .expect_bool(EXPECT_BORROW)
+            })
+        };
+
+        case_fuzz(FullSub128, context, "full_sub_overflow_with_borrow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a=u128::MAX, b=0, carry_in=1; only the input carry causes result=0 and carry_out=true.
+    // Additional input-carry boundary with no direct simplex::test counterpart.
+    //
+    // Represents none of the tests.
+    #[simplex::fuzz]
+    fn full_add_carry_in_causes_overflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        // MAX + 0 fits; only the input carry causes overflow.
+        let strategy = Just(u128::MAX).prop_map(|a| {
+            FuzzCase::first_argument(a)
+                .second_argument(0)
+                .second_expected(1)
+                .expect(0)
+                .expect_bool(EXPECT_CARRY)
+        });
+
+        case_fuzz(FullAdd128, context, "full_add_carry_in_causes_overflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a=b across the full width, borrow_in=1; result=u128::MAX and borrow_out=true.
+    // Additional input-borrow boundary with no direct simplex::test counterpart.
+    //
+    // Represents none of the tests.
+    #[simplex::fuzz]
+    fn full_sub_borrow_in_causes_underflow(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        // a - a is zero; only the input borrow causes underflow.
+        let strategy = arb_u128().prop_map(|a| {
+            FuzzCase::first_argument(a)
+                .second_argument(a)
+                .second_expected(1)
+                .expect(u128::MAX)
+                .expect_bool(EXPECT_BORROW)
+        });
+
+        case_fuzz(FullSub128, context, "full_sub_borrow_in_causes_underflow")
+            .strategy(strategy)
+            .run()
+    }
+
+    // 1<=b<=a<=u64::MAX; checks the small-operands branch of div_mod_128.
+    //
+    // Represents tests: [div_mod_128_div_64]
+    #[simplex::fuzz]
+    fn div_mod_128_div_64(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_non_zero_u64().prop_flat_map(|b| {
+                (b..=u64::MAX).prop_map(move |a| div_mod_case(u128::from(a), u128::from(b)))
+            })
+        };
+
+        case_fuzz(DivMod128, context, "div_mod_128_div_64")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a_high=b_high>0 and a_low>=b_low; expects q=1 and the exact remainder.
+    //
+    // Represents tests: [div_mod_128_q_is_1]
+    #[simplex::fuzz]
+    fn div_mod_quotient_one(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_non_zero_u64(), arb_u64()).prop_flat_map(|(high, b_low)| {
+                (b_low..=u64::MAX).prop_map(move |a_low| {
+                    let a = (u128::from(high) << 64) | u128::from(a_low);
+                    let b = (u128::from(high) << 64) | u128::from(b_low);
+
+                    div_mod_case(a, b)
+                })
+            })
+        };
+
+        case_fuzz(DivMod128, context, "div_mod_quotient_one")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a>u64::MAX and 1<=b<=u64::MAX; checks the small-divisor branch.
+    //
+    // Represents tests: [div_mod_128_b_is_u64]
+    #[simplex::fuzz]
+    fn div_mod_b_is_u64(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (arb_non_zero_u64(), (u128::from(u64::MAX) + 1)..=u128::MAX)
+                .prop_map(|(b, a)| div_mod_case(a, u128::from(b)))
+        };
+
+        case_fuzz(DivMod128, context, "div_mod_b_is_u64")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a_high>b_high>0 and both low words are nonzero; checks the wide-divisor branch.
+    //
+    // Represents tests: [div_mod_128_b_is_u128]
+    #[simplex::fuzz]
+    fn div_mod_b_is_u128(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            (1u64..u64::MAX).prop_flat_map(|b_high| {
+                (
+                    (b_high + 1)..=u64::MAX,
+                    arb_non_zero_u64(),
+                    arb_non_zero_u64(),
+                )
+                    .prop_map(move |(a_high, a_low, b_low)| {
+                        let a = (u128::from(a_high) << 64) | u128::from(a_low);
+                        let b = (u128::from(b_high) << 64) | u128::from(b_low);
+
+                        div_mod_case(a, b)
+                    })
+            })
+        };
+
+        case_fuzz(DivMod128, context, "div_mod_b_is_u128")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a_high=b_high>0, a_low=u64::MAX, b_low=0; expects q=1 and r=u64::MAX.
+    //
+    // Represents tests: [div_mod_128_equal_high_words_max_low_diff]
+    #[simplex::fuzz]
+    fn div_mod_equal_high_words_max_low_diff(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_u64().prop_map(|value| {
+                let high = u128::from(value.max(1)) << 64;
+
+                div_mod_case(high | u128::from(u64::MAX), high)
+            })
+        };
+
+        case_fuzz(DivMod128, context, "div_mod_equal_high_words_max_low_diff")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a_high=b_high>0, a_low=0, b_low=u64::MAX; expects q=0 and r=a.
+    //
+    // Represents tests: [div_mod_128_eq_high_words_a_less_than_b]
+    #[simplex::fuzz]
+    fn div_mod_equal_high_words_less(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        let strategy = {
+            arb_u64().prop_map(|value| {
+                let high = u128::from(value.max(1)) << 64;
+
+                div_mod_case(high, high | u128::from(u64::MAX))
+            })
+        };
+
+        case_fuzz(DivMod128, context, "div_mod_equal_high_words_less")
+            .strategy(strategy)
+            .run()
+    }
+
+    // a=u128::MAX and b=0; expected result=u128::MAX and output borrow=false.
+    //
+    // Represents tests: [sub_128_borrow_diff_is_u128_max]
+    #[simplex::fuzz]
+    fn sub_diff_is_u128_max(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
+        case_fuzz(Sub128Borrow, context, "u128 subtraction maximum difference")
+            .strategy(Just(u128::MAX).prop_map(|a| {
+                FuzzCase::first_argument(a)
+                    .second_argument(0)
+                    .expect(u128::MAX)
+            }))
+            .run()
+    }
+}
