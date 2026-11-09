@@ -749,6 +749,83 @@
     "description": "Convert a `u1` value to `bool`."
   },
   {
+    "simplicityhl_name": "and_2",
+    "section": "`u2` bit logic",
+    "input_type": "u2, u2",
+    "output_type": "u2",
+    "description": "Bitwise AND of two `u2` values."
+  },
+  {
+    "simplicityhl_name": "or_2",
+    "section": "`u2` bit logic",
+    "input_type": "u2, u2",
+    "output_type": "u2",
+    "description": "Bitwise OR of two `u2` values."
+  },
+  {
+    "simplicityhl_name": "eq_2",
+    "section": "`u2` bit logic",
+    "input_type": "u2, u2",
+    "output_type": "bool",
+    "description": "Check whether two `u2` values are equal."
+  },
+  {
+    "simplicityhl_name": "u2_to_u8",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u8",
+    "description": "Widen a `u2` value to a `u8` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u2_to_u16",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u16",
+    "description": "Widen a `u2` value to a `u16` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u2_to_u32",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u32",
+    "description": "Widen a `u2` value to a `u32` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u2_to_u64",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u64",
+    "description": "Widen a `u2` value to a `u64` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u2_to_u128",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u128",
+    "description": "Widen a `u2` value to a `u128` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u2_to_u256",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u256",
+    "description": "Widen a `u2` value to a `u256` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "split_u2_into_u1",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "(u1, u1)",
+    "description": "Split a `u2` value into two `u1` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "safe_u2_to_u1",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u1",
+    "description": "Narrow a `u2` value to a `u1` value.\n\n## Panics\nPanics if the value does not fit in `u1`."
+  },
+  {
     "simplicityhl_name": "checked_add_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",

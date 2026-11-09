@@ -15,19 +15,12 @@ use crate::lib::utxo::op_return::{
 };
 
 use crate::lib::binary::and;
+use crate::lib::u2::bit::eq_2;
 use crate::lib::asserts::assert_eq_8;
 use crate::lib::u8::convert::safe_u8_to_u1;
 
 use crate::tests::support::dispatch::is_selected;
 use crate::tests::support::expect::assert_bool;
-
-// todo: move to lib
-fn eq_2(a: u2, b: u2) -> bool {
-    let (a_high, a_low): (u1, u1) = <u2>::into(a);
-    let (b_high, b_low): (u1, u1) = <u2>::into(b);
-
-    and(jet::eq_1(a_high, b_high), jet::eq_1(a_low, b_low))
-}
 
 // todo: move to lib
 fn eq_4(a: u4, b: u4) -> bool {
