@@ -4,6 +4,7 @@
 
 ### Added
 - Extended functions for retrieving information from `OP_RETURN`.
+- Conversion and bit functions for `u2`.
 
 ### Changed
 - Bumped Simplex to 0.2.0.
