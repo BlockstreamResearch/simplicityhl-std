@@ -14,7 +14,6 @@ use crate::lib::utxo::op_return::{
     assert_has_entry
 };
 
-use crate::lib::binary::and;
 use crate::lib::u2::bit::eq_2;
 use crate::lib::asserts::assert_eq_8;
 use crate::lib::u8::convert::safe_u8_to_u1;

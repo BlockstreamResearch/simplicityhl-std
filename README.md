@@ -20,7 +20,7 @@ simf/lib
 │       └── Conversions from `u1` to other uint types and `bool`.
 ├── u2
 │   ├── bit.simf
-│   │   └── Basic bit operations available as jets for `u1` but missing for `u2`.
+│   │   └── Basic bitwise operations (`and`, `or`, `eq`).
 │   └── convert.simf
 │       └── Conversions between `u2` and other uint types.
 ├── u8
