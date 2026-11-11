@@ -826,6 +826,83 @@
     "description": "Narrow a `u2` value to a `u1` value.\n\n## Panics\nPanics if the value does not fit in `u1`."
   },
   {
+    "simplicityhl_name": "and_4",
+    "section": "`u4` bit logic",
+    "input_type": "u4, u4",
+    "output_type": "u4",
+    "description": "Bitwise AND of two `u4` values."
+  },
+  {
+    "simplicityhl_name": "or_4",
+    "section": "`u4` bit logic",
+    "input_type": "u4, u4",
+    "output_type": "u4",
+    "description": "Bitwise OR of two `u4` values."
+  },
+  {
+    "simplicityhl_name": "eq_4",
+    "section": "`u4` bit logic",
+    "input_type": "u4, u4",
+    "output_type": "bool",
+    "description": "Check whether two `u4` values are equal."
+  },
+  {
+    "simplicityhl_name": "u4_to_u8",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u8",
+    "description": "Widen a `u4` value to a `u8` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u4_to_u16",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u16",
+    "description": "Widen a `u4` value to a `u16` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u4_to_u32",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u32",
+    "description": "Widen a `u4` value to a `u32` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u4_to_u64",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u64",
+    "description": "Widen a `u4` value to a `u64` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u4_to_u128",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u128",
+    "description": "Widen a `u4` value to a `u128` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u4_to_u256",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u256",
+    "description": "Widen a `u4` value to a `u256` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "split_u4_into_u1",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "(u1, u1, u1, u1)",
+    "description": "Split a `u4` value into four `u1` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "safe_u4_to_u1",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u1",
+    "description": "Narrow a `u4` value to a `u1` value.\n\n## Panics\nPanics if the value does not fit in `u1`."
+  },
+  {
     "simplicityhl_name": "checked_add_8",
     "section": "`u8` arithmetic",
     "input_type": "u8, u8",

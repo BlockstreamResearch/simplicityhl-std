@@ -19,10 +19,11 @@ simf/lib
 │   └── convert.simf
 │       └── Conversions from `u1` to other uint types and `bool`.
 ├── u2
+├── u4
 │   ├── bit.simf
 │   │   └── Basic bitwise operations (`and`, `or`, `eq`).
 │   └── convert.simf
-│       └── Conversions between `u2` and other uint types.
+│       └── Conversions between `u2`, `u4` and other uint types.
 ├── u8
 ├── u16
 ├── u32
