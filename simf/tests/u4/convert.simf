@@ -1,0 +1,109 @@
+use crate::lib::u4::convert::{
+    u4_to_u8,
+    u4_to_u16,
+    u4_to_u32,
+    u4_to_u64,
+    u4_to_u128,
+    u4_to_u256,
+    split_u4_into_u1,
+    safe_u4_to_u1
+};
+use crate::lib::asserts::{
+    assert_eq_1,
+    assert_eq_8,
+    assert_eq_16,
+    assert_eq_32,
+    assert_eq_64,
+    assert_eq_128,
+    assert_eq_256
+};
+
+use crate::tests::support::dispatch::is_selected;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u4 = witness::FIRST_ARG;
+
+    let expected: u256 = witness::EXPECTED;
+    let (_, _, _, expected_64): (u64, u64, u64, u64) = <u256>::into(expected);
+
+    match is_selected(0, fn_idx) {
+        true => {
+            let expected: u8 = jet::rightmost_64_8(expected_64);
+
+            assert_eq_8(u4_to_u8(a), expected);
+        },
+        false => (),
+    };
+
+    match is_selected(1, fn_idx) {
+        true => {
+            let expected: u16 = jet::rightmost_64_16(expected_64);
+
+            assert_eq_16(u4_to_u16(a), expected);
+        },
+        false => (),
+    };
+
+    match is_selected(2, fn_idx) {
+        true => {
+            let expected: u32 = jet::rightmost_64_32(expected_64);
+
+            assert_eq_32(u4_to_u32(a), expected);
+        },
+        false => (),
+    };
+
+    match is_selected(3, fn_idx) {
+        true => {
+            assert_eq_64(u4_to_u64(a), expected_64);
+        },
+        false => (),
+    };
+
+    match is_selected(4, fn_idx) {
+        true => {
+            let (_, expected): (u128, u128) = <u256>::into(expected);
+
+            assert_eq_128(u4_to_u128(a), expected);
+        },
+        false => (),
+    };
+
+    match is_selected(5, fn_idx) {
+        true => {
+            assert_eq_256(u4_to_u256(a), expected);
+        },
+        false => (),
+    };
+
+    match is_selected(6, fn_idx) {
+        true => {
+            let (a3, a2, a1, a0): (u1, u1, u1, u1) = split_u4_into_u1(a);
+
+            let expected: u4 = jet::rightmost_64_4(expected_64);
+            let (
+                expected3,
+                expected2,
+                expected1,
+                expected0
+            ): (u1, u1, u1, u1) = <u4>::into(expected);
+
+            assert_eq_1(a3, expected3);
+            assert_eq_1(a2, expected2);
+            assert_eq_1(a1, expected1);
+            assert_eq_1(a0, expected0);
+        },
+        false => (),
+    };
+
+    match is_selected(7, fn_idx) {
+        true => {
+            let expected: u1 = jet::rightmost_64_1(expected_64);
+
+            assert_eq_1(safe_u4_to_u1(a), expected);
+        },
+        false => (),
+    };
+}

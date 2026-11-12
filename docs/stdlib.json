@@ -441,6 +441,27 @@
     "description": "Returns the confidential input asset_id at the current_index.\n\n## Panics\nPanics if asset_id is explicit."
   },
   {
+    "simplicityhl_name": "assert_script_hash",
+    "section": "Script hash asserts",
+    "input_type": "u32, bool, u256",
+    "output_type": "()",
+    "description": "Asserts that the SHA256 hash of the scriptPubKey at the specified input or output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_input_script_hash",
+    "section": "Script hash asserts",
+    "input_type": "u32, u256",
+    "output_type": "()",
+    "description": "Asserts that the SHA256 hash of the scriptPubKey of the input at the given index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_output_script_hash",
+    "section": "Script hash asserts",
+    "input_type": "u32, u256",
+    "output_type": "()",
+    "description": "Asserts that the SHA256 hash of the scriptPubKey of the output at the given index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
     "simplicityhl_name": "get_script_hash",
     "section": "Script hash getters",
     "input_type": "u32, bool",
@@ -490,6 +511,62 @@
     "description": "Return the logical XOR of the two given values."
   },
   {
+    "simplicityhl_name": "get_entry_option",
+    "section": "OP_RETURN",
+    "input_type": "u32, u32",
+    "output_type": "Option<OpReturnEntry>",
+    "description": "Return specified entry at the given OP_RETURN output and given index. Return `None` if the output doesn't exist, isn't null data, or has no such entry."
+  },
+  {
+    "simplicityhl_name": "pushed_data_from_entry",
+    "section": "OP_RETURN",
+    "input_type": "OpReturnEntry",
+    "output_type": "Option<(u2, u256)>",
+    "description": "Return `(x, hash)` from the given entry if it is pushed data and `None` otherwise. `hash` is the SHA256 hash of the pushed data and `x` indicates how the data was pushed: 0 is an immediate 0 to 75 bytes, 1 is an OP_PUSHDATA1, 2 is an OP_PUSHDATA2 and 3 is an OP_PUSHDATA4."
+  },
+  {
+    "simplicityhl_name": "get_pushed_data",
+    "section": "OP_RETURN",
+    "input_type": "u32, u32",
+    "output_type": "Option<(u2, u256)>",
+    "description": "Return `(x, hash)` if the entry at the given index of the given output is pushed data. `hash` is the SHA256 hash of the pushed data and `x` indicates how the data was pushed: 0 is an immediate 0 to 75 bytes, 1 is an OP_PUSHDATA1, 2 is an OP_PUSHDATA2 and 3 is an OP_PUSHDATA4."
+  },
+  {
+    "simplicityhl_name": "op_x_minus_1_from_entry",
+    "section": "OP_RETURN",
+    "input_type": "OpReturnEntry",
+    "output_type": "Option<u4>",
+    "description": "Return `x - 1` from the given entry if it is OP_x for x in the range 1..=16 and `None` otherwise."
+  },
+  {
+    "simplicityhl_name": "get_op_x_minus_1",
+    "section": "OP_RETURN",
+    "input_type": "u32, u32",
+    "output_type": "Option<u4>",
+    "description": "Return `x - 1` if the given entry at the given output is OP_x for x in the range 1..=16 and `None` otherwise."
+  },
+  {
+    "simplicityhl_name": "negate_or_reserved_from_entry",
+    "section": "OP_RETURN",
+    "input_type": "OpReturnEntry",
+    "output_type": "Option<u1>",
+    "description": "Return `Some(0)` if the given entry is OP_1NEGATE, `Some(1)` if the entry is OP_RESERVED and `None` otherwise."
+  },
+  {
+    "simplicityhl_name": "get_negate_or_reserved",
+    "section": "OP_RETURN",
+    "input_type": "u32, u32",
+    "output_type": "Option<u1>",
+    "description": "Return `Some(0)` if the the entry at the given entry of the given output is OP_1NEGATE, `Some(1)` if the entry is OP_RESERVED and `None` otherwise."
+  },
+  {
+    "simplicityhl_name": "kind_of_entry",
+    "section": "OP_RETURN",
+    "input_type": "OpReturnEntry",
+    "output_type": "u8",
+    "description": "Return the kind of the entry. 0 is pushed data, 1 is OP_1..OP_16 and 2 is OP_1NEGATE or OP_RESERVED."
+  },
+  {
     "simplicityhl_name": "is_output_op_return",
     "section": "OP_RETURN",
     "input_type": "u32",
@@ -497,11 +574,25 @@
     "description": "Return `true` if the output at the given index is an OP_RETURN (null data) output, `false` otherwise (including if the output does not exist)."
   },
   {
+    "simplicityhl_name": "has_entry",
+    "section": "OP_RETURN",
+    "input_type": "u32, u32",
+    "output_type": "bool",
+    "description": "Return true if the given output is an OP_RETURN output that has an entry at `entry_index`."
+  },
+  {
     "simplicityhl_name": "assert_output_is_op_return",
     "section": "OP_RETURN",
     "input_type": "u32",
     "output_type": "()",
     "description": "Assert that the output at the given index is an OP_RETURN (null data) output.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_has_entry",
+    "section": "OP_RETURN",
+    "input_type": "u32, u32",
+    "output_type": "()",
+    "description": "Assert that the given output is an OP_RETURN that has an entry at `entry_index`.\n\n## Panics\nThe assertion fails."
   },
   {
     "simplicityhl_name": "ge_to_point",
@@ -677,6 +768,160 @@
     "input_type": "u1",
     "output_type": "bool",
     "description": "Convert a `u1` value to `bool`."
+  },
+  {
+    "simplicityhl_name": "and_2",
+    "section": "`u2` bit logic",
+    "input_type": "u2, u2",
+    "output_type": "u2",
+    "description": "Bitwise AND of two `u2` values."
+  },
+  {
+    "simplicityhl_name": "or_2",
+    "section": "`u2` bit logic",
+    "input_type": "u2, u2",
+    "output_type": "u2",
+    "description": "Bitwise OR of two `u2` values."
+  },
+  {
+    "simplicityhl_name": "eq_2",
+    "section": "`u2` bit logic",
+    "input_type": "u2, u2",
+    "output_type": "bool",
+    "description": "Check whether two `u2` values are equal."
+  },
+  {
+    "simplicityhl_name": "u2_to_u8",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u8",
+    "description": "Widen a `u2` value to a `u8` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u2_to_u16",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u16",
+    "description": "Widen a `u2` value to a `u16` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u2_to_u32",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u32",
+    "description": "Widen a `u2` value to a `u32` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u2_to_u64",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u64",
+    "description": "Widen a `u2` value to a `u64` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u2_to_u128",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u128",
+    "description": "Widen a `u2` value to a `u128` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u2_to_u256",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u256",
+    "description": "Widen a `u2` value to a `u256` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "split_u2_into_u1",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "(u1, u1)",
+    "description": "Split a `u2` value into two `u1` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "safe_u2_to_u1",
+    "section": "`u2` conversions",
+    "input_type": "u2",
+    "output_type": "u1",
+    "description": "Narrow a `u2` value to a `u1` value.\n\n## Panics\nPanics if the value does not fit in `u1`."
+  },
+  {
+    "simplicityhl_name": "and_4",
+    "section": "`u4` bit logic",
+    "input_type": "u4, u4",
+    "output_type": "u4",
+    "description": "Bitwise AND of two `u4` values."
+  },
+  {
+    "simplicityhl_name": "or_4",
+    "section": "`u4` bit logic",
+    "input_type": "u4, u4",
+    "output_type": "u4",
+    "description": "Bitwise OR of two `u4` values."
+  },
+  {
+    "simplicityhl_name": "eq_4",
+    "section": "`u4` bit logic",
+    "input_type": "u4, u4",
+    "output_type": "bool",
+    "description": "Check whether two `u4` values are equal."
+  },
+  {
+    "simplicityhl_name": "u4_to_u8",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u8",
+    "description": "Widen a `u4` value to a `u8` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u4_to_u16",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u16",
+    "description": "Widen a `u4` value to a `u16` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u4_to_u32",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u32",
+    "description": "Widen a `u4` value to a `u32` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u4_to_u64",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u64",
+    "description": "Widen a `u4` value to a `u64` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u4_to_u128",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u128",
+    "description": "Widen a `u4` value to a `u128` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "u4_to_u256",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u256",
+    "description": "Widen a `u4` value to a `u256` value, zero-extending the high bits."
+  },
+  {
+    "simplicityhl_name": "split_u4_into_u1",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "(u1, u1, u1, u1)",
+    "description": "Split a `u4` value into four `u1` words, most-significant first."
+  },
+  {
+    "simplicityhl_name": "safe_u4_to_u1",
+    "section": "`u4` conversions",
+    "input_type": "u4",
+    "output_type": "u1",
+    "description": "Narrow a `u4` value to a `u1` value.\n\n## Panics\nPanics if the value does not fit in `u1`."
   },
   {
     "simplicityhl_name": "checked_add_8",
