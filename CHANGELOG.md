@@ -5,6 +5,7 @@
 ### Added
 - Extended functions for retrieving information from `OP_RETURN`.
 - Conversion and bit functions for `u2` and `u4`.
+- Functions for asserting script hashes.
 
 ### Changed
 - Bumped Simplex to 0.2.0.
