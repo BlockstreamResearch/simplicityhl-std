@@ -1,389 +1,93 @@
-use num_bigint::BigUint;
-use num_traits::Zero;
-use rand::{RngCore, rngs::OsRng};
-use secp256k1_zkp::{PublicKey, Secp256k1, SecretKey, rand::rngs::OsRng as SecpOsRng};
+use crate::common::core::Expect;
 
-use crate::common::core::{Expect, run};
-
-use simplicityhl_std::artifacts::tests::secp256k1::operations::OperationsProgram as Secp256k1OperationsTestProgram;
-use simplicityhl_std::artifacts::tests::secp256k1::operations::derived_operations::{
-    OperationsArguments as Secp256k1OperationsTestArguments,
-    OperationsWitness as Secp256k1OperationsTestWitness,
-};
-
-use FunctionToTest::*;
-
-type U256Alias = [u8; 32];
-/// A **G**roup **E**lement, represented as an affine curve point (u256, u256)
-type Ge = (U256Alias, U256Alias);
-/// A **G**roup **E**lement, represented using **J**acobian coordinates ((X, Y), Z)
-type Gej = (Ge, U256Alias);
-/// A compressed curve point (y_parity, x)
-type Point = (u8, U256Alias);
-// **F**ield **e**lement
-type Fe = U256Alias;
-// A multiplier for curve points, with arithmetic modulo the group order **n**
-type Scalar = U256Alias;
-
-enum FunctionToTest {
-    GeToPoint,
-    PointToGej,
-    FeSub,
-    ScalarSub,
-    GejSub,
-    FeEq,
-    ScalarEq,
-    GeEq,
-    GejPointEq,
-    SafeGejNormalize,
-}
-
-// FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
-const SECP_P: [u8; 32] = [
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFC, 0x2F,
-];
-
-// FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-const SECP_N: [u8; 32] = [
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE,
-    0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B, 0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x41,
-];
-
-fn program() -> Secp256k1OperationsTestProgram {
-    Secp256k1OperationsTestProgram::new(&Secp256k1OperationsTestArguments {})
-}
-
-/// One dispatch arm of the contract, plus the witness it reads.
-#[derive(Clone, Debug)]
-struct Case {
-    witness: Secp256k1OperationsTestWitness,
-}
-
-fn case(function: FunctionToTest) -> Case {
-    Case {
-        witness: Secp256k1OperationsTestWitness {
-            function_index: function as u8,
-            first_uint: U256Alias::default(),
-            second_uint: U256Alias::default(),
-            first_ge: Ge::default(),
-            second_ge: Ge::default(),
-            first_gej: Gej::default(),
-            second_gej: Gej::default(),
-            first_point: Point::default(),
-            expected_uint: U256Alias::default(),
-            expected_ge: Ge::default(),
-            expected_gej: Gej::default(),
-            expected_point: Point::default(),
-        },
-    }
-}
-
-impl Case {
-    /// The two field or scalar operands, `first_uint` and `second_uint`.
-    fn uints(mut self, first_uint: U256Alias, second_uint: U256Alias) -> Self {
-        self.witness.first_uint = first_uint;
-        self.witness.second_uint = second_uint;
-        self
-    }
-
-    /// Only `first_ge`.
-    fn ge(mut self, first_ge: Ge) -> Self {
-        self.witness.first_ge = first_ge;
-        self
-    }
-
-    /// The two affine points, `first_ge` and `second_ge`.
-    fn ges(mut self, first_ge: Ge, second_ge: Ge) -> Self {
-        self.witness.first_ge = first_ge;
-        self.witness.second_ge = second_ge;
-        self
-    }
-
-    /// Only `first_gej`.
-    fn gej(mut self, first_gej: Gej) -> Self {
-        self.witness.first_gej = first_gej;
-        self
-    }
-
-    /// The two Jacobian points, `first_gej` and `second_gej`.
-    fn gejs(mut self, first_gej: Gej, second_gej: Gej) -> Self {
-        self.witness.first_gej = first_gej;
-        self.witness.second_gej = second_gej;
-        self
-    }
-
-    /// `first_point`: a compressed point, parity byte and x coordinate.
-    fn point(mut self, first_point: Point) -> Self {
-        self.witness.first_point = first_point;
-        self
-    }
-
-    /// `expected_uint`: the field or scalar the arm should produce.
-    fn expect_uint(mut self, expected_uint: U256Alias) -> Self {
-        self.witness.expected_uint = expected_uint;
-        self
-    }
-
-    /// `expected_ge`: the affine point the arm should produce.
-    fn expect_ge(mut self, expected_ge: Ge) -> Self {
-        self.witness.expected_ge = expected_ge;
-        self
-    }
-
-    /// `expected_gej`: the Jacobian point the arm should produce.
-    fn expect_gej(mut self, expected_gej: Gej) -> Self {
-        self.witness.expected_gej = expected_gej;
-        self
-    }
-
-    /// `expected_point`: the compressed point the arm should produce.
-    fn expect_point(mut self, expected_point: Point) -> Self {
-        self.witness.expected_point = expected_point;
-        self
-    }
-
-    /// Fund, spend, and expect the spend to succeed.
-    fn run(self, context: &simplex::TestContext) -> anyhow::Result<()> {
-        self.expecting(context, Expect::Ok)
-    }
-
-    /// Fund, spend, and expect `expect`.
-    fn expecting(self, context: &simplex::TestContext, expect: Expect) -> anyhow::Result<()> {
-        run(context, program(), self.witness, expect)
-    }
-}
-
-fn secp_p() -> BigUint {
-    BigUint::from_bytes_be(&SECP_P)
-}
-fn secp_n() -> BigUint {
-    BigUint::from_bytes_be(&SECP_N)
-}
-
-fn to_32_be(x: &BigUint) -> [u8; 32] {
-    let b = x.to_bytes_be();
-
-    let mut out = [0u8; 32];
-    out[32 - b.len()..].copy_from_slice(&b);
-
-    out
-}
-
-fn mod_p(x: &BigUint) -> BigUint {
-    x % secp_p()
-}
-fn mod_n(x: &BigUint) -> BigUint {
-    x % secp_n()
-}
-
-fn fe_sub_ref(a: Fe, b: Fe) -> Fe {
-    let p = secp_p();
-    let a = BigUint::from_bytes_be(&a) % &p;
-    let b = BigUint::from_bytes_be(&b) % &p;
-
-    to_32_be(&((a + &p - b) % &p))
-}
-
-fn scalar_sub_ref(a: Scalar, b: Scalar) -> Scalar {
-    let n = secp_n();
-    let a = BigUint::from_bytes_be(&a) % &n;
-    let b = BigUint::from_bytes_be(&b) % &n;
-
-    to_32_be(&((a + &n - b) % &n))
-}
-
-fn fe_negate_ref(a: Fe) -> Fe {
-    let p = secp_p();
-    let a = BigUint::from_bytes_be(&a) % &p;
-
-    if a.is_zero() {
-        [0u8; 32]
-    } else {
-        to_32_be(&(&p - &a))
-    }
-}
-
-fn fe_mul_ref(a: Fe, b: Fe) -> Fe {
-    let p = secp_p();
-    let a = BigUint::from_bytes_be(&a);
-    let b = BigUint::from_bytes_be(&b);
-
-    to_32_be(&((a * b) % &p))
-}
-
-// Randomness helpers
-fn random_uint_bytes() -> [u8; 32] {
-    let mut b = [0u8; 32];
-    OsRng.fill_bytes(&mut b);
-
-    b
-}
-
-fn random_fe_bytes() -> Fe {
-    to_32_be(&mod_p(&BigUint::from_bytes_be(&random_uint_bytes())))
-}
-
-fn random_scalar_bytes() -> Scalar {
-    to_32_be(&mod_n(&BigUint::from_bytes_be(&random_uint_bytes())))
-}
-
-fn random_ge_bytes() -> Ge {
-    let secp = Secp256k1::new();
-    let sk = SecretKey::new(&mut SecpOsRng);
-    let pk = PublicKey::from_secret_key(&secp, &sk);
-    let ser = pk.serialize_uncompressed(); // 0x04 || x(32) || y(32)
-
-    let mut x = [0u8; 32];
-    x.copy_from_slice(&ser[1..33]);
-
-    let mut y = [0u8; 32];
-    y.copy_from_slice(&ser[33..65]);
-
-    (x, y)
-}
-
-fn ge_to_gej(ge: Ge) -> Gej {
-    let mut one = [0u8; 32];
-    one[31] = 1;
-
-    (ge, one)
-}
-
-fn compress(ge: Ge) -> Point {
-    (ge.1[31] & 1, ge.0)
-}
-
-fn pk_to_gej(pk: &PublicKey) -> Gej {
-    let ser = pk.serialize_uncompressed();
-
-    let mut x = [0u8; 32];
-    x.copy_from_slice(&ser[1..33]);
-
-    let mut y = [0u8; 32];
-    y.copy_from_slice(&ser[33..65]);
-
-    ge_to_gej((x, y))
-}
+use super::core::*;
 
 // 0. ge_to_point
 #[simplex::test]
 fn ge_to_point_matches_parity(context: simplex::TestContext) -> anyhow::Result<()> {
     // Sample one on-curve point; whatever parity it has, that's what we expect
     // ge_to_point to produce. Covers both parities across repeated runs.
-    let ge = random_ge_bytes();
-    let expected_parity = ge.1[31] & 1; // 0 (even y) or 1 (odd y)
 
-    case(GeToPoint)
-        .ge(ge)
-        .expect_point((expected_parity, ge.0))
-        .run(&context)
+    cases::ge_to_point(random_ge()).run(&context)
 }
 
 // 1. point_to_gej
 #[simplex::test]
 fn point_to_gej_roundtrip(context: simplex::TestContext) -> anyhow::Result<()> {
-    let ge = random_ge_bytes();
-    let point = compress(ge);
-
-    case(PointToGej)
-        .point(point)
-        .expect_point(point)
-        .run(&context)
+    cases::point_to_gej(random_ge()).run(&context)
 }
 
 // 2. fe_sub
 #[simplex::test]
 fn fe_sub_self_is_zero(context: simplex::TestContext) -> anyhow::Result<()> {
-    let a = random_fe_bytes();
+    let a = random_fe();
 
-    case(FeSub).uints(a, a).expect_uint([0u8; 32]).run(&context)
+    cases::fe_sub(a, a).expect_uint(ZERO).run(&context)
 }
 
 #[simplex::test]
 fn fe_sub_matches_reference(context: simplex::TestContext) -> anyhow::Result<()> {
-    let a = random_fe_bytes();
-    let b = random_fe_bytes();
-    let exp = fe_sub_ref(a, b);
-
-    case(FeSub).uints(a, b).expect_uint(exp).run(&context)
+    cases::fe_sub(random_fe(), random_fe()).run(&context)
 }
 
 // 3. scalar_sub
 #[simplex::test]
 fn scalar_sub_matches_reference(context: simplex::TestContext) -> anyhow::Result<()> {
-    let a = random_scalar_bytes();
-    let b = random_scalar_bytes();
-    let exp = scalar_sub_ref(a, b);
-
-    case(ScalarSub).uints(a, b).expect_uint(exp).run(&context)
+    cases::scalar_sub(random_scalar(), random_scalar()).run(&context)
 }
 
 // 4. gej_sub
 #[simplex::test]
 fn gej_sub_matches_reference(context: simplex::TestContext) -> anyhow::Result<()> {
-    let secp = Secp256k1::new();
-    let sk_p = SecretKey::new(&mut SecpOsRng);
-    let sk_q = SecretKey::new(&mut SecpOsRng);
+    let p = random_public_key();
+    let mut q = random_public_key();
 
-    let p = PublicKey::from_secret_key(&secp, &sk_p);
-    let q = PublicKey::from_secret_key(&secp, &sk_q);
-    let diff = p.combine(&q.negate(&secp)).expect("p - q non-infinity");
+    while q == p {
+        q = random_public_key();
+    }
 
-    case(GejSub)
-        .gejs(pk_to_gej(&p), pk_to_gej(&q))
-        .expect_gej(pk_to_gej(&diff))
-        .run(&context)
+    cases::gej_sub(p, q).run(&context)
 }
 
 // 5. fe_eq
 #[simplex::test]
 fn fe_eq_reflexive(context: simplex::TestContext) -> anyhow::Result<()> {
-    let a = random_fe_bytes();
+    let a = random_fe();
 
-    case(FeEq).uints(a, a).run(&context)
+    cases::fe_eq(a, a).run(&context)
 }
 
 #[simplex::test]
 fn fe_eq_zero_and_p_are_equal(context: simplex::TestContext) -> anyhow::Result<()> {
-    case(FeEq).uints([0u8; 32], SECP_P).run(&context)
+    cases::fe_eq(ZERO, SECP_P).run(&context)
 }
 
 // 6. scalar_eq
 #[simplex::test]
 fn scalar_eq_s_and_s_plus_n_are_equal(context: simplex::TestContext) -> anyhow::Result<()> {
     // s = 5. s + n has no carry past the low byte.
-    let mut s = [0u8; 32];
-    s[31] = 5;
+    let s = u256(5);
 
-    let mut s_plus_n = SECP_N;
-    s_plus_n[31] = s_plus_n[31].wrapping_add(5);
-
-    case(ScalarEq).uints(s, s_plus_n).run(&context)
+    cases::scalar_eq(s, add_u256(s, SECP_N)).run(&context)
 }
 
 // 7. ge_eq
 #[simplex::test]
 fn ge_eq_rejects_negation(context: simplex::TestContext) -> anyhow::Result<()> {
-    let ge = random_ge_bytes();
-    let neg_y = fe_negate_ref(ge.1);
-
-    case(GeEq)
-        .ges(ge, (ge.0, neg_y))
-        .expecting(&context, Expect::AssertFailed)
+    cases::ge_eq_negation(random_ge()).expecting(&context, Expect::AssertFailed)
 }
 
 // 8. gej_point_eq
 #[simplex::test]
 fn gej_point_eq_rescaled(context: simplex::TestContext) -> anyhow::Result<()> {
     // (λ²X, λ³Y, λZ) is the same affine point as (X, Y, 1).
-    let ge = random_ge_bytes();
-    let lambda = random_fe_bytes();
-    let l2 = fe_mul_ref(lambda, lambda);
-    let l3 = fe_mul_ref(l2, lambda);
-    let g = ((fe_mul_ref(ge.0, l2), fe_mul_ref(ge.1, l3)), lambda);
+    let mut lambda = random_fe();
 
-    case(GejPointEq).gej(g).point(compress(ge)).run(&context)
+    while lambda == ZERO {
+        lambda = random_fe();
+    }
+
+    cases::gej_point_eq_rescaled(random_ge(), lambda).run(&context)
 }
 
 #[simplex::test]
@@ -399,358 +103,31 @@ fn gej_point_eq_rejects_negation(context: simplex::TestContext) -> anyhow::Resul
     // decompress((parity ^ 1, x)) inside gej_point_eq recovers (x, -y) = -P.
     // Since P ≠ -P on secp256k1, the equivalence must return false.
     // expected_bool = false locks that in.
-    let ge = random_ge_bytes();
-    let (parity, x) = compress(ge);
 
-    case(GejPointEq)
-        .gej(ge_to_gej(ge))
-        .point((parity ^ 1, x))
-        .expecting(&context, Expect::AssertFailed)
+    cases::gej_point_eq_negation(random_ge()).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn gej_point_eq_off_curve_is_false(context: simplex::TestContext) -> anyhow::Result<()> {
     // x = 0 is off-curve.
-    case(GejPointEq)
-        .gej(ge_to_gej(random_ge_bytes()))
-        .point((0, [0u8; 32]))
-        .expecting(&context, Expect::AssertFailed)
+    cases::gej_point_eq_off_curve_point(random_ge(), ZERO).expecting(&context, Expect::AssertFailed)
 }
 
 #[simplex::test]
 fn gej_point_eq_rejects_off_curve_gej(context: simplex::TestContext) -> anyhow::Result<()> {
-    // (x, 1, 1) shares x with P but is off-curve. The equivalence jet only
-    // rejects y = -P.y, so without an on-curve check this would pass.
-    let ge = random_ge_bytes();
-    let mut one = [0u8; 32];
-    one[31] = 1;
+    // (x, 1, 1) shares x with P but is off-curve.
+    // The compressed point shares x and odd parity, isolating the on-curve check.
+    let neg_one = sub_mod(ZERO, ONE, SECP_P);
+    let mut ge = random_ge();
+    while ge.1 == ONE || ge.1 == neg_one {
+        ge = random_ge();
+    }
 
-    case(GejPointEq)
-        .gej(((ge.0, one), one))
-        .point(compress(ge))
-        .expecting(&context, Expect::AssertFailed)
+    cases::gej_point_eq_off_curve_gej(ge.0, ONE).expecting(&context, Expect::AssertFailed)
 }
 
 // 9. safe_gej_normalize
 #[simplex::test]
 fn safe_gej_normalize_roundtrip(context: simplex::TestContext) -> anyhow::Result<()> {
-    let ge = random_ge_bytes();
-
-    case(SafeGejNormalize)
-        .gej(ge_to_gej(ge))
-        .expect_ge(ge)
-        .run(&context)
-}
-
-mod fuzz {
-    use super::*;
-
-    use std::fmt::Debug;
-
-    use simplex::simplicityhl::{Arguments, WitnessValues};
-
-    use simplex::fuzz::Expect;
-    use simplex::fuzz::proptest::prelude::{Just, any};
-    use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
-    use simplex::{FuzzMode, TestContext};
-
-    use crate::common::fuzz;
-
-    fn arb_fe() -> impl Strategy<Value = Fe> {
-        any::<[u8; 32]>().prop_filter("valid secp256k1 field element", |value| *value < SECP_P)
-    }
-
-    fn arb_non_zero_fe() -> impl Strategy<Value = Fe> {
-        arb_fe().prop_filter("non-zero secp256k1 field element", |value| {
-            *value != [0; 32]
-        })
-    }
-
-    fn arb_scalar() -> impl Strategy<Value = Scalar> {
-        any::<[u8; 32]>().prop_filter("valid secp256k1 scalar", |value| *value < SECP_N)
-    }
-
-    fn arb_secret_key() -> impl Strategy<Value = SecretKey> {
-        any::<[u8; 32]>().prop_filter_map("valid secp256k1 secret key", |bytes| {
-            SecretKey::from_slice(&bytes).ok()
-        })
-    }
-
-    fn ge_from_secret_key(secret_key: SecretKey) -> Ge {
-        let secp = Secp256k1::new();
-        let public_key = PublicKey::from_secret_key(&secp, &secret_key);
-        let serialized = public_key.serialize_uncompressed();
-
-        let mut x = [0; 32];
-        x.copy_from_slice(&serialized[1..33]);
-
-        let mut y = [0; 32];
-        y.copy_from_slice(&serialized[33..65]);
-
-        (x, y)
-    }
-
-    fn arb_ge() -> impl Strategy<Value = Ge> {
-        arb_secret_key().prop_map(ge_from_secret_key)
-    }
-
-    /// Fuzz counterparts for every `#[simplex::test]` case with randomized inputs.
-    /// Deterministic cases stay as regular tests.
-    struct CaseFuzz {
-        cases: BoxedStrategy<Case>,
-        context: TestContext<FuzzMode>,
-        test_name: &'static str,
-        expect: Expect,
-    }
-
-    fn case_fuzz(
-        function: FunctionToTest,
-        context: TestContext<FuzzMode>,
-        test_name: &'static str,
-    ) -> CaseFuzz {
-        CaseFuzz {
-            cases: Just(case(function)).boxed(),
-            context,
-            test_name,
-            expect: Expect::Accept,
-        }
-    }
-
-    impl CaseFuzz {
-        fn inject<T>(
-            mut self,
-            values: impl Strategy<Value = T> + 'static,
-            inject: impl Fn(Case, T) -> Case + 'static,
-        ) -> Self
-        where
-            T: Debug + 'static,
-        {
-            self.cases = (self.cases, values)
-                .prop_map(move |(case, values)| inject(case, values))
-                .boxed();
-            self
-        }
-
-        fn expect(mut self, expect: Expect) -> Self {
-            self.expect = expect;
-            self
-        }
-
-        fn run(self) -> anyhow::Result<()> {
-            let strategy = self.cases.prop_map(|case| {
-                let arguments: Arguments = Secp256k1OperationsTestArguments {}.into();
-                let witness: WitnessValues = case.witness.into();
-
-                (arguments, witness)
-            });
-
-            fuzz::run::<Secp256k1OperationsTestProgram>(
-                &self.context,
-                strategy,
-                self.test_name,
-                self.expect,
-                None,
-            );
-
-            Ok(())
-        }
-    }
-
-    // 0. ge_to_point
-    #[simplex::fuzz]
-    fn ge_to_point_matches_parity(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        // Sample one on-curve point; whatever parity it has, that's what we expect
-        // ge_to_point to produce.
-        case_fuzz(GeToPoint, context, "ge_to_point")
-            .inject(arb_ge(), |case, ge| {
-                let expected_parity = ge.1[31] & 1; // 0 (even y) or 1 (odd y)
-
-                case.ge(ge).expect_point((expected_parity, ge.0))
-            })
-            .run()
-    }
-
-    // 1. point_to_gej
-    #[simplex::fuzz]
-    fn point_to_gej_roundtrip(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(PointToGej, context, "point_to_gej")
-            .inject(arb_ge(), |case, ge| {
-                let point = compress(ge);
-
-                case.point(point).expect_point(point)
-            })
-            .run()
-    }
-
-    // 2. fe_sub
-    #[simplex::fuzz]
-    fn fe_sub_is_zero(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(FeSub, context, "fe_sub self is zero")
-            .inject(arb_fe(), |case, a| case.uints(a, a).expect_uint([0u8; 32]))
-            .run()
-    }
-
-    #[simplex::fuzz]
-    fn fe_sub(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(FeSub, context, "fe_sub")
-            .inject((arb_fe(), arb_fe()), |case, (a, b)| {
-                let exp = fe_sub_ref(a, b);
-
-                case.uints(a, b).expect_uint(exp)
-            })
-            .run()
-    }
-
-    // 3. scalar_sub
-    #[simplex::fuzz]
-    fn scalar_sub(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(ScalarSub, context, "scalar_sub")
-            .inject((arb_scalar(), arb_scalar()), |case, (a, b)| {
-                let exp = scalar_sub_ref(a, b);
-
-                case.uints(a, b).expect_uint(exp)
-            })
-            .run()
-    }
-
-    // 4. gej_sub
-    #[simplex::fuzz]
-    fn gej_sub(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(GejSub, context, "gej_sub")
-            .inject(
-                (arb_secret_key(), arb_secret_key())
-                    .prop_filter("distinct secp256k1 points", |(p, q)| p != q),
-                |case, (p_secret, q_secret)| {
-                    let secp = Secp256k1::new();
-                    let p = PublicKey::from_secret_key(&secp, &p_secret);
-                    let q = PublicKey::from_secret_key(&secp, &q_secret);
-                    let diff = p.combine(&q.negate(&secp)).expect("p - q non-infinity");
-
-                    case.gejs(pk_to_gej(&p), pk_to_gej(&q))
-                        .expect_gej(pk_to_gej(&diff))
-                },
-            )
-            .run()
-    }
-
-    // 4.1 gej_sub_gives_inf and fails
-    #[simplex::fuzz]
-    fn gej_sub_gives_inf(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(GejSub, context, "gej_sub")
-            .inject(arb_secret_key(), |case, p_secret| {
-                let secp = Secp256k1::new();
-                let p = PublicKey::from_secret_key(&secp, &p_secret);
-
-                // we expect zeroed arrays
-                case.gejs(pk_to_gej(&p), pk_to_gej(&p))
-                    .expect_gej(Default::default())
-            })
-            .expect(Expect::Accept)
-            .run()
-    }
-
-    // 5. fe_eq
-    #[simplex::fuzz]
-    fn fe_eq_reflexive(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(FeEq, context, "fe_eq_reflexive")
-            .inject(arb_fe(), |case, value| case.uints(value, value))
-            .run()
-    }
-
-    // 6. scalar_eq has only a deterministic case and remains a regular test.
-
-    // 7. ge_eq
-    #[simplex::fuzz]
-    fn ge_eq_rejects_negation(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(GeEq, context, "ge_eq negation")
-            .inject(arb_ge(), |case, ge| {
-                case.ges(ge, (ge.0, fe_negate_ref(ge.1)))
-            })
-            .expect(Expect::Reject)
-            .run()
-    }
-
-    // 8. gej_point_eq
-    #[simplex::fuzz]
-    fn gej_point_eq_rescaled(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(GejPointEq, context, "gej_point_eq_rescaled")
-            .inject((arb_ge(), arb_non_zero_fe()), |case, (ge, lambda)| {
-                let lambda_squared = fe_mul_ref(lambda, lambda);
-                let lambda_cubed = fe_mul_ref(lambda_squared, lambda);
-
-                let gej: Gej = (
-                    (
-                        fe_mul_ref(ge.0, lambda_squared),
-                        fe_mul_ref(ge.1, lambda_cubed),
-                    ),
-                    lambda,
-                );
-
-                case.gej(gej).point(compress(ge))
-            })
-            .run()
-    }
-
-    #[simplex::fuzz]
-    fn gej_point_eq_rejects_negation(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(GejPointEq, context, "gej_point_eq negation")
-            .inject(arb_ge(), |case, ge| {
-                let (parity, x) = compress(ge);
-
-                case.gej(ge_to_gej(ge)).point((parity ^ 1, x))
-            })
-            .expect(Expect::Reject)
-            .run()
-    }
-
-    // 9. safe_gej_normalize
-    #[simplex::fuzz]
-    fn safe_gej_normalize_roundtrip(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(SafeGejNormalize, context, "safe_gej_normalize_roundtrip")
-            .inject((arb_ge(), arb_non_zero_fe()), |case, (ge, lambda)| {
-                let lambda_squared = fe_mul_ref(lambda, lambda);
-                let lambda_cubed = fe_mul_ref(lambda_squared, lambda);
-
-                let gej: Gej = (
-                    (
-                        fe_mul_ref(ge.0, lambda_squared),
-                        fe_mul_ref(ge.1, lambda_cubed),
-                    ),
-                    lambda,
-                );
-
-                case.gej(gej).expect_ge(ge)
-            })
-            .run()
-    }
-
-    #[simplex::fuzz]
-    fn gej_point_eq_off_curve_is_false(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(
-            GejPointEq,
-            context,
-            "gej_point_eq off-curve compressed point",
-        )
-        .inject(arb_ge(), |case, ge| {
-            case.gej(ge_to_gej(ge)).point((0, [0; 32]))
-        })
-        .expect(Expect::Reject)
-        .run()
-    }
-
-    #[simplex::fuzz]
-    fn gej_point_eq_rejects_off_curve_gej(context: TestContext<FuzzMode>) -> anyhow::Result<()> {
-        case_fuzz(GejPointEq, context, "gej_point_eq off-curve Jacobian point")
-            .inject(arb_ge(), |case, ge| {
-                // Obtain (x, 0, 1) point.
-                let gej = ge_to_gej((ge.0, [0; 32]));
-
-                // Obtain (0, x) point with order 2 (secp256k1 has odd prime order).
-                let compressed_point = (0, ge.0);
-
-                case.gej(gej).point(compressed_point)
-            })
-            .expect(Expect::Reject)
-            .run()
-    }
+    cases::safe_gej_normalize(random_ge(), ONE).run(&context)
 }
