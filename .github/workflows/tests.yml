@@ -60,6 +60,12 @@ jobs:
         run: |
           cargo build --workspace --all-features --verbose
 
+      - name: Fuzz
+        env:
+          SIMPLEX_TEST_VERBOSE: ${{ runner.debug == '1' && '-v' || '' }}
+        run: |
+          simplex test --fuzz --test-threads 4 "${SIMPLEX_TEST_VERBOSE}" -- --release
+
       - name: Test
         env:
           SIMPLEX_TEST_VERBOSE: ${{ runner.debug == '1' && '-v' || '' }}
