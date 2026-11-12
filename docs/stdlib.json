@@ -441,6 +441,27 @@
     "description": "Returns the confidential input asset_id at the current_index.\n\n## Panics\nPanics if asset_id is explicit."
   },
   {
+    "simplicityhl_name": "assert_script_hash",
+    "section": "Script hash asserts",
+    "input_type": "u32, bool, u256",
+    "output_type": "()",
+    "description": "Asserts that the SHA256 hash of the scriptPubKey at the specified input or output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_input_script_hash",
+    "section": "Script hash asserts",
+    "input_type": "u32, u256",
+    "output_type": "()",
+    "description": "Asserts that the SHA256 hash of the scriptPubKey of the input at the given index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_output_script_hash",
+    "section": "Script hash asserts",
+    "input_type": "u32, u256",
+    "output_type": "()",
+    "description": "Asserts that the SHA256 hash of the scriptPubKey of the output at the given index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
     "simplicityhl_name": "get_script_hash",
     "section": "Script hash getters",
     "input_type": "u32, bool",
