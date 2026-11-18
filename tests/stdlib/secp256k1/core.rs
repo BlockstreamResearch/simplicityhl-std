@@ -1,10 +1,8 @@
 use num_bigint::BigUint;
-use rand::{RngCore, rngs::OsRng};
-use secp256k1_zkp::{PublicKey, SecretKey, rand::rngs::OsRng as SecpOsRng};
+use secp256k1_zkp::{PublicKey, SecretKey};
 
-use crate::common::core::{Expect, run};
 use crate::common::fuzz::DispatchFuzzCase;
-
+use crate::common::unit::Unit;
 use simplicityhl_std::artifacts::tests::secp256k1::operations::OperationsProgram as Secp256k1OperationsTestProgram;
 use simplicityhl_std::artifacts::tests::secp256k1::operations::derived_operations::{
     OperationsArguments as Secp256k1OperationsTestArguments,
@@ -12,19 +10,24 @@ use simplicityhl_std::artifacts::tests::secp256k1::operations::derived_operation
 };
 
 pub const ZERO: U256 = [0; 32];
-pub const ONE: U256 = u256(1);
+pub const ONE: U256 = secp256k1_zkp::constants::ONE;
 
-/// A big-endian 256-bit value.
+/// The point at infinity (Z = 0). The contract's expected witness uses all-zero coordinates.
+pub const INFINITY: Gej = ((ZERO, ZERO), ZERO);
+
+// Mirror Simplicity's Fe / Scalar / Ge / Gej / Point types.
+
+/// Big-endian 256-bit integer.
 pub type U256 = [u8; 32];
-/// A **f**ield **e**lement, arithmetic modulo **p**.
+/// Field element, mod p.
 pub type Fe = U256;
-/// A multiplier for curve points, arithmetic modulo the group order **n**.
+/// Scalar, mod the group order n.
 pub type Scalar = U256;
-/// A **G**roup **E**lement, represented as an affine curve point (x, y).
+/// Affine point (x, y).
 pub type Ge = (Fe, Fe);
-/// A **G**roup **E**lement, represented using **J**acobian coordinates ((X, Y), Z).
+/// Jacobian point ((X, Y), Z), representing affine (X/Z², Y/Z³).
 pub type Gej = (Ge, Fe);
-/// A compressed curve point (y_parity, x).
+/// Compressed point (y parity, x).
 pub type Point = (u8, Fe);
 
 pub enum FunctionToTest {
@@ -40,17 +43,8 @@ pub enum FunctionToTest {
     SafeGejNormalize,
 }
 
-// FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
-pub const SECP_P: U256 = [
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFC, 0x2F,
-];
-
-// FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-pub const SECP_N: U256 = [
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE,
-    0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B, 0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x41,
-];
+pub const SECP_P: U256 = secp256k1_zkp::constants::FIELD_SIZE;
+pub const SECP_N: U256 = secp256k1_zkp::constants::CURVE_ORDER;
 
 pub const fn u256(value: u128) -> U256 {
     let mut out = [0; 32];
@@ -134,29 +128,18 @@ pub fn rescale((x, y): Ge, lambda: Fe) -> Gej {
     ((fe_mul(x, lambda_squared), fe_mul(y, lambda_cubed)), lambda)
 }
 
-fn random_mod(modulus: U256) -> U256 {
-    let mut bytes = [0; 32];
-    OsRng.fill_bytes(&mut bytes);
-
-    to_u256(&(big(bytes) % big(modulus)))
-}
-
-pub fn random_fe() -> Fe {
-    random_mod(SECP_P)
-}
-
-pub fn random_scalar() -> Scalar {
-    random_mod(SECP_N)
-}
-
-pub fn random_public_key() -> PublicKey {
-    let secret_key = SecretKey::new(&mut SecpOsRng);
-
+/// `k·G`.
+///
+/// # Panics
+/// If `k` is zero.
+pub fn public_key(k: u128) -> PublicKey {
+    let secret_key = SecretKey::from_slice(&u256(k)).expect("k must be non-zero");
     PublicKey::from_secret_key(secp256k1_zkp::SECP256K1, &secret_key)
 }
 
-pub fn random_ge() -> Ge {
-    pk_to_ge(&random_public_key())
+/// `k·G` in affine coordinates.
+pub fn g_times(k: u128) -> Ge {
+    pk_to_ge(&public_key(k))
 }
 
 /// One dispatch arm of the contract, plus the witness it reads.
@@ -248,16 +231,13 @@ impl Case {
         self
     }
 
-    /// Fund, spend, and expect the spend to succeed.
-    pub fn run(self, context: &simplex::TestContext) -> anyhow::Result<()> {
-        self.expecting(context, Expect::Ok)
-    }
-
-    /// Fund, spend, and expect `expect`.
-    pub fn expecting(self, context: &simplex::TestContext, expect: Expect) -> anyhow::Result<()> {
-        let program = Secp256k1OperationsTestProgram::new(Case::arguments());
-
-        run(context, program, self.witness, expect)
+    pub fn unit(self) -> Unit {
+        Unit {
+            program: Secp256k1OperationsTestProgram::new(Case::arguments())
+                .as_ref()
+                .clone(),
+            witness: self.witness.into(),
+        }
     }
 }
 
@@ -307,8 +287,7 @@ pub mod cases {
     /// `gej_sub` matches the reference, the point at infinity included (`p == q`).
     pub fn gej_sub(p: PublicKey, q: PublicKey) -> Case {
         let expected = if p == q {
-            // The expected witness for infinity uses all-zero coordinates.
-            Gej::default()
+            INFINITY
         } else {
             let difference = p
                 .combine(&q.negate(secp256k1_zkp::SECP256K1))
@@ -317,9 +296,12 @@ pub mod cases {
             ge_to_gej(pk_to_ge(&difference))
         };
 
-        case(GejSub)
-            .gejs(ge_to_gej(pk_to_ge(&p)), ge_to_gej(pk_to_ge(&q)))
-            .expect_gej(expected)
+        gej_sub_jacobian(ge_to_gej(pk_to_ge(&p)), ge_to_gej(pk_to_ge(&q)), expected)
+    }
+
+    /// `gej_sub(p, q) == expected` for any Jacobian operands, non-unit Z and infinity included.
+    pub fn gej_sub_jacobian(p: Gej, q: Gej, expected: Gej) -> Case {
+        case(GejSub).gejs(p, q).expect_gej(expected)
     }
 
     /// `fe_eq(a, b)`, accepted iff `a ≡ b (mod p)`.
@@ -332,16 +314,24 @@ pub mod cases {
         case(ScalarEq).uints(a, b)
     }
 
+    /// `ge_eq(a, b)`, accepted iff both coordinates are equal mod p.
+    pub fn ge_eq(a: Ge, b: Ge) -> Case {
+        case(GeEq).ges(a, b)
+    }
+
     /// `ge_eq(P, -P)`: must be rejected, y differs.
     pub fn ge_eq_negation(ge: Ge) -> Case {
-        case(GeEq).ges(ge, ge_negate(ge))
+        ge_eq(ge, ge_negate(ge))
+    }
+
+    /// `gej_point_eq(gej, point)`, accepted iff `gej` is on the curve and is the point `point` encodes.
+    pub fn gej_point_eq(gej: Gej, point: Point) -> Case {
+        case(GejPointEq).gej(gej).point(point)
     }
 
     /// `gej_point_eq` holds for any Jacobian representation `(λ²X, λ³Y, λ)` of P.
     pub fn gej_point_eq_rescaled(ge: Ge, lambda: Fe) -> Case {
-        case(GejPointEq)
-            .gej(rescale(ge, lambda))
-            .point(compress(ge))
+        gej_point_eq(rescale(ge, lambda), compress(ge))
     }
 
     /// `gej_point_eq(P, compress(-P))` must be false.
@@ -350,12 +340,12 @@ pub mod cases {
     pub fn gej_point_eq_negation(ge: Ge) -> Case {
         let (parity, x) = compress(ge);
 
-        case(GejPointEq).gej(ge_to_gej(ge)).point((parity ^ 1, x))
+        gej_point_eq(ge_to_gej(ge), (parity ^ 1, x))
     }
 
     /// `gej_point_eq(P, (0, x))` with an off-curve `x`: must be rejected.
     pub fn gej_point_eq_off_curve_point(ge: Ge, x: Fe) -> Case {
-        case(GejPointEq).gej(ge_to_gej(ge)).point((0, x))
+        gej_point_eq(ge_to_gej(ge), (0, x))
     }
 
     /// Compare an off-curve `(x, y, 1)` against a compressed point with the same x and parity.
@@ -365,15 +355,18 @@ pub mod cases {
     pub fn gej_point_eq_off_curve_gej(x: Fe, y: Fe) -> Case {
         let off_curve = (x, y);
 
-        case(GejPointEq)
-            .gej(ge_to_gej(off_curve))
-            .point(compress(off_curve))
+        gej_point_eq(ge_to_gej(off_curve), compress(off_curve))
     }
 
-    /// `safe_gej_normalize` maps any Jacobian representation of P back to P.
-    pub fn safe_gej_normalize(ge: Ge, lambda: Fe) -> Case {
+    /// `safe_gej_normalize` maps any Jacobian representation `(λ²X, λ³Y, λ)` of P back to P.
+    pub fn safe_gej_normalize_rescaled(ge: Ge, lambda: Fe) -> Case {
         case(SafeGejNormalize)
             .gej(rescale(ge, lambda))
             .expect_ge(ge)
+    }
+
+    /// `safe_gej_normalize(gej) == expected`.
+    pub fn safe_gej_normalize(gej: Gej, expected: Ge) -> Case {
+        case(SafeGejNormalize).gej(gej).expect_ge(expected)
     }
 }

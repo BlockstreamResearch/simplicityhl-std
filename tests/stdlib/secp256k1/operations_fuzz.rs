@@ -210,6 +210,6 @@ fn gej_point_eq_rejects_off_curve_gej(context: TestContext<FuzzMode>) {
 #[simplex::fuzz]
 fn safe_gej_normalize_roundtrip(context: TestContext<FuzzMode>) {
     accepts(&context, (arb_ge(), arb_non_zero_fe()), |(ge, lambda)| {
-        cases::safe_gej_normalize(ge, lambda)
+        cases::safe_gej_normalize_rescaled(ge, lambda)
     });
 }

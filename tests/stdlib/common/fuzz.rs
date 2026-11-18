@@ -7,7 +7,7 @@ use simplex::fuzz::proptest::strategy::Strategy;
 use simplex::fuzz::{FuzzProgramTrait, FuzzProgramValues, Scenario};
 use simplex::{FuzzMode, TestContext};
 
-pub use simplex::fuzz::Expect;
+use simplex::fuzz::Expect;
 
 const DEFAULT_SPENT_INPUT: usize = 0;
 
