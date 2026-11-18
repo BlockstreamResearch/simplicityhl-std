@@ -3,6 +3,7 @@ mod common;
 mod asserts;
 mod binary;
 mod secp256k1;
+mod timelocks;
 mod u1;
 mod u128;
 mod u16;
