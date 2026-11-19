@@ -109,7 +109,7 @@ fn distance_disabled_sequence_is_pruned(context: simplex::TestContext) -> anyhow
 #[simplex::test]
 fn distance_wrong_variant_is_pruned(context: simplex::TestContext) -> anyhow::Result<()> {
     // Sequence declares a Duration (type flag set), but the function requires a
-    // Distance -> unwrap_left panics on Right(_).
+    // Distance -> unwrap_left on Right(_) hits the pruned branch.
     run_with_sequence(
         &context,
         program(),
@@ -122,13 +122,15 @@ fn distance_wrong_variant_is_pruned(context: simplex::TestContext) -> anyhow::Re
 
 #[simplex::test]
 fn distance_below_minimum_fails(context: simplex::TestContext) -> anyhow::Result<()> {
-    // Declared distance is below MIN_DISTANCE -> le_16 assert fails.
+    // Declared distance is below MIN_DISTANCE -> le_16 assert fails. MIN_DISTANCE blocks
+    // are mined first, so the spend fails even though the real distance would satisfy
+    // the minimum: only the declared value counts.
     run_with_sequence(
         &context,
         program(),
         witness(EnforceRelativeDistance),
         seq_distance(MIN_DISTANCE - 1),
-        0,
+        u64::from(MIN_DISTANCE),
         Expect::AssertFailed,
     )
 }
@@ -194,7 +196,7 @@ fn duration_disabled_sequence_is_pruned(context: simplex::TestContext) -> anyhow
 #[simplex::test]
 fn duration_wrong_variant_is_pruned(context: simplex::TestContext) -> anyhow::Result<()> {
     // Sequence declares a Distance, but the function requires a Duration ->
-    // unwrap_right panics on Left(_).
+    // unwrap_right on Left(_) hits the pruned branch.
     run_with_sequence(
         &context,
         program(),
@@ -210,8 +212,8 @@ fn duration_below_minimum_fails(context: simplex::TestContext) -> anyhow::Result
     // This fails during local Simplicity execution, before the transaction reaches the
     // node, so real chain state can't affect the outcome. Unlike the distance version,
     // it can't also show that the spend fails when the real elapsed time does satisfy
-    // the declared duration: that needs median-time-past to advance, which requires a
-    // `setmocktime` helper that Simplex doesn't expose.
+    // the declared duration: that needs median-time-past to advance, which requires
+    // mining blocks with later timestamps, and Simplex doesn't expose a way to do that.
     run_with_sequence(
         &context,
         program(),
@@ -228,7 +230,7 @@ fn duration_sufficient_declared_insufficient_real_is_rejected(
 ) -> anyhow::Result<()> {
     // Duration counterpart of `distance_sufficient_declared_insufficient_real_is_rejected`.
     // Median-time-past not having advanced far enough is the default state right after
-    // funding, so no mocktime is needed.
+    // funding, so nothing needs to be done to the chain's timestamps.
     run_with_sequence(
         &context,
         program(),
@@ -240,5 +242,5 @@ fn duration_sufficient_declared_insufficient_real_is_rejected(
 }
 
 // There are no `duration_*_minimum_succeeds` tests: they need median-time-past to
-// advance by MIN_DURATION * 512 seconds, which regtest can't do without a
-// `setmocktime` helper that Simplex doesn't expose.
+// advance by MIN_DURATION * 512 seconds, which requires mining blocks with later
+// timestamps, and Simplex doesn't expose a way to do that.
