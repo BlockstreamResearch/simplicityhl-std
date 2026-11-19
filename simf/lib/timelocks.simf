@@ -10,7 +10,9 @@ pub fn enforce_relative_distance(min_distance: Distance) {
     assert!(jet::le_32(2, jet::version()));
 
     // Fetch and parse sequence
-    let actual_data: Either<Distance, Duration> = unwrap(jet::parse_sequence(jet::current_sequence()));
+    let actual_data: Either<Distance, Duration> = unwrap(
+        jet::parse_sequence(jet::current_sequence())
+    );
     let actual_distance: Distance = unwrap_left::<Duration>(actual_data);
 
     assert!(jet::le_16(min_distance, actual_distance));
@@ -29,7 +31,10 @@ pub fn enforce_relative_duration(min_duration: Duration) {
     assert!(jet::le_32(2, jet::version()));
 
     // Fetch and parse sequence
-    let actual_data: Either<Distance, Duration> = unwrap(jet::parse_sequence(jet::current_sequence()));
+    let actual_data: Either<Distance, Duration> = unwrap(
+        jet::parse_sequence(jet::current_sequence())
+    );
+
     let actual_duration: Duration = unwrap_right::<Distance>(actual_data);
 
     assert!(jet::le_16(min_duration, actual_duration));
