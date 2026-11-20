@@ -20,7 +20,7 @@ use simplicityhl_std::artifacts::tests::mock::derived_mock::MockWitness;
 
 use crate::common::utxo_helper::{DEFAULT_SEND_AMOUNT, search_utxo_by_txid};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Expect {
     /// The spend succeeds.
     Ok,

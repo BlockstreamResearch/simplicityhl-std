@@ -1,3 +1,4 @@
+pub mod case;
 pub mod core;
 pub mod fuzz;
 pub mod helper;

@@ -72,6 +72,15 @@ jobs:
         run: |
           simplex test --fuzz --test-threads 4 "${SIMPLEX_TEST_VERBOSE}" -- --release
 
+      # Each run draws a new seed: keep the persisted failing cases to reproduce them locally.
+      - name: Upload fuzz failures
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-failures-${{ matrix.os }}
+          path: fuzz-failures/
+          if-no-files-found: ignore
+
       - name: Test
         env:
           SIMPLEX_TEST_VERBOSE: ${{ runner.debug == '1' && '-v' || '' }}

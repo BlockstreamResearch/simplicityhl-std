@@ -2,33 +2,51 @@ use simplex::program::{Program, ProgramError, ProgramTrait};
 use simplex::provider::SimplicityNetwork;
 use simplex::simplicityhl::WitnessValues;
 use simplex::simplicityhl::elements::{OutPoint, Script, Txid};
+use simplex::simplicityhl::simplicity::bit_machine::ExecutionError;
 use simplex::transaction::{FinalTransaction, PartialInput, PartialOutput, ProgramInput, UTXO};
+
+use crate::common::core::Expect;
 
 const AMOUNT: u64 = 1_000;
 
-pub struct Unit {
-    pub program: Program,
-    pub witness: WitnessValues,
+pub fn run(program: &Program, witness: impl Into<WitnessValues>) -> Result<(), ProgramError> {
+    let network = SimplicityNetwork::default_regtest();
+    let witness = witness.into();
+
+    let (pst, _) = unit_transaction(program, witness.clone(), network)
+        .extract_pst()
+        .expect("the unit transaction is explicit");
+
+    program.execute(&pst, &witness, 0, &network).map(|_| ())
 }
 
-impl Unit {
-    #[track_caller]
-    pub fn accepts(self) {
-        accepts(&self.program, self.witness)
-    }
-
-    #[track_caller]
-    pub fn rejects(self) {
-        rejects(&self.program, self.witness)
+/// A case that fails before the program runs (e.g. a malformed witness) panics instead of
+/// matching `expect`.
+#[track_caller]
+pub fn check(program: &Program, witness: impl Into<WitnessValues>, expect: Expect) {
+    match outcome(run(program, witness)) {
+        Ok(actual) => assert_eq!(actual, expect, "unexpected program outcome"),
+        Err(error) => panic!("the case failed before the program ran: {error}"),
     }
 }
 
-/// A transaction whose only input spends a UTXO locked by `program`.
-///
-/// Unit programs do not look at the transaction; it only gives them an environment to run in.
-pub fn spend(
+fn outcome(result: Result<(), ProgramError>) -> Result<Expect, ProgramError> {
+    let execution = match result {
+        Ok(()) => return Ok(Expect::Ok),
+        Err(ProgramError::Pruning(execution) | ProgramError::Execution(execution)) => execution,
+        Err(other) => return Err(other),
+    };
+
+    match execution {
+        ExecutionError::JetFailed(_) => Ok(Expect::AssertFailed),
+        ExecutionError::ReachedPrunedBranch(_) => Ok(Expect::PrunedBranch),
+        other => Err(ProgramError::Execution(other)),
+    }
+}
+
+fn unit_transaction(
     program: &Program,
-    witness: impl Into<WitnessValues>,
+    witness: WitnessValues,
     network: SimplicityNetwork,
 ) -> FinalTransaction {
     let asset = network.policy_asset();
@@ -48,35 +66,4 @@ pub fn spend(
     ft.add_output(PartialOutput::new(Script::from(vec![0x51]), AMOUNT, asset));
 
     ft
-}
-
-/// Runs `program` on `witness` without a node.
-pub fn run(program: &Program, witness: impl Into<WitnessValues>) -> Result<(), ProgramError> {
-    let network = SimplicityNetwork::default_regtest();
-    let witness = witness.into();
-
-    let (pst, _) = spend(program, witness.clone(), network)
-        .extract_pst()
-        .expect("the unit transaction is explicit");
-
-    program.execute(&pst, &witness, 0, &network).map(|_| ())
-}
-
-#[track_caller]
-pub fn accepts(program: &Program, witness: impl Into<WitnessValues>) {
-    if let Err(error) = run(program, witness) {
-        panic!("expected the program to accept, but it failed: {error}");
-    }
-}
-
-/// Asserts that `program` fails while running on `witness`.
-///
-/// Any other error means the case is malformed and the function was never reached.
-#[track_caller]
-pub fn rejects(program: &Program, witness: impl Into<WitnessValues>) {
-    match run(program, witness) {
-        Err(ProgramError::Pruning(_) | ProgramError::Execution(_)) => {}
-        Err(other) => panic!("the case failed before the program ran: {other}"),
-        Ok(()) => panic!("expected the program to reject, but it accepted"),
-    }
 }
