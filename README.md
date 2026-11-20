@@ -18,6 +18,12 @@ simf/lib
 ├── u1
 │   └── convert.simf
 │       └── Conversions from `u1` to other uint types and `bool`.
+├── u2
+├── u4
+│   ├── bit.simf
+│   │   └── Basic bitwise operations (`and`, `or`, `eq`).
+│   └── convert.simf
+│       └── Conversions between `u2`, `u4` and other uint types.
 ├── u8
 ├── u16
 ├── u32
@@ -46,23 +52,25 @@ simf/lib
 │   │   │   └── Functions for asserting `Amount` in inputs and outputs.
 │   │   ├── asset_id.simf
 │   │   │   └── Functions for asserting `AssetId` in inputs and outputs.
-│   │   └── asset_id_with_amount.simf
-│   │       └── Functions for asserting `Amount` and `AssetId` in inputs and outputs.
-│   └── getters
-│       ├── amount.simf
-│       │   └── Functions for retrieving `Amount` in inputs and outputs.
-│       ├── asset_id.simf
-│       │   └── Functions for retrieving `AssetId` in inputs and outputs.
-│       ├── asset_id_with_amount.simf
-│       │   └── Functions for retrieving `Amount` and `AssetId` in inputs and outputs.
-│       └── script_hash.simf
-│           └── Functions for retrieving hash of the scriptPubKey in inputs and outputs.
+│   │   ├── asset_id_with_amount.simf
+│   │   │   └── Functions for asserting `Amount` and `AssetId` in inputs and outputs.
+│   │   └── script_hash.simf
+│   │       └── Functions for asserting hash of the scriptPubKey in inputs and outputs.
+│   ├── getters
+│   │   ├── amount.simf
+│   │   │   └── Functions for retrieving `Amount` in inputs and outputs.
+│   │   ├── asset_id.simf
+│   │   │   └── Functions for retrieving `AssetId` in inputs and outputs.
+│   │   ├── asset_id_with_amount.simf
+│   │   │   └── Functions for retrieving `Amount` and `AssetId` in inputs and outputs.
+│   │   └── script_hash.simf
+│   │       └── Functions for retrieving hash of the scriptPubKey in inputs and outputs.
+│   └── op_return.simf
+│       └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
 ├── asserts.simf
 │   └── Assertion helpers: `assert_eq_*` for uints and `bool`, plus `assert_none_*` for `Option`.
-├── binary.simf
-│   └── Basic binary logic operations: `and`, `or`, `not`, `xor`.
-└── op_return.simf
-    └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
+└── binary.simf
+    └── Basic binary logic operations: `and`, `or`, `not`, `xor`.
 ```
 
 ## Installation
@@ -81,7 +89,7 @@ simplex install https://github.com/BlockstreamResearch/simplicityhl-std
 ```
 
 > [!NOTE]
-> The library works with Simplex versions 0.0.11 and 0.0.12.
+> The library contracts work with Simplex version 0.0.7 or higher.
 
 ## Documentation
 

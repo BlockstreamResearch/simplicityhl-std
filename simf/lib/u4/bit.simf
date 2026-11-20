@@ -1,0 +1,27 @@
+use crate::lib::u4::convert::u4_to_u8;
+
+/// Bitwise AND of two 4-bit values
+pub fn and_4(a: u4, b: u4) -> u4 {
+    let a_u8: u8 = u4_to_u8(a);
+    let b_u8: u8 = u4_to_u8(b);
+
+    let (_, result): (u4, u4) = <u8>::into(jet::and_8(a_u8, b_u8));
+    result
+}
+
+/// Bitwise OR of two 4-bit values
+pub fn or_4(a: u4, b: u4) -> u4 {
+    let a_u8: u8 = u4_to_u8(a);
+    let b_u8: u8 = u4_to_u8(b);
+
+    let (_, result): (u4, u4) = <u8>::into(jet::or_8(a_u8, b_u8));
+    result
+}
+
+/// Checks if two 4-bit values are equal
+pub fn eq_4(a: u4, b: u4) -> bool {
+    let a_u8: u8 = u4_to_u8(a);
+    let b_u8: u8 = u4_to_u8(b);
+
+    jet::eq_8(a_u8, b_u8)
+}

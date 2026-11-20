@@ -1,0 +1,25 @@
+use crate::lib::binary::and;
+
+/// Bitwise AND of two 2-bit values
+pub fn and_2(a: u2, b: u2) -> u2 {
+    let (a_high, a_low): (u1, u1) = <u2>::into(a);
+    let (b_high, b_low): (u1, u1) = <u2>::into(b);
+
+    <(u1, u1)>::into((jet::and_1(a_high, b_high), jet::and_1(a_low, b_low)))
+}
+
+/// Bitwise OR of two 2-bit values
+pub fn or_2(a: u2, b: u2) -> u2 {
+    let (a_high, a_low): (u1, u1) = <u2>::into(a);
+    let (b_high, b_low): (u1, u1) = <u2>::into(b);
+
+    <(u1, u1)>::into((jet::or_1(a_high, b_high), jet::or_1(a_low, b_low)))
+}
+
+/// Checks if two 2-bit values are equal
+pub fn eq_2(a: u2, b: u2) -> bool {
+    let (a_high, a_low): (u1, u1) = <u2>::into(a);
+    let (b_high, b_low): (u1, u1) = <u2>::into(b);
+
+    and(jet::eq_1(a_high, b_high), jet::eq_1(a_low, b_low))
+}

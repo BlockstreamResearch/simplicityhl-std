@@ -1,6 +1,5 @@
 use primitive_types::U256;
 use rand::Rng;
-use secp256k1_zkp::hashes::Hash;
 
 use simplex::program::Program;
 use simplex::simplicityhl::elements::AssetId;
@@ -184,7 +183,7 @@ pub fn create_utxos_with_new_asset(
         }
     }
 
-    Ok((new_asset.unwrap().into_inner().0, txids))
+    Ok((new_asset.unwrap().to_byte_array(), txids))
 }
 
 fn get_asset_id_amount_from_conf_utxo(conf_utxo: UTXO) -> anyhow::Result<ConfidentialAsset> {

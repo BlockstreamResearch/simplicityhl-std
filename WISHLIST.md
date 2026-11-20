@@ -65,7 +65,7 @@ Q. Aren't the first three directly implemented by jets? Do we just need to `unwr
 Input/output by index.
 
 * Get script hash (implemented: `utxo::getters::script_hash`)
-* Check that the script hash is equal to the passed value
+* Check that the script hash is equal to the passed value (implemented: `utxo::asserts::script_hash`)
 * Check that the input script hash equals the output script hash
 * Same as prior function, but also check that the values are equal to the passed value
 

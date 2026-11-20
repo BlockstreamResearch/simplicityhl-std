@@ -16,7 +16,7 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  SIMPLEX_VERSION: 0.0.12
+  SIMPLEX_VERSION: 0.2.0
 
 jobs:
   lint:
@@ -51,6 +51,11 @@ jobs:
         shell: bash
         run: |
           simplex build
+
+      - name: Check contracts formatting
+        shell: bash
+        run: |
+          simplex fmt --check
 
       - name: Check formatting
         run: |

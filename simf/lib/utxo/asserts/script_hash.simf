@@ -1,0 +1,30 @@
+use crate::lib::utxo::getters::script_hash::{
+    get_script_hash,
+    get_input_script_hash,
+    get_output_script_hash
+};
+use crate::lib::asserts::assert_eq_256;
+
+/// Asserts that the SHA256 hash of the scriptPubKey at the specified input or output equals the expected u256 value
+///
+/// Warning: using this incurs overhead, and should be used only when the input/output selection
+/// needs to be determined at runtime; otherwise, use the input- or output-specific assert directly.
+pub fn assert_script_hash(index: u32, is_input_index: bool, expected: u256) {
+    let script_hash: u256 = get_script_hash(index, is_input_index);
+
+    assert_eq_256(script_hash, expected);
+}
+
+/// Asserts that the SHA256 hash of the scriptPubKey of the input at the given index equals the expected u256 value
+pub fn assert_input_script_hash(index: u32, expected: u256) {
+    let script_hash: u256 = get_input_script_hash(index);
+
+    assert_eq_256(script_hash, expected);
+}
+
+/// Asserts that the SHA256 hash of the scriptPubKey of the output at the given index equals the expected u256 value
+pub fn assert_output_script_hash(index: u32, expected: u256) {
+    let script_hash: u256 = get_output_script_hash(index);
+
+    assert_eq_256(script_hash, expected);
+}
