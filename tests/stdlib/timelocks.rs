@@ -20,8 +20,6 @@ enum FunctionToTest {
     EnforceRelativeDuration,
 }
 
-/// The minimum passed to the function under test in every case; only the sequence
-/// value declared in the transaction varies between test cases.
 const MIN_DISTANCE: u16 = 5;
 const MIN_DURATION: u16 = 5;
 
@@ -37,9 +35,6 @@ fn witness(function: FunctionToTest) -> TestTimelocksWitness {
     }
 }
 
-// Raw BIP68 nSequence encodings. See rust-simplicity's `jets.c` (`parse_sequence`):
-// bit 31 = disable flag (set => `None`), bit 22 = type flag (0 = blocks/Distance/Left,
-// 1 = 512-second units/Duration/Right), low 16 bits = the declared value.
 fn seq_disabled() -> Sequence {
     Sequence::MAX
 }
@@ -48,19 +43,16 @@ fn seq_distance(blocks: u16) -> Sequence {
     Sequence::from_consensus(u32::from(blocks))
 }
 
+/// Sets the BIP68 type flag (bit 22), so `units` counts 512-second intervals.
 fn seq_duration(units: u16) -> Sequence {
     Sequence::from_consensus((1u32 << 22) | u32::from(units))
 }
 
-// ---------- shared: transaction version precondition ----------
-
 #[simplex::test]
 fn tx_version_below_2_fails(context: simplex::TestContext) -> anyhow::Result<()> {
-    // `FinalTransaction` always builds a version 2 transaction and doesn't expose a
-    // version setter, so the signer can't produce a version 1 transaction. Instead,
-    // extract the PSET, override its version, and call `ProgramTrait::finalize`
-    // directly: the same local Simplicity execution that `Signer::broadcast` runs
-    // before touching the network.
+    // A version 1 transaction can declare a timelock that consensus won't enforce.
+    // FinalTransaction always builds version 2, so set the version on the PSET
+    // and finalize directly.
     let program = program();
     let witness_values: WitnessValues = witness(EnforceRelativeDistance).into();
 
@@ -69,10 +61,11 @@ fn tx_version_below_2_fails(context: simplex::TestContext) -> anyhow::Result<()>
         .get_default_provider()
         .fetch_scripthash_utxos(&script)?;
 
-    // `extract_pst` only reads the inputs and outputs, so the program and witness
-    // don't need to be attached here; they're passed to `finalize` below.
     let mut ft = FinalTransaction::new();
-    ft.add_input(PartialInput::new(utxos[0].clone()), None);
+    ft.add_input(
+        PartialInput::new(utxos[0].clone()).with_sequence(seq_distance(MIN_DISTANCE)),
+        None,
+    );
 
     let (mut pst, _secrets) = ft.extract_pst()?;
     pst.global.tx_data.version = 1;
@@ -90,12 +83,8 @@ fn tx_version_below_2_fails(context: simplex::TestContext) -> anyhow::Result<()>
     Ok(())
 }
 
-// ---------- enforce_relative_distance ----------
-
 #[simplex::test]
 fn distance_disabled_sequence_is_pruned(context: simplex::TestContext) -> anyhow::Result<()> {
-    // Disable flag set -> jet::parse_sequence returns None -> unwrap(None) hits the
-    // pruned branch. Never reaches broadcast, so no mining needed.
     run_with_sequence(
         &context,
         program(),
@@ -108,8 +97,6 @@ fn distance_disabled_sequence_is_pruned(context: simplex::TestContext) -> anyhow
 
 #[simplex::test]
 fn distance_wrong_variant_is_pruned(context: simplex::TestContext) -> anyhow::Result<()> {
-    // Sequence declares a Duration (type flag set), but the function requires a
-    // Distance -> unwrap_left on Right(_) hits the pruned branch.
     run_with_sequence(
         &context,
         program(),
@@ -122,9 +109,7 @@ fn distance_wrong_variant_is_pruned(context: simplex::TestContext) -> anyhow::Re
 
 #[simplex::test]
 fn distance_below_minimum_fails(context: simplex::TestContext) -> anyhow::Result<()> {
-    // Declared distance is below MIN_DISTANCE -> le_16 assert fails. MIN_DISTANCE blocks
-    // are mined first, so the spend fails even though the real distance would satisfy
-    // the minimum: only the declared value counts.
+    // Blocks are mined so that the real distance suffices: only the declared value counts.
     run_with_sequence(
         &context,
         program(),
@@ -137,8 +122,6 @@ fn distance_below_minimum_fails(context: simplex::TestContext) -> anyhow::Result
 
 #[simplex::test]
 fn distance_equal_minimum_succeeds(context: simplex::TestContext) -> anyhow::Result<()> {
-    // Mine enough blocks that the declared distance is satisfied on-chain, so the
-    // node's own BIP68 check at broadcast also passes.
     run_with_sequence(
         &context,
         program(),
@@ -165,10 +148,7 @@ fn distance_above_minimum_succeeds(context: simplex::TestContext) -> anyhow::Res
 fn distance_sufficient_declared_insufficient_real_is_rejected(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
-    // The declared distance satisfies MIN_DISTANCE, so local execution succeeds, but no
-    // blocks are mined, so the real distance is short of the declared one and the node's
-    // BIP68 check rejects the broadcast. This shows the guarantee is enforced by
-    // consensus, not just by a value the spender writes into the transaction.
+    // Local execution succeeds; the node's BIP68 check rejects the broadcast.
     run_with_sequence(
         &context,
         program(),
@@ -178,8 +158,6 @@ fn distance_sufficient_declared_insufficient_real_is_rejected(
         Expect::BroadcastRejected,
     )
 }
-
-// ---------- enforce_relative_duration ----------
 
 #[simplex::test]
 fn duration_disabled_sequence_is_pruned(context: simplex::TestContext) -> anyhow::Result<()> {
@@ -195,8 +173,6 @@ fn duration_disabled_sequence_is_pruned(context: simplex::TestContext) -> anyhow
 
 #[simplex::test]
 fn duration_wrong_variant_is_pruned(context: simplex::TestContext) -> anyhow::Result<()> {
-    // Sequence declares a Distance, but the function requires a Duration ->
-    // unwrap_right on Left(_) hits the pruned branch.
     run_with_sequence(
         &context,
         program(),
@@ -209,11 +185,6 @@ fn duration_wrong_variant_is_pruned(context: simplex::TestContext) -> anyhow::Re
 
 #[simplex::test]
 fn duration_below_minimum_fails(context: simplex::TestContext) -> anyhow::Result<()> {
-    // This fails during local Simplicity execution, before the transaction reaches the
-    // node, so real chain state can't affect the outcome. Unlike the distance version,
-    // it can't also show that the spend fails when the real elapsed time does satisfy
-    // the declared duration: that needs median-time-past to advance, which requires
-    // mining blocks with later timestamps, and Simplex doesn't expose a way to do that.
     run_with_sequence(
         &context,
         program(),
@@ -228,9 +199,6 @@ fn duration_below_minimum_fails(context: simplex::TestContext) -> anyhow::Result
 fn duration_sufficient_declared_insufficient_real_is_rejected(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
-    // Duration counterpart of `distance_sufficient_declared_insufficient_real_is_rejected`.
-    // Median-time-past not having advanced far enough is the default state right after
-    // funding, so nothing needs to be done to the chain's timestamps.
     run_with_sequence(
         &context,
         program(),
@@ -241,6 +209,5 @@ fn duration_sufficient_declared_insufficient_real_is_rejected(
     )
 }
 
-// There are no `duration_*_minimum_succeeds` tests: they need median-time-past to
-// advance by MIN_DURATION * 512 seconds, which requires mining blocks with later
-// timestamps, and Simplex doesn't expose a way to do that.
+// Currently, the duration happy path can't be tested: it needs median-time-past to
+// advance, and Simplex can't mine blocks with later timestamps.

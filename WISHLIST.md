@@ -103,6 +103,6 @@ Q. Are there (or could there be) standard protocols or conventions for (1) coven
 * `is_none`, `is_some` (as generic macros)
   * We currently have `is_none<T>` where the type must be specified explicitly, but the compiler could figure out what it is and not require specifying it.
 * Oracle interpretation, once some oracle formats are standardized
-* ~~Relative timelocks (replacements for deprecated jets)~~ (done; see `simf/lib/timelocks.simf`). See also <https://docs.simplicity-lang.org/documentation/timelock>
+* ~~Relative timelocks (replacements for deprecated jets)~~ (done; see `simf/lib/timelocks.simf`). See also <https://docs.simplicity-lang.org/documentation/timelocks>
 * Fee management?
 * More convenient SHA256?

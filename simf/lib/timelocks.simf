@@ -1,41 +1,20 @@
-pub fn enforce_relative_distance(min_distance: Distance) {
-    // Assert that the current input is spent in a transaction that can
-    // only appear a distance of at least min_distance blocks after the
-    // block containing the input UTXO.
-    // Panic otherwise.
-
-    // This is a replacement for the deprecated jet::check_lock_distance.
-
-    // Transaction version must be at least 2.
+/// Returns the relative timelock declared by the current input's sequence number.
+/// Panics if the transaction version is less than 2 or if the sequence number doesn't declare a relative timelock.
+fn current_relative_lock() -> Either<Distance, Duration> {
     assert!(jet::le_32(2, jet::version()));
+    unwrap(jet::parse_sequence(jet::current_sequence()))
+}
 
-    // Fetch and parse sequence
-    let actual_data: Either<Distance, Duration> = unwrap(
-        jet::parse_sequence(jet::current_sequence())
-    );
-    let actual_distance: Distance = unwrap_left::<Duration>(actual_data);
-
+/// Asserts that the current input has a relative timelock of at least `min_distance` blocks.
+/// Panics if the transaction version is less than 2, if the input's sequence number doesn't declare a relative timelock in blocks, or if that timelock is less than `min_distance`.
+pub fn enforce_relative_distance(min_distance: Distance) {
+    let actual_distance: Distance = unwrap_left::<Duration>(current_relative_lock());
     assert!(jet::le_16(min_distance, actual_distance));
 }
 
+/// Asserts that the current input has a relative timelock of at least `min_duration` units of 512 seconds.
+/// Panics if the transaction version is less than 2, if the input's sequence number doesn't declare a relative timelock in 512-second units, or if that timelock is less than `min_duration`.
 pub fn enforce_relative_duration(min_duration: Duration) {
-    // Assert that the current input is spent in a transaction that can
-    // only appear a duration of at least min_duration units of 512
-    // seconds, measured by median time past, after the block containing
-    // the input UTXO.
-    // Panic otherwise.
-
-    // This is a replacement for the deprecated jet::check_lock_duration.
-
-    // Transaction version must be at least 2.
-    assert!(jet::le_32(2, jet::version()));
-
-    // Fetch and parse sequence
-    let actual_data: Either<Distance, Duration> = unwrap(
-        jet::parse_sequence(jet::current_sequence())
-    );
-
-    let actual_duration: Duration = unwrap_right::<Distance>(actual_data);
-
+    let actual_duration: Duration = unwrap_right::<Distance>(current_relative_lock());
     assert!(jet::le_16(min_duration, actual_duration));
 }
