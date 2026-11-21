@@ -69,8 +69,10 @@ simf/lib
 │       └── Utilities for detecting and enforcing `OP_RETURN` (null data) outputs.
 ├── asserts.simf
 │   └── Assertion helpers: `assert_eq_*` for uints and `bool`, plus `assert_none_*` for `Option`.
-└── binary.simf
-    └── Basic binary logic operations: `and`, `or`, `not`, `xor`.
+├── binary.simf
+│   └── Basic binary logic operations: `and`, `or`, `not`, `xor`.
+└── timelocks.simf
+    └── Enforcement of relative timelocks (`Distance` and `Duration`).
 ```
 
 ## Installation

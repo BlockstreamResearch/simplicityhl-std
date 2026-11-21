@@ -1,0 +1,20 @@
+/// Returns the relative timelock declared by the current input's sequence number.
+/// Panics if the transaction version is less than 2 or if the sequence number doesn't declare a relative timelock.
+fn current_relative_lock() -> Either<Distance, Duration> {
+    assert!(jet::le_32(2, jet::version()));
+    unwrap(jet::parse_sequence(jet::current_sequence()))
+}
+
+/// Asserts that the current input has a relative timelock of at least `min_distance` blocks.
+/// Panics if the transaction version is less than 2, if the input's sequence number doesn't declare a relative timelock in blocks, or if that timelock is less than `min_distance`.
+pub fn enforce_relative_distance(min_distance: Distance) {
+    let actual_distance: Distance = unwrap_left::<Duration>(current_relative_lock());
+    assert!(jet::le_16(min_distance, actual_distance));
+}
+
+/// Asserts that the current input has a relative timelock of at least `min_duration` units of 512 seconds.
+/// Panics if the transaction version is less than 2, if the input's sequence number doesn't declare a relative timelock in 512-second units, or if that timelock is less than `min_duration`.
+pub fn enforce_relative_duration(min_duration: Duration) {
+    let actual_duration: Duration = unwrap_right::<Distance>(current_relative_lock());
+    assert!(jet::le_16(min_duration, actual_duration));
+}

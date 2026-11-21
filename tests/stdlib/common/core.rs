@@ -10,7 +10,7 @@ use simplex::simplicityhl::WitnessValues;
 use simplex::simplicityhl::elements::bitcoin::PublicKey;
 use simplex::simplicityhl::elements::opcodes::{self, All};
 use simplex::simplicityhl::elements::script::Builder;
-use simplex::simplicityhl::elements::{AssetId, Script, Txid};
+use simplex::simplicityhl::elements::{AssetId, Script, Sequence, Txid};
 use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
     FinalTransaction, NativeSignature, PartialInput, PartialOutput, ProgramInput, UTXO,
@@ -28,13 +28,17 @@ pub enum Expect {
     AssertFailed,
     /// Execution reached a pruned branch (e.g. `unwrap(None)`).
     PrunedBranch,
+    /// Local execution succeeds, but the node rejects the transaction because a BIP68
+    /// relative timelock declared in nSequence isn't yet satisfied on-chain.
+    BroadcastRejected,
 }
 
 impl Expect {
-    /// The exact broadcast error message for a failing expectation (`None` for `Ok`).
+    /// The exact broadcast error message for a local-execution failure
+    /// (`None` for `Ok` and `BroadcastRejected`).
     fn error_message(self) -> Option<&'static str> {
         match self {
-            Expect::Ok => None,
+            Expect::Ok | Expect::BroadcastRejected => None,
             Expect::AssertFailed => Some("Failed to prune program: Jet failed during execution"),
             Expect::PrunedBranch => {
                 Some("Failed to prune program: Execution reached a pruned branch")
@@ -332,15 +336,24 @@ pub fn assert_error_msg(
     result: Result<String, anyhow::Error>,
     expect: Expect,
 ) -> anyhow::Result<()> {
-    match expect.error_message() {
-        None => {
+    match (expect, expect.error_message()) {
+        (Expect::BroadcastRejected, _) => {
+            let err = result
+                .expect_err("expected the node to reject the broadcast, but it succeeded")
+                .to_string();
+            assert!(
+                err.contains("non-BIP68-final"),
+                "expected a `non-BIP68-final` rejection, got: {err}"
+            );
+        }
+        (_, None) => {
             result?;
         }
-        Some(expected) => {
+        (_, Some(expected)) => {
             let err = result
                 .expect_err("expected the spend to fail, but it succeeded")
                 .to_string();
-            assert!(err.contains(expected));
+            assert!(err.contains(expected), "expected `{expected}`, got: {err}");
         }
     };
 
@@ -394,6 +407,85 @@ where
     W: Into<WitnessValues> + 'static,
 {
     let result = spend(context, &program, witness, None, txids, program_for_test);
+
+    assert_error_msg(result, expect)
+}
+
+/// Construct a spend of the funded program UTXO whose input carries `sequence`.
+///
+/// The sequence is set on the program input only. `FinalTransaction::set_sequence` would
+/// also apply it to the fee inputs the signer adds, which would then be timelocked too.
+pub fn construct_final_tx_with_sequence<W>(
+    context: &simplex::TestContext,
+    program: &impl AsRef<Program>,
+    witness: W,
+    sequence: Sequence,
+) -> anyhow::Result<FinalTransaction>
+where
+    W: Into<WitnessValues> + 'static,
+{
+    let signer = context.get_default_signer();
+    let network = context.get_network();
+    let program_script = &program.as_ref().get_script_pubkey(network);
+    let program_utxo = prepare_utxo(context, program_script, None)?;
+
+    let mut ft = FinalTransaction::new();
+    ft.add_program_input(
+        PartialInput::new(program_utxo.clone()).with_sequence(sequence),
+        ProgramInput::new(Box::new(program.as_ref().clone()), witness.into()),
+        None,
+    );
+
+    (ft, _) = add_mirror_output(
+        ft,
+        &program_utxo,
+        signer.get_blinding_public_key(),
+        network.policy_asset(),
+    )?;
+
+    Ok(ft)
+}
+
+/// Spend the funded program UTXO with `witness` and `sequence`. Return the broadcast result.
+pub fn spend_with_sequence<W>(
+    context: &simplex::TestContext,
+    program: &impl AsRef<Program>,
+    witness: W,
+    sequence: Sequence,
+) -> anyhow::Result<String>
+where
+    W: Into<WitnessValues> + 'static,
+{
+    let ft = construct_final_tx_with_sequence(context, program, witness, sequence)?;
+
+    Ok(context.get_default_signer().broadcast(&ft)?.to_string())
+}
+
+/// Fund + spend with the program input's nSequence set to `sequence` + assert the outcome.
+///
+/// `blocks_to_mine` blocks are mined after the funding transaction confirms and before
+/// the spend, so that a relative timelock in `sequence` can be satisfied on-chain.
+pub fn run_with_sequence<W>(
+    context: &simplex::TestContext,
+    program: impl AsRef<Program>,
+    witness: W,
+    sequence: Sequence,
+    blocks_to_mine: u64,
+    expect: Expect,
+) -> anyhow::Result<()>
+where
+    W: Into<WitnessValues> + 'static,
+{
+    fund(context, &program, DEFAULT_SEND_AMOUNT)?;
+
+    if blocks_to_mine > 0 {
+        let tip = u64::from(context.get_default_provider().fetch_tip_height()?);
+        context
+            .get_network_utils()
+            .mine_until_height(tip + blocks_to_mine)?;
+    }
+
+    let result = spend_with_sequence(context, &program, witness, sequence);
 
     assert_error_msg(result, expect)
 }
