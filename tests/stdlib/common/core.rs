@@ -227,7 +227,7 @@ where
 
 /// Create an op return script from bytes, where the first byte indicates whether
 /// the bytes are an immediate push or raw opcodes
-fn create_op_return_script(data: &[u8]) -> Script {
+pub fn create_op_return_script(data: &[u8]) -> Script {
     let mut builder = Builder::new().push_opcode(opcodes::all::OP_RETURN);
 
     if data[0] == 0x00 {

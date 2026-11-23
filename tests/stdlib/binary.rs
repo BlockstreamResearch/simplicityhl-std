@@ -1,12 +1,14 @@
-use crate::common::core::{Expect, run};
-
 use simplicityhl_std::artifacts::tests::binary::BinaryProgram as BinaryTestProgram;
 use simplicityhl_std::artifacts::tests::binary::derived_binary::{
     BinaryArguments as BinaryTestArguments, BinaryWitness as BinaryTestWitness,
 };
 
-#[simplex::test]
-fn all_ops(context: simplex::TestContext) -> anyhow::Result<()> {
+use crate::common::core::Expect;
+use crate::common::unit;
+
+#[test]
+fn all_ops() {
     let program = BinaryTestProgram::new(&BinaryTestArguments {});
-    run(&context, program, BinaryTestWitness {}, Expect::Ok)
+
+    unit::check(program.as_ref(), BinaryTestWitness {}, Expect::Ok);
 }

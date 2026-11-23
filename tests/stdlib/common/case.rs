@@ -1,10 +1,10 @@
+use simplex::fuzz::FuzzProgramTrait;
 use simplex::program::{Program, ProgramSchema};
 use simplex::simplicityhl::Arguments;
-
-use simplex::fuzz::FuzzProgramTrait;
+use simplex::transaction::PartialOutput;
 
 use crate::common::core::Expect;
-use crate::common::unit;
+use crate::common::unit::{self, UnitTx};
 
 pub trait DispatchCase: Sized + 'static {
     type Program: FuzzProgramTrait;
@@ -15,6 +15,10 @@ pub trait DispatchCase: Sized + 'static {
 
     fn into_witness(self) -> <Self::Program as ProgramSchema>::Witness;
 
+    fn leading_outputs(&self) -> Vec<PartialOutput> {
+        Vec::new()
+    }
+
     fn program() -> Program {
         let arguments: Arguments = Self::arguments().into();
 
@@ -24,7 +28,7 @@ pub trait DispatchCase: Sized + 'static {
 
     #[track_caller]
     fn accepts(self) {
-        unit::check(&Self::program(), self.into_witness(), Expect::Ok);
+        self.check(Expect::Ok);
     }
 
     #[track_caller]
@@ -35,6 +39,15 @@ pub trait DispatchCase: Sized + 'static {
             "use `accepts` for cases that must succeed"
         );
 
-        unit::check(&Self::program(), self.into_witness(), reason);
+        self.check(reason);
+    }
+
+    #[track_caller]
+    fn check(self, expect: Expect) {
+        let tx = UnitTx {
+            leading_outputs: self.leading_outputs(),
+        };
+
+        unit::check_in(&Self::program(), self.into_witness(), tx, expect);
     }
 }

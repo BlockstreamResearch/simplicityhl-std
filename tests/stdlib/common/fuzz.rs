@@ -1,9 +1,8 @@
 use std::fmt::Debug;
 
-use simplex::simplicityhl::Arguments;
-
 use simplex::fuzz::proptest::strategy::Strategy;
 use simplex::fuzz::{FuzzProgramValues, Scenario};
+use simplex::simplicityhl::Arguments;
 use simplex::{FuzzMode, TestContext};
 
 use simplex::fuzz::Expect;
@@ -43,12 +42,24 @@ pub fn check<C, T>(
     C: DispatchCase,
     T: Debug + 'static,
 {
+    check_scenario(context, Scenario::default(), inputs, build, expect);
+}
+
+pub fn check_scenario<C, T>(
+    context: &TestContext<FuzzMode>,
+    mut scenario: Scenario,
+    inputs: impl Strategy<Value = T> + 'static,
+    build: impl Fn(T) -> C + 'static,
+    expect: Expect,
+) where
+    C: DispatchCase,
+    T: Debug + 'static,
+{
     let arguments: Arguments = C::arguments().into();
     let values = inputs.prop_map(move |input| {
         FuzzProgramValues::from((arguments.clone(), build(input).into_witness().into()))
     });
 
-    let mut scenario = Scenario::default();
     scenario
         .add::<C::Program>(C::PROGRAM_NAME)
         .spends(DEFAULT_SPENT_INPUT)
