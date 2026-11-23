@@ -2035,5 +2035,19 @@
     "input_type": "u256",
     "output_type": "u128",
     "description": "Narrow a `u256` value to `u128`.\n\n## Panics\nPanics if the value does not fit in `u128`."
+  },
+  {
+    "simplicityhl_name": "enforce_relative_distance",
+    "section": "Timelocks",
+    "input_type": "Distance",
+    "output_type": "()",
+    "description": "Asserts that the current input has a relative timelock of at least `min_distance` blocks, so the transaction can't be included in a block until at least that many blocks after the block that contains the UTXO being spent. Use this instead of the deprecated `jet::check_lock_distance`, which doesn't enforce a timelock on the input being spent: it passes if any input in the transaction declares a long enough relative timelock.\n\n## Panics\nPanics if the transaction version is less than 2, if the input's sequence number doesn't declare a relative timelock in blocks, or if the declared distance is less than `min_distance`."
+  },
+  {
+    "simplicityhl_name": "enforce_relative_duration",
+    "section": "Timelocks",
+    "input_type": "Duration",
+    "output_type": "()",
+    "description": "Asserts that the current input has a relative timelock of at least `min_duration` units of 512 seconds, so the transaction can't be included in a block until at least that much time, measured by median time past, after the block that contains the UTXO being spent. Use this instead of the deprecated `jet::check_lock_duration`, which doesn't enforce a timelock on the input being spent: it passes if any input in the transaction declares a long enough relative timelock.\n\n## Panics\nPanics if the transaction version is less than 2, if the input's sequence number doesn't declare a relative timelock in units of 512 seconds, or if the declared duration is less than `min_duration`."
   }
 ]
