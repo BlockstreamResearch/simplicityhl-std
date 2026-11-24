@@ -63,6 +63,8 @@ simf/lib
 │   │   │   └── Functions for retrieving `AssetId` in inputs and outputs.
 │   │   ├── asset_id_with_amount.simf
 │   │   │   └── Functions for retrieving `Amount` and `AssetId` in inputs and outputs.
+│   │   ├── issuance.simf
+│   │   │   └── Functions for retrieving issuance and reissuance information in inputs.
 │   │   └── script_hash.simf
 │   │       └── Functions for retrieving hash of the scriptPubKey in inputs and outputs.
 │   └── op_return.simf

@@ -2,12 +2,16 @@ use primitive_types::U256;
 use rand::Rng;
 
 use simplex::program::Program;
+
+use simplex::simplicityhl::elements::AssetEntropy;
 use simplex::simplicityhl::elements::AssetId;
 use simplex::simplicityhl::elements::OutPoint;
 use simplex::simplicityhl::elements::Script;
 use simplex::simplicityhl::elements::Txid;
 use simplex::simplicityhl::elements::pset::serialize::Serialize;
 use simplex::transaction::UTXO;
+
+use simplex::utils;
 
 use crate::common::core::tweak_script;
 use crate::common::core::{send_blinded, send_explicit, send_issued};
@@ -99,7 +103,8 @@ pub fn create_utxos_and_return_conf_assets(
     expected_amount: u64,
     program: impl AsRef<Program>,
 ) -> anyhow::Result<(Option<ConfidentialAsset>, Vec<Txid>)> {
-    let last_script = &context.get_default_signer().get_address().script_pubkey();
+    let signer = context.get_default_signer();
+    let last_script = &signer.get_address().script_pubkey();
 
     let (last_utxo, txids) = create_utxos(
         context,
@@ -175,9 +180,10 @@ pub fn create_utxos_with_new_asset(
         }
 
         if index == i {
-            let (txid, asset) = send_issued(context, script, amount_to_send)?;
+            let (txid, issued) =
+                send_issued(context, script, None, amount_to_send, 0, rand::random())?;
             txids.push(txid);
-            new_asset = Some(asset);
+            new_asset = Some(issued.asset_id);
         } else {
             txids.push(send_explicit(signer, script, amount_to_send)?);
         }
@@ -241,4 +247,21 @@ pub fn generate_random_confidential() -> (u8, [u8; 32]) {
     let asset = generate_u256(U256::zero(), U256::MAX).to_big_endian();
 
     (parity_bit, asset)
+}
+
+pub fn create_funding_utxo_for_issue(context: &simplex::TestContext) -> anyhow::Result<Txid> {
+    let signer = context.get_default_signer();
+    let script = signer.get_address().script_pubkey();
+
+    send_explicit(signer, &script, DEFAULT_SEND_AMOUNT)
+}
+
+pub fn get_entropy(outpoint: OutPoint, contract_hash: [u8; 32]) -> AssetEntropy {
+    utils::asset_entropy(&outpoint, contract_hash)
+}
+pub fn get_asset_id(entropy: AssetEntropy) -> AssetId {
+    AssetId::from_entropy(entropy)
+}
+pub fn get_token_id(entropy: AssetEntropy) -> AssetId {
+    AssetId::reissuance_token_from_entropy(entropy, false)
 }

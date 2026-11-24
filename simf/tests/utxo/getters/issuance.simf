@@ -1,0 +1,74 @@
+use crate::lib::utxo::getters::issuance::{
+    is_issuance,
+    is_reissuance,
+    get_issuance_asset_id,
+    get_reissuance_token,
+    get_issuance_entropy
+};
+
+use crate::tests::support::dispatch::is_selected;
+use crate::tests::support::expect::assert_bool;
+
+fn assert_eq_option_u256(a: Option<u256>, b: Option<u256>) { // ExplicitAsset is alias to u256
+    let is_eq: bool = match a {
+        Some(asset_a: u256) => match b {
+            Some(asset_b: u256) => jet::eq_256(asset_a, asset_b),
+            None => false,
+        },
+        None => match b {
+            Some(_b: u256) => false,
+            None => true,
+        },
+    };
+
+    assert!(is_eq);
+}
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+    let input_index: u32 = witness::INPUT_INDEX;
+
+    let expected_bool: bool = witness::EXPECTED_BOOL;
+    let expected_asset_or_entropy: Option<u256> = witness::EXPECTED_U256;
+
+    match is_selected(0, fn_idx) {
+        true => {
+            assert_bool(is_issuance(input_index), expected_bool);
+        },
+        false => (),
+    };
+
+    match is_selected(1, fn_idx) {
+        true => {
+            assert_bool(is_reissuance(input_index), expected_bool);
+        },
+        false => (),
+    };
+
+    match is_selected(2, fn_idx) {
+        true => {
+            let result_asset: Option<ExplicitAsset> = get_issuance_asset_id(input_index);
+
+            assert_eq_option_u256(result_asset, expected_asset_or_entropy);
+        },
+        false => (),
+    };
+
+    match is_selected(3, fn_idx) {
+        true => {
+            let result_asset: Option<ExplicitAsset> = get_reissuance_token(input_index);
+
+            assert_eq_option_u256(result_asset, expected_asset_or_entropy);
+        },
+        false => (),
+    };
+
+    match is_selected(4, fn_idx) {
+        true => {
+            let result_entropy: Option<u256> = get_issuance_entropy(input_index);
+
+            assert_eq_option_u256(result_entropy, expected_asset_or_entropy);
+        },
+        false => (),
+    };
+}

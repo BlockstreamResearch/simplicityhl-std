@@ -1,0 +1,53 @@
+use crate::lib::binary::not;
+
+/// Returns Some(is_reissuance) if the specified input exists and has an issuance or reissuance, None otherwise.
+/// Some(false) is a new issuance, Some(true) is a reissuance.
+fn kind_of_issuance(input_index: u32) -> Option<bool> {
+    match jet::issuance(input_index) {
+        Some(input: Option<bool>) => input,
+        None => None,
+    }
+}
+
+/// Returns true if the specified input exists and has a new issuance, false otherwise
+pub fn is_issuance(input_index: u32) -> bool {
+    match kind_of_issuance(input_index) {
+        Some(reissuance: bool) => not(reissuance),
+        None => false,
+    }
+}
+
+/// Returns true if the specified input exists and has a reissuance, false otherwise
+pub fn is_reissuance(input_index: u32) -> bool {
+    match kind_of_issuance(input_index) {
+        Some(reissuance: bool) => reissuance,
+        None => false,
+    }
+}
+
+/// Returns the id of the asset issued or reissued by the input.
+/// Returns None if the input has no issuance or reissuance or does not exist
+pub fn get_issuance_asset_id(input_index: u32) -> Option<ExplicitAsset> {
+    match jet::issuance_asset(input_index) {
+        Some(input: Option<ExplicitAsset>) => input,
+        None => None,
+    }
+}
+
+/// Returns the id of the reissuance token of the input at the given index.
+/// Returns None if the input has no issuance or reissuance or does not exist
+pub fn get_reissuance_token(input_index: u32) -> Option<ExplicitAsset> {
+    match jet::issuance_token(input_index) {
+        Some(input: Option<ExplicitAsset>) => input,
+        None => None,
+    }
+}
+
+/// Returns the issuance entropy of the input at the given index.
+/// Returns None if the input has no issuance or reissuance or does not exist
+pub fn get_issuance_entropy(input_index: u32) -> Option<u256> {
+    match jet::issuance_entropy(input_index) {
+        Some(input: Option<u256>) => input,
+        None => None,
+    }
+}
