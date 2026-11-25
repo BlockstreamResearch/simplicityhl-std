@@ -120,10 +120,12 @@ pub fn send_issued(
         ));
     }
 
-    ft.add_output(
-        PartialOutput::new(to.clone(), amount_to_reissue, issued.inflation_asset_id)
-            .with_blinding_key(signer.get_blinding_public_key()),
-    );
+    if amount_to_reissue > 0 {
+        ft.add_output(
+            PartialOutput::new(to.clone(), amount_to_reissue, issued.inflation_asset_id)
+                .with_blinding_key(signer.get_blinding_public_key()),
+        );
+    }
 
     let receipt = signer.broadcast(&ft)?;
     receipt.wait()?;
