@@ -1,11 +1,16 @@
-use std::fmt::Debug;
-
 use simplex::fuzz::proptest::prelude::any;
+use std::fmt::Debug;
+use std::ops::{BitXor, Shl};
+
+use simplex::fuzz::proptest::prop_oneof;
 use simplex::fuzz::proptest::strategy::{BoxedStrategy, Strategy};
 use simplex::{FuzzMode, TestContext};
 
-use crate::asserts::{case, case::U256};
+use crate::asserts::case;
 use crate::common::fuzz::{accepts, rejects};
+use crate::common::numerics::{U256, Uint};
+use crate::common::u256_wrapper::U256Wrapper;
+use crate::common::uint::TestUint;
 
 fn arb_u1() -> impl Strategy<Value = u8> {
     any::<bool>().prop_map(u8::from)
@@ -39,13 +44,28 @@ fn arb_u256() -> impl Strategy<Value = U256> {
     any::<U256>()
 }
 
-fn arb_distinct<T>(values: impl Strategy<Value = T> + 'static) -> impl Strategy<Value = (T, T)>
-where
-    T: PartialEq + Debug + 'static,
-{
+fn arb_u256_int() -> impl Strategy<Value = U256Wrapper> {
+    arb_u256().prop_map(|bytes| U256Wrapper(Uint::from_big_endian(&bytes)))
+}
+
+fn arb_distinct<T: PartialEq + Debug>(
+    values: impl Strategy<Value = T> + 'static,
+) -> impl Strategy<Value = (T, T)> {
     let values: BoxedStrategy<T> = values.boxed();
 
     (values.clone(), values).prop_filter("distinct values", |(a, b)| a != b)
+}
+
+fn arb_distinct_near<T>(values: impl Strategy<Value = T> + 'static) -> impl Strategy<Value = (T, T)>
+where
+    T: TestUint + Shl<Output = T> + BitXor<Output = T> + From<u8> + PartialEq + Debug + 'static,
+{
+    let values: BoxedStrategy<T> = values.boxed();
+
+    prop_oneof![
+        arb_distinct(values.clone()),
+        (values, 0..T::BITS).prop_map(|(a, bit)| (a, a ^ (T::ONE << T::from(bit as u8)))),
+    ]
 }
 
 // 0. assert_eq_1
@@ -69,7 +89,7 @@ fn assert_eq_8_accepts_equal(context: TestContext<FuzzMode>) {
 
 #[simplex::fuzz]
 fn assert_eq_8_rejects_distinct(context: TestContext<FuzzMode>) {
-    rejects(&context, arb_distinct(arb_u8()), |(a, b)| {
+    rejects(&context, arb_distinct_near(arb_u8()), |(a, b)| {
         case::assert_eq_8(a, b)
     });
 }
@@ -82,7 +102,7 @@ fn assert_eq_16_accepts_equal(context: TestContext<FuzzMode>) {
 
 #[simplex::fuzz]
 fn assert_eq_16_rejects_distinct(context: TestContext<FuzzMode>) {
-    rejects(&context, arb_distinct(arb_u16()), |(a, b)| {
+    rejects(&context, arb_distinct_near(arb_u16()), |(a, b)| {
         case::assert_eq_16(a, b)
     });
 }
@@ -95,7 +115,7 @@ fn assert_eq_32_accepts_equal(context: TestContext<FuzzMode>) {
 
 #[simplex::fuzz]
 fn assert_eq_32_rejects_distinct(context: TestContext<FuzzMode>) {
-    rejects(&context, arb_distinct(arb_u32()), |(a, b)| {
+    rejects(&context, arb_distinct_near(arb_u32()), |(a, b)| {
         case::assert_eq_32(a, b)
     });
 }
@@ -108,7 +128,7 @@ fn assert_eq_64_accepts_equal(context: TestContext<FuzzMode>) {
 
 #[simplex::fuzz]
 fn assert_eq_64_rejects_distinct(context: TestContext<FuzzMode>) {
-    rejects(&context, arb_distinct(arb_u64()), |(a, b)| {
+    rejects(&context, arb_distinct_near(arb_u64()), |(a, b)| {
         case::assert_eq_64(a, b)
     });
 }
@@ -121,7 +141,7 @@ fn assert_eq_128_accepts_equal(context: TestContext<FuzzMode>) {
 
 #[simplex::fuzz]
 fn assert_eq_128_rejects_distinct(context: TestContext<FuzzMode>) {
-    rejects(&context, arb_distinct(arb_u128()), |(a, b)| {
+    rejects(&context, arb_distinct_near(arb_u128()), |(a, b)| {
         case::assert_eq_128(a, b)
     });
 }
@@ -134,8 +154,8 @@ fn assert_eq_256_accepts_equal(context: TestContext<FuzzMode>) {
 
 #[simplex::fuzz]
 fn assert_eq_256_rejects_distinct(context: TestContext<FuzzMode>) {
-    rejects(&context, arb_distinct(arb_u256()), |(a, b)| {
-        case::assert_eq_256(a, b)
+    rejects(&context, arb_distinct_near(arb_u256_int()), |(a, b)| {
+        case::assert_eq_256(a.to_be_bytes(), b.to_be_bytes())
     });
 }
 

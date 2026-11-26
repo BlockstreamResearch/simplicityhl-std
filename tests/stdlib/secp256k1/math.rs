@@ -1,8 +1,8 @@
-use primitive_types::{U256 as Uint, U512};
+use primitive_types::U512;
 use secp256k1_zkp::{PublicKey, SECP256K1, SecretKey, constants};
 
-/// Big-endian 256-bit integer.
-pub type U256 = [u8; 32];
+pub use crate::common::numerics::*;
+
 /// Field element, mod p.
 pub type Fe = U256;
 /// Scalar, mod the group order n.
@@ -21,46 +21,6 @@ pub const SECP_P: U256 = constants::FIELD_SIZE;
 pub const SECP_N: U256 = constants::CURVE_ORDER;
 
 pub const INFINITY: Gej = ((ZERO, ZERO), ZERO);
-
-pub const fn u256(value: u128) -> U256 {
-    let mut out = [0; 32];
-    let bytes = value.to_be_bytes();
-    let mut i = 0;
-
-    while i < 16 {
-        out[16 + i] = bytes[i];
-        i += 1;
-    }
-
-    out
-}
-
-fn int(value: U256) -> Uint {
-    Uint::from_big_endian(&value)
-}
-
-pub fn add_u256(a: U256, b: U256) -> U256 {
-    int(a)
-        .checked_add(int(b))
-        .expect("a + b overflows 256 bits")
-        .to_big_endian()
-}
-
-pub fn sub_u256(a: U256, b: U256) -> U256 {
-    int(a)
-        .checked_sub(int(b))
-        .expect("a - b underflows")
-        .to_big_endian()
-}
-
-/// Operands may be non-canonical, the result is canonical.
-pub fn sub_mod(a: U256, b: U256, modulus: U256) -> U256 {
-    let m = int(modulus);
-    let (a, b) = (int(a) % m, int(b) % m);
-
-    let difference = if a >= b { a - b } else { m - (b - a) };
-    difference.to_big_endian()
-}
 
 pub fn fe_mul(a: Fe, b: Fe) -> Fe {
     let product = int(a).full_mul(int(b)) % U512::from(int(SECP_P));

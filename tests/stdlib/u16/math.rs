@@ -15,6 +15,7 @@ impl TestUint for u16 {
     const MAX: u16 = u16::MAX;
     const HALF_MAX: u16 = u16::MAX / 2;
     const MUL_BOUND: u16 = 1 << 8; // 2^(16/2)
+    const BITS: u32 = u16::BITS;
 
     fn program() -> U16MathTestProgram {
         U16MathTestProgram::new(&U16MathTestArguments {})

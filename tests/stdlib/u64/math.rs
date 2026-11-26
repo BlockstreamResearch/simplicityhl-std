@@ -15,6 +15,7 @@ impl TestUint for u64 {
     const MAX: u64 = u64::MAX;
     const HALF_MAX: u64 = u64::MAX / 2;
     const MUL_BOUND: u64 = 1 << 32; // 2^(64/2)
+    const BITS: u32 = u64::BITS;
 
     fn program() -> U64MathTestProgram {
         U64MathTestProgram::new(&U64MathTestArguments {})

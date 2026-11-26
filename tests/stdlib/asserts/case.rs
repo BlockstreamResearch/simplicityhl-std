@@ -4,8 +4,7 @@ use simplicityhl_std::artifacts::tests::asserts::derived_asserts::{
 };
 
 use crate::common::case::DispatchCase;
-
-pub type U256 = [u8; 32];
+use crate::common::numerics::U256;
 
 #[derive(Clone, Copy)]
 enum FunctionToTest {

@@ -1,7 +1,8 @@
+use std::ops::{Add, BitXor, Deref, DerefMut, Div, Mul, Shl, Sub};
+
 use primitive_types::U256;
 use rand::Rng;
 use rand::distributions::uniform::{SampleBorrow, SampleUniform, UniformSampler};
-use std::ops::{Add, Deref, DerefMut, Div, Mul, Sub};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct U256Wrapper(pub U256);
@@ -62,6 +63,26 @@ impl Div for U256Wrapper {
     type Output = U256Wrapper;
     fn div(self, rhs: Self) -> Self::Output {
         U256Wrapper(self.0 / rhs.0)
+    }
+}
+
+impl BitXor for U256Wrapper {
+    type Output = U256Wrapper;
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        U256Wrapper(self.0 ^ rhs.0)
+    }
+}
+
+impl Shl for U256Wrapper {
+    type Output = U256Wrapper;
+    fn shl(self, rhs: Self) -> Self::Output {
+        U256Wrapper(self.0 << rhs.0)
+    }
+}
+
+impl From<u8> for U256Wrapper {
+    fn from(v: u8) -> Self {
+        U256Wrapper(U256::from(v))
     }
 }
 

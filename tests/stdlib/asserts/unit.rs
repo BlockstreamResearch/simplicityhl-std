@@ -1,7 +1,7 @@
 use crate::asserts::case;
-use crate::asserts::case::U256;
 use crate::common::case::DispatchCase;
 use crate::common::core::Expect::AssertFailed;
+use crate::common::numerics::U256;
 
 // 0. assert_eq_1
 #[test]
@@ -75,7 +75,11 @@ fn assert_eq_64_rejects_distinct() {
 // 5. assert_eq_128
 #[test]
 fn assert_eq_128_accepts_equal() {
-    case::assert_eq_128(0, 0).accepts();
+    case::assert_eq_128(
+        0xA5A5_A5A5_A5A5_A5A5_A5A5_A5A5_A5A5_A5A5,
+        0xA5A5_A5A5_A5A5_A5A5_A5A5_A5A5_A5A5_A5A5,
+    )
+    .accepts();
     case::assert_eq_128(u128::MAX, u128::MAX).accepts();
 }
 
