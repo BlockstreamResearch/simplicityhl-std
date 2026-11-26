@@ -1,5 +1,117 @@
 [
   {
+    "simplicityhl_name": "assert_explicit_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, bool, u64",
+    "output_type": "()",
+    "description": "Asserts that the explicit amount at the specified input or output index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, bool, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential amount at the specified input or output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_input_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, u64",
+    "output_type": "()",
+    "description": "Asserts that the explicit amount at the specified input index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_input_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential amount at the specified input index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_output_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, u64",
+    "output_type": "()",
+    "description": "Asserts that the explicit amount at the specified output index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_output_amount",
+    "section": "Amount asserts",
+    "input_type": "u32, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential amount at the specified output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_current_amount",
+    "section": "Amount asserts",
+    "input_type": "u64",
+    "output_type": "()",
+    "description": "Asserts that the explicit input amount at the current_index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_current_amount",
+    "section": "Amount asserts",
+    "input_type": "Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential input amount at the current_index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "get_explicit_amount",
+    "section": "Amount getters",
+    "input_type": "u32, bool",
+    "output_type": "u64",
+    "description": "Returns the explicit amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_amount",
+    "section": "Amount getters",
+    "input_type": "u32, bool",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_input_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "u64",
+    "description": "Returns the explicit amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_input_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_output_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "u64",
+    "description": "Returns the explicit amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_output_amount",
+    "section": "Amount getters",
+    "input_type": "u32",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its amount is explicit."
+  },
+  {
+    "simplicityhl_name": "get_explicit_current_amount",
+    "section": "Amount getters",
+    "input_type": "()",
+    "output_type": "u64",
+    "description": "Returns the explicit input amount at the current_index.\n\n## Panics\nPanics if amount is confidential."
+  },
+  {
+    "simplicityhl_name": "get_confidential_current_amount",
+    "section": "Amount getters",
+    "input_type": "()",
+    "output_type": "Confidential1",
+    "description": "Returns the confidential input amount at the current_index.\n\n## Panics\nPanics if amount is explicit."
+  },
+  {
     "simplicityhl_name": "assert_eq_1",
     "section": "Asserts",
     "input_type": "u1, u1",
@@ -105,62 +217,6 @@
     "description": "Assert that two `bool` values are equal.\n\n## Panics\nThe assertion fails."
   },
   {
-    "simplicityhl_name": "assert_explicit_amount",
-    "section": "Amount asserts",
-    "input_type": "u32, bool, u64",
-    "output_type": "()",
-    "description": "Asserts that the explicit amount at the specified input or output index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_confidential_amount",
-    "section": "Amount asserts",
-    "input_type": "u32, bool, Confidential1",
-    "output_type": "()",
-    "description": "Asserts that the confidential amount at the specified input or output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_explicit_input_amount",
-    "section": "Amount asserts",
-    "input_type": "u32, u64",
-    "output_type": "()",
-    "description": "Asserts that the explicit amount at the specified input index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_confidential_input_amount",
-    "section": "Amount asserts",
-    "input_type": "u32, Confidential1",
-    "output_type": "()",
-    "description": "Asserts that the confidential amount at the specified input index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_explicit_output_amount",
-    "section": "Amount asserts",
-    "input_type": "u32, u64",
-    "output_type": "()",
-    "description": "Asserts that the explicit amount at the specified output index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_confidential_output_amount",
-    "section": "Amount asserts",
-    "input_type": "u32, Confidential1",
-    "output_type": "()",
-    "description": "Asserts that the confidential amount at the specified output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_explicit_current_amount",
-    "section": "Amount asserts",
-    "input_type": "u64",
-    "output_type": "()",
-    "description": "Asserts that the explicit input amount at the current_index equals the expected `u64` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_confidential_current_amount",
-    "section": "Amount asserts",
-    "input_type": "Confidential1",
-    "output_type": "()",
-    "description": "Asserts that the confidential input amount at the current_index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
     "simplicityhl_name": "assert_explicit_asset_id_with_amount",
     "section": "AssetId and Amount asserts",
     "input_type": "u32, bool, u256, u64",
@@ -215,118 +271,6 @@
     "input_type": "Confidential1, Confidential1",
     "output_type": "()",
     "description": "Asserts that confidential input asset_id and amount at the current_index equal the expected `Confidential1` values.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_explicit_asset_id",
-    "section": "AssetId asserts",
-    "input_type": "u32, bool, u256",
-    "output_type": "()",
-    "description": "Asserts that the explicit asset_id at the specified input or output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_confidential_asset_id",
-    "section": "AssetId asserts",
-    "input_type": "u32, bool, Confidential1",
-    "output_type": "()",
-    "description": "Asserts that the confidential asset_id at the specified input or output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_explicit_input_asset_id",
-    "section": "AssetId asserts",
-    "input_type": "u32, u256",
-    "output_type": "()",
-    "description": "Asserts that the explicit asset_id at the specified input index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_confidential_input_asset_id",
-    "section": "AssetId asserts",
-    "input_type": "u32, Confidential1",
-    "output_type": "()",
-    "description": "Asserts that the confidential asset_id at the specified input index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_explicit_output_asset_id",
-    "section": "AssetId asserts",
-    "input_type": "u32, u256",
-    "output_type": "()",
-    "description": "Asserts that the explicit asset_id at the specified output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_confidential_output_asset_id",
-    "section": "AssetId asserts",
-    "input_type": "u32, Confidential1",
-    "output_type": "()",
-    "description": "Asserts that the confidential asset_id at the specified output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_explicit_current_asset_id",
-    "section": "AssetId asserts",
-    "input_type": "u256",
-    "output_type": "()",
-    "description": "Asserts that the explicit input asset_id at the current_index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_confidential_current_asset_id",
-    "section": "AssetId asserts",
-    "input_type": "Confidential1",
-    "output_type": "()",
-    "description": "Asserts that the confidential input asset_id at the current_index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "get_explicit_amount",
-    "section": "Amount getters",
-    "input_type": "u32, bool",
-    "output_type": "u64",
-    "description": "Returns the explicit amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its amount is confidential."
-  },
-  {
-    "simplicityhl_name": "get_confidential_amount",
-    "section": "Amount getters",
-    "input_type": "u32, bool",
-    "output_type": "Confidential1",
-    "description": "Returns the confidential amount at the specified input or output index.\n\n## Panics\nPanics if the specified input or output does not exist or if its amount is explicit."
-  },
-  {
-    "simplicityhl_name": "get_explicit_input_amount",
-    "section": "Amount getters",
-    "input_type": "u32",
-    "output_type": "u64",
-    "description": "Returns the explicit amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its amount is confidential."
-  },
-  {
-    "simplicityhl_name": "get_confidential_input_amount",
-    "section": "Amount getters",
-    "input_type": "u32",
-    "output_type": "Confidential1",
-    "description": "Returns the confidential amount at the specified input index.\n\n## Panics\nPanics if the specified input does not exist or if its amount is explicit."
-  },
-  {
-    "simplicityhl_name": "get_explicit_output_amount",
-    "section": "Amount getters",
-    "input_type": "u32",
-    "output_type": "u64",
-    "description": "Returns the explicit amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its amount is confidential."
-  },
-  {
-    "simplicityhl_name": "get_confidential_output_amount",
-    "section": "Amount getters",
-    "input_type": "u32",
-    "output_type": "Confidential1",
-    "description": "Returns the confidential amount at the specified output index.\n\n## Panics\nPanics if the specified output does not exist or if its amount is explicit."
-  },
-  {
-    "simplicityhl_name": "get_explicit_current_amount",
-    "section": "Amount getters",
-    "input_type": "()",
-    "output_type": "u64",
-    "description": "Returns the explicit input amount at the current_index.\n\n## Panics\nPanics if amount is confidential."
-  },
-  {
-    "simplicityhl_name": "get_confidential_current_amount",
-    "section": "Amount getters",
-    "input_type": "()",
-    "output_type": "Confidential1",
-    "description": "Returns the confidential input amount at the current_index.\n\n## Panics\nPanics if amount is explicit."
   },
   {
     "simplicityhl_name": "get_explicit_asset_id_with_amount",
@@ -385,6 +329,62 @@
     "description": "Returns confidential input asset_id and amount at the current_index.\n\n## Panics\nPanics if asset_id or amount is explicit."
   },
   {
+    "simplicityhl_name": "assert_explicit_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, bool, u256",
+    "output_type": "()",
+    "description": "Asserts that the explicit asset_id at the specified input or output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, bool, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential asset_id at the specified input or output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_input_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, u256",
+    "output_type": "()",
+    "description": "Asserts that the explicit asset_id at the specified input index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_input_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential asset_id at the specified input index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_output_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, u256",
+    "output_type": "()",
+    "description": "Asserts that the explicit asset_id at the specified output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_output_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u32, Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential asset_id at the specified output index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_explicit_current_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "u256",
+    "output_type": "()",
+    "description": "Asserts that the explicit input asset_id at the current_index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_confidential_current_asset_id",
+    "section": "AssetId asserts",
+    "input_type": "Confidential1",
+    "output_type": "()",
+    "description": "Asserts that the confidential input asset_id at the current_index equals the expected `Confidential1` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
     "simplicityhl_name": "get_explicit_asset_id",
     "section": "AssetId getters",
     "input_type": "u32, bool",
@@ -439,48 +439,6 @@
     "input_type": "()",
     "output_type": "Confidential1",
     "description": "Returns the confidential input asset_id at the current_index.\n\n## Panics\nPanics if asset_id is explicit."
-  },
-  {
-    "simplicityhl_name": "assert_script_hash",
-    "section": "Script hash asserts",
-    "input_type": "u32, bool, u256",
-    "output_type": "()",
-    "description": "Asserts that the SHA256 hash of the scriptPubKey at the specified input or output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_input_script_hash",
-    "section": "Script hash asserts",
-    "input_type": "u32, u256",
-    "output_type": "()",
-    "description": "Asserts that the SHA256 hash of the scriptPubKey of the input at the given index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "assert_output_script_hash",
-    "section": "Script hash asserts",
-    "input_type": "u32, u256",
-    "output_type": "()",
-    "description": "Asserts that the SHA256 hash of the scriptPubKey of the output at the given index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
-  },
-  {
-    "simplicityhl_name": "get_script_hash",
-    "section": "Script hash getters",
-    "input_type": "u32, bool",
-    "output_type": "u256",
-    "description": "Returns the SHA256 hash of the scriptPubKey at the specified input or output.\n\n## Panics\nPanics if the specified input or output does not exist."
-  },
-  {
-    "simplicityhl_name": "get_input_script_hash",
-    "section": "Script hash getters",
-    "input_type": "u32",
-    "output_type": "u256",
-    "description": "Returns the SHA256 hash of the scriptPubKey of the input at the given index.\n\n## Panics\nPanics if the specified input does not exist."
-  },
-  {
-    "simplicityhl_name": "get_output_script_hash",
-    "section": "Script hash getters",
-    "input_type": "u32",
-    "output_type": "u256",
-    "description": "Returns the SHA256 hash of the scriptPubKey of the output at the given index.\n\n## Panics\nPanics if the specified output does not exist."
   },
   {
     "simplicityhl_name": "not",
@@ -593,6 +551,48 @@
     "input_type": "u32, u32",
     "output_type": "()",
     "description": "Assert that the given output is an OP_RETURN that has an entry at `entry_index`.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_script_hash",
+    "section": "Script hash asserts",
+    "input_type": "u32, bool, u256",
+    "output_type": "()",
+    "description": "Asserts that the SHA256 hash of the scriptPubKey at the specified input or output index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_input_script_hash",
+    "section": "Script hash asserts",
+    "input_type": "u32, u256",
+    "output_type": "()",
+    "description": "Asserts that the SHA256 hash of the scriptPubKey of the input at the given index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "assert_output_script_hash",
+    "section": "Script hash asserts",
+    "input_type": "u32, u256",
+    "output_type": "()",
+    "description": "Asserts that the SHA256 hash of the scriptPubKey of the output at the given index equals the expected `u256` value.\n\n## Panics\nThe assertion fails."
+  },
+  {
+    "simplicityhl_name": "get_script_hash",
+    "section": "Script hash getters",
+    "input_type": "u32, bool",
+    "output_type": "u256",
+    "description": "Returns the SHA256 hash of the scriptPubKey at the specified input or output.\n\n## Panics\nPanics if the specified input or output does not exist."
+  },
+  {
+    "simplicityhl_name": "get_input_script_hash",
+    "section": "Script hash getters",
+    "input_type": "u32",
+    "output_type": "u256",
+    "description": "Returns the SHA256 hash of the scriptPubKey of the input at the given index.\n\n## Panics\nPanics if the specified input does not exist."
+  },
+  {
+    "simplicityhl_name": "get_output_script_hash",
+    "section": "Script hash getters",
+    "input_type": "u32",
+    "output_type": "u256",
+    "description": "Returns the SHA256 hash of the scriptPubKey of the output at the given index.\n\n## Panics\nPanics if the specified output does not exist."
   },
   {
     "simplicityhl_name": "ge_to_point",
@@ -719,6 +719,20 @@
     "input_type": "Gej, Ge",
     "output_type": "()",
     "description": "Assert that a Jacobian point equals an affine point, without normalizing the Jacobian point first.\n\n## Panics\nThe assertion fails, including when either point is off-curve."
+  },
+  {
+    "simplicityhl_name": "enforce_relative_distance",
+    "section": "Timelocks",
+    "input_type": "Distance",
+    "output_type": "()",
+    "description": "Asserts that the current input has a relative timelock of at least `min_distance` blocks, so the transaction can't be included in a block until at least that many blocks after the block that contains the UTXO being spent. Use this instead of the deprecated `jet::check_lock_distance`, which doesn't enforce a timelock on the input being spent: it passes if any input in the transaction declares a long enough relative timelock.\n\n## Panics\nPanics if the transaction version is less than 2, if the input's sequence number doesn't declare a relative timelock in blocks, or if the declared distance is less than `min_distance`."
+  },
+  {
+    "simplicityhl_name": "enforce_relative_duration",
+    "section": "Timelocks",
+    "input_type": "Duration",
+    "output_type": "()",
+    "description": "Asserts that the current input has a relative timelock of at least `min_duration` units of 512 seconds, so the transaction can't be included in a block until at least that much time, measured by median time past, after the block that contains the UTXO being spent. Use this instead of the deprecated `jet::check_lock_duration`, which doesn't enforce a timelock on the input being spent: it passes if any input in the transaction declares a long enough relative timelock.\n\n## Panics\nPanics if the transaction version is less than 2, if the input's sequence number doesn't declare a relative timelock in units of 512 seconds, or if the declared duration is less than `min_duration`."
   },
   {
     "simplicityhl_name": "u1_to_u8",
@@ -2035,19 +2049,5 @@
     "input_type": "u256",
     "output_type": "u128",
     "description": "Narrow a `u256` value to `u128`.\n\n## Panics\nPanics if the value does not fit in `u128`."
-  },
-  {
-    "simplicityhl_name": "enforce_relative_distance",
-    "section": "Timelocks",
-    "input_type": "Distance",
-    "output_type": "()",
-    "description": "Asserts that the current input has a relative timelock of at least `min_distance` blocks, so the transaction can't be included in a block until at least that many blocks after the block that contains the UTXO being spent. Use this instead of the deprecated `jet::check_lock_distance`, which doesn't enforce a timelock on the input being spent: it passes if any input in the transaction declares a long enough relative timelock.\n\n## Panics\nPanics if the transaction version is less than 2, if the input's sequence number doesn't declare a relative timelock in blocks, or if the declared distance is less than `min_distance`."
-  },
-  {
-    "simplicityhl_name": "enforce_relative_duration",
-    "section": "Timelocks",
-    "input_type": "Duration",
-    "output_type": "()",
-    "description": "Asserts that the current input has a relative timelock of at least `min_duration` units of 512 seconds, so the transaction can't be included in a block until at least that much time, measured by median time past, after the block that contains the UTXO being spent. Use this instead of the deprecated `jet::check_lock_duration`, which doesn't enforce a timelock on the input being spent: it passes if any input in the transaction declares a long enough relative timelock.\n\n## Panics\nPanics if the transaction version is less than 2, if the input's sequence number doesn't declare a relative timelock in units of 512 seconds, or if the declared duration is less than `min_duration`."
   }
 ]
