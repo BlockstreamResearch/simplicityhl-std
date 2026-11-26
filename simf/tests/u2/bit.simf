@@ -1,0 +1,33 @@
+use crate::lib::u2::bit::{and_2, or_2, eq_2};
+
+use crate::tests::support::dispatch::is_selected;
+use crate::tests::support::expect::assert_bool;
+
+fn main() {
+    let fn_idx: u8 = witness::FUNCTION_INDEX;
+
+    let a: u2 = witness::FIRST_ARG;
+    let b: u2 = witness::SECOND_ARG;
+    let expected: Option<u2> = witness::EXPECTED;
+
+    let expected_bool: bool = witness::EXPECTED_BOOL;
+
+    match is_selected(0, fn_idx) {
+        true => {
+            assert!(eq_2(and_2(a, b), unwrap(expected)));
+        },
+        false => (),
+    };
+    match is_selected(1, fn_idx) {
+        true => {
+            assert!(eq_2(or_2(a, b), unwrap(expected)));
+        },
+        false => (),
+    };
+    match is_selected(2, fn_idx) {
+        true => {
+            assert_bool(eq_2(a, b), expected_bool);
+        },
+        false => (),
+    };
+}

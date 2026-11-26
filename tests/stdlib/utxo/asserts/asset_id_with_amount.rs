@@ -210,7 +210,7 @@ fn assert_false_explicit_asset_id_with_amount_for_input(
         .index(index)
         .index_type(IndexType::Input)
         .expect(
-            context.get_network().policy_asset().into_inner().0,
+            context.get_network().policy_asset().to_byte_array(),
             real_amount,
         )
         .expecting(&context, Expect::AssertFailed, txids)
@@ -281,7 +281,7 @@ fn assert_false_explicit_asset_id_with_amount_for_output(
         .index(index)
         .index_type(IndexType::Output)
         .expect(
-            context.get_network().policy_asset().into_inner().0,
+            context.get_network().policy_asset().to_byte_array(),
             real_amount,
         )
         .expecting(&context, Expect::AssertFailed, txids)
@@ -432,7 +432,7 @@ fn assert_false_explicit_input_asset_id_with_amount(
     case(ExplicitInput)
         .index(index)
         .expect(
-            context.get_network().policy_asset().into_inner().0,
+            context.get_network().policy_asset().to_byte_array(),
             real_amount,
         )
         .expecting(&context, Expect::AssertFailed, txids)
@@ -533,7 +533,7 @@ fn assert_false_explicit_output_asset_id_with_amount(
     case(ExplicitOutput)
         .index(index)
         .expect(
-            context.get_network().policy_asset().into_inner().0,
+            context.get_network().policy_asset().to_byte_array(),
             real_amount,
         )
         .expecting(&context, Expect::AssertFailed, txids)
@@ -631,7 +631,7 @@ fn assert_false_explicit_current_asset_id_with_amount(
     case(CurrentExplicit)
         .index(index)
         .expect(
-            context.get_network().policy_asset().into_inner().0,
+            context.get_network().policy_asset().to_byte_array(),
             real_amount,
         )
         .expecting(&context, Expect::AssertFailed, txids)

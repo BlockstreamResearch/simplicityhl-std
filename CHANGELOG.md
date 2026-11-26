@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Extended functions for retrieving information from `OP_RETURN`.
+- Conversion and bit functions for `u2` and `u4`.
+- Functions for asserting script hashes.
+- Fuzz tests for `secp256k1` operations.
+- `enforce_relative_distance` and `enforce_relative_duration`, replacements for the deprecated `jet::check_lock_distance` and `jet::check_lock_duration`.
+
+### Changed
+- Bumped Simplex to 0.2.0.
+- Aligned existing testing API with changes in Simplex.
+- `secp256k1` unit tests run without a node, on fixed values.
+
 ## [0.2.0]
 
 ### Breaking changes

@@ -1,0 +1,61 @@
+/// Widening uint conversions
+
+/// Converts u4 to u8
+pub fn u4_to_u8(a: u4) -> u8 {
+    <(u4, u4)>::into((0, a))
+}
+
+/// Converts u4 to u16
+pub fn u4_to_u16(a: u4) -> u16 {
+    let a_u8: u8 = u4_to_u8(a);
+
+    jet::left_pad_low_8_16(a_u8)
+}
+
+/// Converts u4 to u32
+pub fn u4_to_u32(a: u4) -> u32 {
+    let a_u8: u8 = u4_to_u8(a);
+
+    jet::left_pad_low_8_32(a_u8)
+}
+
+/// Converts u4 to u64
+pub fn u4_to_u64(a: u4) -> u64 {
+    let a_u8: u8 = u4_to_u8(a);
+
+    jet::left_pad_low_8_64(a_u8)
+}
+
+/// Converts u4 to u128
+pub fn u4_to_u128(a: u4) -> u128 {
+    let a_u64: u64 = u4_to_u64(a);
+
+    <(u64, u64)>::into((0, a_u64))
+}
+
+/// Converts u4 to u256
+pub fn u4_to_u256(a: u4) -> u256 {
+    let a_u128: u128 = u4_to_u128(a);
+
+    <(u128, u128)>::into((0, a_u128))
+}
+
+/// Splitting uint conversions
+
+/// Splits u4 into four u1
+pub fn split_u4_into_u1(a: u4) -> (u1, u1, u1, u1) {
+    <u4>::into(a)
+}
+
+/// Narrowing uint conversions
+
+/// Converts u4 into u1.
+/// Panics if the value does not fit in u1
+pub fn safe_u4_to_u1(a: u4) -> u1 {
+    let u1_max: u8 = jet::left_pad_low_1_8(jet::high_1());
+    let a_u8: u8 = u4_to_u8(a);
+
+    assert!(jet::le_8(a_u8, u1_max));
+
+    jet::rightmost_8_1(a_u8)
+}

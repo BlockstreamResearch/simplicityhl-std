@@ -17,7 +17,7 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: full
-  SIMPLEX_VERSION: 0.0.12
+  SIMPLEX_VERSION: 0.2.0
 
 jobs:
   simplex-tests:
@@ -47,9 +47,9 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install simplex-cli
-        uses: BlockstreamResearch/simplicityhl-toolchain@v0.0.2
+        uses: BlockstreamResearch/simplicityhl-toolchain@v0.0.3
         with:
-          components: simplex@${{ env.SIMPLEX_VERSION }}
+          simplex: ${{ env.SIMPLEX_VERSION }}
 
       - name: Generate contract artifacts
         shell: bash
@@ -60,8 +60,29 @@ jobs:
         run: |
           cargo build --workspace --all-features --verbose
 
+      - name: Unit
+        env:
+          SIMPLEX_TEST_VERBOSE: ${{ runner.debug == '1' && '-v' || '' }}
+        run: |
+          simplex test --no-simplex --test-threads 4 "${SIMPLEX_TEST_VERBOSE}" -- --release
+
+      - name: Fuzz
+        env:
+          SIMPLEX_TEST_VERBOSE: ${{ runner.debug == '1' && '-v' || '' }}
+        run: |
+          simplex test --fuzz --test-threads 4 "${SIMPLEX_TEST_VERBOSE}" -- --release
+
+      # Each run draws a new seed: keep the persisted failing cases to reproduce them locally.
+      - name: Upload fuzz failures
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-failures-${{ matrix.os }}
+          path: fuzz-failures/
+          if-no-files-found: ignore
+
       - name: Test
         env:
           SIMPLEX_TEST_VERBOSE: ${{ runner.debug == '1' && '-v' || '' }}
         run: |
-          simplex test --test-threads 4 "${SIMPLEX_TEST_VERBOSE}" -- --release
+          simplex test --test-threads 2 "${SIMPLEX_TEST_VERBOSE}" -- --release

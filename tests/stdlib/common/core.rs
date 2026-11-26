@@ -3,19 +3,24 @@
 #![allow(dead_code)]
 
 use secp256k1_zkp::Secp256k1;
-use simplex::program::{Program, WitnessTrait};
+
+use simplex::program::Program;
 use simplex::signer::Signer;
+use simplex::simplicityhl::WitnessValues;
 use simplex::simplicityhl::elements::bitcoin::PublicKey;
-use simplex::simplicityhl::elements::{AssetId, Script, Txid};
+use simplex::simplicityhl::elements::opcodes::{self, All};
+use simplex::simplicityhl::elements::script::Builder;
+use simplex::simplicityhl::elements::{AssetId, Script, Sequence, Txid};
 use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
-    FinalTransaction, PartialInput, PartialOutput, ProgramInput, RequiredSignature, UTXO,
+    FinalTransaction, NativeSignature, PartialInput, PartialOutput, ProgramInput, UTXO,
 };
+
 use simplicityhl_std::artifacts::tests::mock::derived_mock::MockWitness;
 
 use crate::common::utxo_helper::{DEFAULT_SEND_AMOUNT, search_utxo_by_txid};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Expect {
     /// The spend succeeds.
     Ok,
@@ -23,13 +28,17 @@ pub enum Expect {
     AssertFailed,
     /// Execution reached a pruned branch (e.g. `unwrap(None)`).
     PrunedBranch,
+    /// Local execution succeeds, but the node rejects the transaction because a BIP68
+    /// relative timelock declared in nSequence isn't yet satisfied on-chain.
+    BroadcastRejected,
 }
 
 impl Expect {
-    /// The exact broadcast error message for a failing expectation (`None` for `Ok`).
+    /// The exact broadcast error message for a local-execution failure
+    /// (`None` for `Ok` and `BroadcastRejected`).
     fn error_message(self) -> Option<&'static str> {
         match self {
-            Expect::Ok => None,
+            Expect::Ok | Expect::BroadcastRejected => None,
             Expect::AssertFailed => Some("Failed to prune program: Jet failed during execution"),
             Expect::PrunedBranch => {
                 Some("Failed to prune program: Execution reached a pruned branch")
@@ -91,14 +100,18 @@ pub fn send_issued(
     let funding = signer
         .get_utxos_asset(context.get_network().policy_asset())?
         .into_iter()
-        .max_by_key(UTXO::amount)
+        .map(|utxo| Ok((utxo.amount()?, utxo)))
+        .collect::<anyhow::Result<Vec<_>>>()?
+        .into_iter()
+        .max_by_key(|(amount, _)| *amount)
+        .map(|(_, utxo)| utxo)
         .ok_or_else(|| anyhow::anyhow!("no policy asset UTXO to attach the issuance to"))?;
 
     let mut ft = FinalTransaction::new();
     let issued = ft.add_issuance_input(
         PartialInput::new(funding),
         IssuanceInput::new_issuance(amount_to_send, 0, rand::random()),
-        RequiredSignature::NativeEcdsa,
+        Some(NativeSignature::Ecdsa),
     );
     ft.add_output(PartialOutput::new(
         to.clone(),
@@ -121,7 +134,7 @@ pub fn construct_final_tx<W>(
     program_for_test: Option<Program>,
 ) -> anyhow::Result<FinalTransaction>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let signer = context.get_default_signer();
     let network = context.get_network();
@@ -136,8 +149,8 @@ where
 
     ft.add_program_input(
         PartialInput::new(program_utxo.clone()),
-        ProgramInput::new(Box::new(program.as_ref().clone()), Box::new(witness)),
-        RequiredSignature::None,
+        ProgramInput::new(Box::new(program.as_ref().clone()), witness.into()),
+        None,
     );
 
     if data.unwrap_or_default().is_empty() {
@@ -146,7 +159,7 @@ where
             &program_utxo,
             signer.get_blinding_public_key(),
             policy_asset,
-        );
+        )?;
     }
 
     if txids.len() > 1 {
@@ -156,9 +169,12 @@ where
         for txid in &txids[1..last] {
             let utxo = search_utxo_by_txid(txid, &unblinded_utxos)?;
 
-            ft.add_input(PartialInput::new(utxo.clone()), RequiredSignature::None);
+            ft.add_input(
+                PartialInput::new(utxo.clone()),
+                Some(NativeSignature::Ecdsa),
+            );
 
-            (ft, _) = add_mirror_output(ft, &utxo, signer.get_blinding_public_key(), policy_asset);
+            (ft, _) = add_mirror_output(ft, &utxo, signer.get_blinding_public_key(), policy_asset)?;
         }
 
         let last_utxo = match program_for_test {
@@ -168,8 +184,8 @@ where
 
                 ft.add_program_input(
                     PartialInput::new(last_utxo.clone()),
-                    ProgramInput::new(Box::new(program_for_test.clone()), Box::new(MockWitness {})),
-                    RequiredSignature::None,
+                    ProgramInput::new(Box::new(program_for_test.clone()), MockWitness {}),
+                    None,
                 );
 
                 last_utxo
@@ -179,7 +195,7 @@ where
 
                 ft.add_input(
                     PartialInput::new(last_utxo.clone()),
-                    RequiredSignature::None,
+                    Some(NativeSignature::Ecdsa),
                 );
 
                 last_utxo
@@ -191,7 +207,7 @@ where
             &last_utxo,
             signer.get_blinding_public_key(),
             policy_asset,
-        );
+        )?;
     }
 
     if let Some(leftover_asset) = leftover_asset {
@@ -199,10 +215,30 @@ where
     }
 
     if let Some(data) = data {
-        ft.add_output(PartialOutput::new_metadata(data))
+        ft.add_output(PartialOutput::new(
+            create_op_return_script(data),
+            0,
+            AssetId::default(),
+        ));
     };
 
     Ok(ft)
+}
+
+/// Create an op return script from bytes, where the first byte indicates whether
+/// the bytes are an immediate push or raw opcodes
+fn create_op_return_script(data: &[u8]) -> Script {
+    let mut builder = Builder::new().push_opcode(opcodes::all::OP_RETURN);
+
+    if data[0] == 0x00 {
+        builder = builder.push_slice(&data[1..]);
+    } else {
+        for i in &data[1..] {
+            builder = builder.push_opcode(All::from(*i));
+        }
+    }
+
+    builder.into_script()
 }
 
 /// Fetch the UTXO for script, unblind if confidential.
@@ -239,33 +275,33 @@ fn unblind(signer: &Signer, mut utxo: UTXO) -> anyhow::Result<UTXO> {
     Ok(utxo)
 }
 
-// Add an output mirroring utxo's asset with amount - 1 and the tweaked script.
+/// Add an output mirroring utxo's asset with amount - 1 and the tweaked script.
 fn add_mirror_output(
     mut ft: FinalTransaction,
     utxo: &UTXO,
-    binding_key: PublicKey,
+    blinding_key: PublicKey,
     policy_asset: AssetId,
-) -> (FinalTransaction, Option<AssetId>) {
+) -> anyhow::Result<(FinalTransaction, Option<AssetId>)> {
     let mut output = PartialOutput::new(
         // scripts in input and output on the same index should be different for the test
         tweak_script(&utxo.txout.script_pubkey),
         // amounts in input and output on the same index should be different for the test
-        utxo.amount() - 1,
-        utxo.asset(),
+        utxo.amount()? - 1,
+        utxo.asset()?,
     );
 
     if utxo.txout.value.is_confidential() {
-        output = output.with_blinding_key(binding_key)
+        output = output.with_blinding_key(blinding_key)
     }
 
     ft.add_output(output);
 
-    let leftover_asset = match utxo.asset() == policy_asset {
+    let leftover_asset = match utxo.asset()? == policy_asset {
         true => None,
-        false => Some(utxo.asset()),
+        false => Some(utxo.asset()?),
     };
 
-    (ft, leftover_asset)
+    Ok((ft, leftover_asset))
 }
 
 /// Change the lowest bit of the last byte (used for test purposes).
@@ -288,7 +324,7 @@ pub fn spend<W>(
     program_for_test: Option<Program>,
 ) -> anyhow::Result<String>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let ft = construct_final_tx(context, program, witness, data, txids, program_for_test)?;
 
@@ -300,15 +336,24 @@ pub fn assert_error_msg(
     result: Result<String, anyhow::Error>,
     expect: Expect,
 ) -> anyhow::Result<()> {
-    match expect.error_message() {
-        None => {
+    match (expect, expect.error_message()) {
+        (Expect::BroadcastRejected, _) => {
+            let err = result
+                .expect_err("expected the node to reject the broadcast, but it succeeded")
+                .to_string();
+            assert!(
+                err.contains("non-BIP68-final"),
+                "expected a `non-BIP68-final` rejection, got: {err}"
+            );
+        }
+        (_, None) => {
             result?;
         }
-        Some(expected) => {
+        (_, Some(expected)) => {
             let err = result
                 .expect_err("expected the spend to fail, but it succeeded")
                 .to_string();
-            assert!(err.contains(expected));
+            assert!(err.contains(expected), "expected `{expected}`, got: {err}");
         }
     };
 
@@ -323,7 +368,7 @@ pub fn run<W>(
     expect: Expect,
 ) -> anyhow::Result<()>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     fund(context, &program, DEFAULT_SEND_AMOUNT)?;
     let result = spend(context, &program, witness, None, Vec::new(), None);
@@ -341,7 +386,7 @@ pub fn run_with_op_return<W>(
     data: &[u8],
 ) -> anyhow::Result<()>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     fund(context, &program, DEFAULT_SEND_AMOUNT)?;
     let result = spend(context, &program, witness, Some(data), Vec::new(), None);
@@ -359,9 +404,88 @@ pub fn run_with_inputs_outputs<W>(
     program_for_test: Option<Program>,
 ) -> anyhow::Result<()>
 where
-    W: WitnessTrait + 'static,
+    W: Into<WitnessValues> + 'static,
 {
     let result = spend(context, &program, witness, None, txids, program_for_test);
+
+    assert_error_msg(result, expect)
+}
+
+/// Construct a spend of the funded program UTXO whose input carries `sequence`.
+///
+/// The sequence is set on the program input only. `FinalTransaction::set_sequence` would
+/// also apply it to the fee inputs the signer adds, which would then be timelocked too.
+pub fn construct_final_tx_with_sequence<W>(
+    context: &simplex::TestContext,
+    program: &impl AsRef<Program>,
+    witness: W,
+    sequence: Sequence,
+) -> anyhow::Result<FinalTransaction>
+where
+    W: Into<WitnessValues> + 'static,
+{
+    let signer = context.get_default_signer();
+    let network = context.get_network();
+    let program_script = &program.as_ref().get_script_pubkey(network);
+    let program_utxo = prepare_utxo(context, program_script, None)?;
+
+    let mut ft = FinalTransaction::new();
+    ft.add_program_input(
+        PartialInput::new(program_utxo.clone()).with_sequence(sequence),
+        ProgramInput::new(Box::new(program.as_ref().clone()), witness.into()),
+        None,
+    );
+
+    (ft, _) = add_mirror_output(
+        ft,
+        &program_utxo,
+        signer.get_blinding_public_key(),
+        network.policy_asset(),
+    )?;
+
+    Ok(ft)
+}
+
+/// Spend the funded program UTXO with `witness` and `sequence`. Return the broadcast result.
+pub fn spend_with_sequence<W>(
+    context: &simplex::TestContext,
+    program: &impl AsRef<Program>,
+    witness: W,
+    sequence: Sequence,
+) -> anyhow::Result<String>
+where
+    W: Into<WitnessValues> + 'static,
+{
+    let ft = construct_final_tx_with_sequence(context, program, witness, sequence)?;
+
+    Ok(context.get_default_signer().broadcast(&ft)?.to_string())
+}
+
+/// Fund + spend with the program input's nSequence set to `sequence` + assert the outcome.
+///
+/// `blocks_to_mine` blocks are mined after the funding transaction confirms and before
+/// the spend, so that a relative timelock in `sequence` can be satisfied on-chain.
+pub fn run_with_sequence<W>(
+    context: &simplex::TestContext,
+    program: impl AsRef<Program>,
+    witness: W,
+    sequence: Sequence,
+    blocks_to_mine: u64,
+    expect: Expect,
+) -> anyhow::Result<()>
+where
+    W: Into<WitnessValues> + 'static,
+{
+    fund(context, &program, DEFAULT_SEND_AMOUNT)?;
+
+    if blocks_to_mine > 0 {
+        let tip = u64::from(context.get_default_provider().fetch_tip_height()?);
+        context
+            .get_network_utils()
+            .mine_until_height(tip + blocks_to_mine)?;
+    }
+
+    let result = spend_with_sequence(context, &program, witness, sequence);
 
     assert_error_msg(result, expect)
 }
