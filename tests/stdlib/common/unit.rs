@@ -10,10 +10,7 @@ use crate::common::core::Expect;
 const AMOUNT: u64 = 1_000;
 const OP_PUSHNUM_1: elements::opcodes::All = elements::opcodes::all::OP_PUSHNUM_1;
 
-#[derive(Clone, Debug, Default)]
-pub struct UnitTx {
-    pub leading_outputs: Vec<PartialOutput>,
-}
+pub type UnitTx = Option<FinalTransaction>;
 
 pub fn run(
     program: &Program,
@@ -34,11 +31,11 @@ pub fn run(
 /// matching `expect`.
 #[track_caller]
 pub fn check(program: &Program, witness: impl Into<WitnessValues>, expect: Expect) {
-    check_in(program, witness, UnitTx::default(), expect);
+    check_in(program, witness, None, expect);
 }
 
 /// A case that fails before the program runs (e.g. a malformed witness) panics instead of
-/// matching `expect`. Uses custom `UnitTx` for pattern matching.
+/// matching `expect`.
 #[track_caller]
 pub fn check_in(program: &Program, witness: impl Into<WitnessValues>, tx: UnitTx, expect: Expect) {
     match outcome(run(program, witness, tx)) {
@@ -75,22 +72,29 @@ fn unit_transaction(
         asset,
     );
 
-    let mut ft = FinalTransaction::new();
-    ft.add_program_input(
-        PartialInput::new(utxo),
-        ProgramInput::new(Box::new(program.clone()), witness),
-        None,
-    );
+    let input = PartialInput::new(utxo);
+    let program_input = ProgramInput::new(Box::new(program.clone()), witness);
 
-    for output in tx.leading_outputs {
-        ft.add_output(output);
+    let Some(mut ft) = tx else {
+        let mut ft = FinalTransaction::new();
+
+        ft.add_program_input(input, program_input, None);
+        ft.add_output(PartialOutput::new(
+            Script::from(vec![OP_PUSHNUM_1.into_u8()]),
+            AMOUNT,
+            asset,
+        ));
+
+        return ft;
+    };
+
+    match ft.inputs_mut().first_mut() {
+        Some(first) => {
+            first.partial_input = input;
+            first.program_input = Some(program_input);
+        }
+        None => ft.add_program_input(input, program_input, None),
     }
-
-    ft.add_output(PartialOutput::new(
-        Script::from(vec![OP_PUSHNUM_1.into_u8()]),
-        AMOUNT,
-        asset,
-    ));
 
     ft
 }

@@ -1,7 +1,7 @@
 use simplex::fuzz::FuzzProgramTrait;
 use simplex::program::{Program, ProgramSchema};
 use simplex::simplicityhl::Arguments;
-use simplex::transaction::PartialOutput;
+use simplex::transaction::FinalTransaction;
 
 use crate::common::core::Expect;
 use crate::common::unit::{self, UnitTx};
@@ -15,8 +15,8 @@ pub trait DispatchCase: Sized + 'static {
 
     fn into_witness(self) -> <Self::Program as ProgramSchema>::Witness;
 
-    fn leading_outputs(&self) -> Vec<PartialOutput> {
-        Vec::new()
+    fn transaction(&self) -> Option<FinalTransaction> {
+        None
     }
 
     fn program() -> Program {
@@ -44,9 +44,7 @@ pub trait DispatchCase: Sized + 'static {
 
     #[track_caller]
     fn check(self, expect: Expect) {
-        let tx = UnitTx {
-            leading_outputs: self.leading_outputs(),
-        };
+        let tx: UnitTx = self.transaction();
 
         unit::check_in(&Self::program(), self.into_witness(), tx, expect);
     }

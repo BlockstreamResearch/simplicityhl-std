@@ -2,7 +2,8 @@ use crate::common::case::DispatchCase;
 use crate::common::core::Expect::AssertFailed;
 use crate::utxo::op_return::case;
 use crate::utxo::op_return::case::{
-    hash_of_pushed_data, negate_or_reserved, op_x_minus_1, pushed_data,
+    empty_op_return_output, hash_of_pushed_data, negate_or_reserved, null_data_entries,
+    op_x_minus_1, output_null_datum, pushed_data, reference, reference_tx,
 };
 
 const DEFAULT_DATA: &[u8] = &[0, 1];
@@ -427,5 +428,104 @@ fn assert_has_entry_output_not_op_return_fails() {
 fn assert_has_entry_out_of_range_entry_fails() {
     case::assert_has_entry(0, OUT_OF_RANGE_ENTRY)
         .op_return(DEFAULT_DATA)
+        .rejects(AssertFailed);
+}
+
+// Empty OP_RETURN
+#[test]
+fn empty_op_return_is_op_return() {
+    case::is_output_op_return(0, true)
+        .outputs([empty_op_return_output()])
+        .accepts();
+    case::assert_output_is_op_return(0)
+        .outputs([empty_op_return_output()])
+        .accepts();
+}
+
+#[test]
+fn empty_op_return_has_no_entries() {
+    let empty = || [empty_op_return_output()];
+
+    case::has_entry(0, 0, false).outputs(empty()).accepts();
+    case::get_entry_option(0, 0, None)
+        .outputs(empty())
+        .accepts();
+    case::get_pushed_data(0, 0, None).outputs(empty()).accepts();
+    case::get_op_x_minus_1(0, 0, None)
+        .outputs(empty())
+        .accepts();
+    case::get_negate_or_reserved(0, 0, None)
+        .outputs(empty())
+        .accepts();
+}
+
+#[test]
+fn assert_has_entry_empty_op_return_fails() {
+    case::assert_has_entry(0, 0)
+        .outputs([empty_op_return_output()])
+        .rejects(AssertFailed);
+}
+
+// Reference transaction
+#[test]
+fn reference_tx_null_data_model() {
+    let tx = reference_tx();
+    let entries = |output| {
+        output_null_datum(&tx, output, 0).map(|_| {
+            let script = &tx.outputs()[output as usize].script_pubkey;
+
+            null_data_entries(script.as_bytes())
+                .expect("null data")
+                .len()
+        })
+    };
+
+    assert_eq!(entries(reference::PUSHDATA0), Some(1));
+    assert_eq!(entries(reference::NOT_OP_RETURN), None);
+    assert_eq!(entries(reference::MIXED), Some(4));
+    assert_eq!(entries(reference::EMPTY), Some(0));
+    assert_eq!(entries(reference::PUSHDATA1), Some(1));
+    assert_eq!(entries(reference::OP_1_TO_16), Some(16));
+    assert_eq!(entries(reference::MALFORMED), None);
+    assert_eq!(entries(reference::FEE), None);
+    assert_eq!(entries(reference::OUTPUTS), None);
+}
+
+/// The contract agrees with [`output_null_datum`] on every output and entry of the reference
+/// transaction, so fuzz cases can rely on the model.
+#[test]
+fn reference_tx_matches_model() {
+    let tx = reference_tx();
+
+    for output_index in 0..=reference::OUTPUTS {
+        let datum = output_null_datum(&tx, output_index, 0);
+
+        case::is_output_op_return(output_index, datum.is_some())
+            .in_reference_tx()
+            .accepts();
+
+        let entries = tx
+            .outputs()
+            .get(output_index as usize)
+            .and_then(|output| null_data_entries(output.script_pubkey.as_bytes()))
+            .map_or(0, |entries| entries.len() as u32);
+
+        for entry_index in 0..=entries {
+            let expected = output_null_datum(&tx, output_index, entry_index).flatten();
+
+            case::get_entry_option(output_index, entry_index, expected)
+                .in_reference_tx()
+                .accepts();
+        }
+    }
+}
+
+#[test]
+fn is_output_op_return_malformed_false() {
+    case::is_output_op_return(reference::MALFORMED, false)
+        .in_reference_tx()
+        .accepts();
+    case::assert_output_is_op_return(reference::MALFORMED)
+        .in_reference_tx()
         .rejects(AssertFailed);
 }
