@@ -15,6 +15,7 @@ impl TestUint for u128 {
     const MAX: u128 = u128::MAX;
     const HALF_MAX: u128 = u128::MAX / 2;
     const MUL_BOUND: u128 = 1 << 64; // 2^(128/2)
+    const BITS: u32 = u128::BITS;
 
     fn program() -> U128MathTestProgram {
         U128MathTestProgram::new(&U128MathTestArguments {})

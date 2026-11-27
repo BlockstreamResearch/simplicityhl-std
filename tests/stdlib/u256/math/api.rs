@@ -18,6 +18,7 @@ impl TestUint for U256Wrapper {
     const MAX: U256Wrapper = U256Wrapper(U256::MAX);
     const HALF_MAX: U256Wrapper = U256Wrapper(U256([u64::MAX, u64::MAX, u64::MAX, u64::MAX >> 1]));
     const MUL_BOUND: U256Wrapper = U256Wrapper(U256([0, 0, 1, 0])); // 2^(256/2)
+    const BITS: u32 = 256;
 
     fn program() -> U256MathTestProgram {
         U256MathTestProgram::new(&U256MathTestArguments {})

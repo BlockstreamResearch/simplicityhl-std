@@ -15,6 +15,7 @@ impl TestUint for u32 {
     const MAX: u32 = u32::MAX;
     const HALF_MAX: u32 = u32::MAX / 2;
     const MUL_BOUND: u32 = 1 << 16; // 2^(32/2)
+    const BITS: u32 = u32::BITS;
 
     fn program() -> U32MathTestProgram {
         U32MathTestProgram::new(&U32MathTestArguments {})

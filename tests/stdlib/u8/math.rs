@@ -15,6 +15,7 @@ impl TestUint for u8 {
     const MAX: u8 = u8::MAX;
     const HALF_MAX: u8 = u8::MAX / 2;
     const MUL_BOUND: u8 = 1 << 4; // 2^(8/2)
+    const BITS: u32 = u8::BITS;
 
     fn program() -> U8MathTestProgram {
         U8MathTestProgram::new(&U8MathTestArguments {})

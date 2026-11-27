@@ -57,6 +57,7 @@ pub trait TestUint:
     const HALF_MAX: Self;
     /// `2^(bits/2)`; two values below this can be multiplied without overflowing.
     const MUL_BOUND: Self;
+    const BITS: u32;
 
     fn program() -> Self::Program;
     fn witness(op: u8, a: Self, b: Self, expected: Option<Self>) -> Self::Witness;

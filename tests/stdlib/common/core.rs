@@ -8,8 +8,6 @@ use simplex::program::Program;
 use simplex::signer::Signer;
 use simplex::simplicityhl::WitnessValues;
 use simplex::simplicityhl::elements::bitcoin::PublicKey;
-use simplex::simplicityhl::elements::opcodes::{self, All};
-use simplex::simplicityhl::elements::script::Builder;
 use simplex::simplicityhl::elements::{AssetId, Script, Sequence, Txid};
 use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
@@ -129,7 +127,6 @@ pub fn construct_final_tx<W>(
     context: &simplex::TestContext,
     program: &impl AsRef<Program>,
     witness: W,
-    data: Option<&[u8]>,
     txids: Vec<Txid>,
     program_for_test: Option<Program>,
 ) -> anyhow::Result<FinalTransaction>
@@ -142,7 +139,6 @@ where
 
     let default_script = signer.get_address().script_pubkey();
     let program_script = &program.as_ref().get_script_pubkey(network);
-    let mut leftover_asset: Option<AssetId> = None;
 
     let mut ft = FinalTransaction::new();
     let program_utxo = prepare_utxo(context, program_script, txids.first())?;
@@ -153,14 +149,12 @@ where
         None,
     );
 
-    if data.unwrap_or_default().is_empty() {
-        (ft, leftover_asset) = add_mirror_output(
-            ft,
-            &program_utxo,
-            signer.get_blinding_public_key(),
-            policy_asset,
-        )?;
-    }
+    let (mut ft, mut leftover_asset) = add_mirror_output(
+        ft,
+        &program_utxo,
+        signer.get_blinding_public_key(),
+        policy_asset,
+    )?;
 
     if txids.len() > 1 {
         let unblinded_utxos = signer.get_utxos()?;
@@ -214,31 +208,7 @@ where
         ft.add_output(PartialOutput::new(default_script, 1, leftover_asset));
     }
 
-    if let Some(data) = data {
-        ft.add_output(PartialOutput::new(
-            create_op_return_script(data),
-            0,
-            AssetId::default(),
-        ));
-    };
-
     Ok(ft)
-}
-
-/// Create an op return script from bytes, where the first byte indicates whether
-/// the bytes are an immediate push or raw opcodes
-fn create_op_return_script(data: &[u8]) -> Script {
-    let mut builder = Builder::new().push_opcode(opcodes::all::OP_RETURN);
-
-    if data[0] == 0x00 {
-        builder = builder.push_slice(&data[1..]);
-    } else {
-        for i in &data[1..] {
-            builder = builder.push_opcode(All::from(*i));
-        }
-    }
-
-    builder.into_script()
 }
 
 /// Fetch the UTXO for script, unblind if confidential.
@@ -319,14 +289,13 @@ pub fn spend<W>(
     context: &simplex::TestContext,
     program: &impl AsRef<Program>,
     witness: W,
-    data: Option<&[u8]>,
     txids: Vec<Txid>,
     program_for_test: Option<Program>,
 ) -> anyhow::Result<String>
 where
     W: Into<WitnessValues> + 'static,
 {
-    let ft = construct_final_tx(context, program, witness, data, txids, program_for_test)?;
+    let ft = construct_final_tx(context, program, witness, txids, program_for_test)?;
 
     Ok(context.get_default_signer().broadcast(&ft)?.to_string())
 }
@@ -371,25 +340,7 @@ where
     W: Into<WitnessValues> + 'static,
 {
     fund(context, &program, DEFAULT_SEND_AMOUNT)?;
-    let result = spend(context, &program, witness, None, Vec::new(), None);
-
-    assert_error_msg(result, expect)
-}
-
-/// Fund + spend + assert the outcome.
-/// Tx has OP_RETURN data metadata output
-pub fn run_with_op_return<W>(
-    context: &simplex::TestContext,
-    program: impl AsRef<Program>,
-    witness: W,
-    expect: Expect,
-    data: &[u8],
-) -> anyhow::Result<()>
-where
-    W: Into<WitnessValues> + 'static,
-{
-    fund(context, &program, DEFAULT_SEND_AMOUNT)?;
-    let result = spend(context, &program, witness, Some(data), Vec::new(), None);
+    let result = spend(context, &program, witness, Vec::new(), None);
 
     assert_error_msg(result, expect)
 }
@@ -406,7 +357,7 @@ pub fn run_with_inputs_outputs<W>(
 where
     W: Into<WitnessValues> + 'static,
 {
-    let result = spend(context, &program, witness, None, txids, program_for_test);
+    let result = spend(context, &program, witness, txids, program_for_test);
 
     assert_error_msg(result, expect)
 }
