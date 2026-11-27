@@ -2,6 +2,9 @@ use simplex::simplicityhl::elements::AssetEntropy;
 use simplex::simplicityhl::elements::Txid;
 
 use crate::common::core::Expect;
+use crate::common::core::IssuanceParams;
+use crate::common::core::IssuanceSetup;
+use crate::common::core::ReissuanceParams;
 use crate::common::core::run_with_issuance;
 use crate::common::utxo_helper::create_funding_utxo_for_issue;
 use crate::common::utxo_helper::get_asset_id;
@@ -33,9 +36,10 @@ fn program() -> TestIssuanceProgram {
 /// One dispatch arm of the contract, plus the witness it reads.
 struct Case {
     witness: TestIssuanceWitness,
-    funding_txid_for_issue: Option<Txid>,
+    funding_txid: Option<Txid>,
     issuance_amount: u64,
-    reissuance_amount: u64,
+    token_amount: u64,
+    amount_to_reissue: u64,
 }
 
 fn case(function: FunctionToTest) -> Case {
@@ -46,9 +50,10 @@ fn case(function: FunctionToTest) -> Case {
             expected_bool: false,
             expected_u256: None,
         },
-        funding_txid_for_issue: None,
+        funding_txid: None,
         issuance_amount: 0,
-        reissuance_amount: 0,
+        token_amount: 0,
+        amount_to_reissue: 0,
     }
 }
 
@@ -59,9 +64,9 @@ impl Case {
         self
     }
 
-    /// `funding_txid_for_issue`: the txid of utxo to issue from.
-    fn funding_txid_for_issue(mut self, funding_txid_for_issue: Txid) -> Self {
-        self.funding_txid_for_issue = Some(funding_txid_for_issue);
+    /// `funding_txid`: the txid of utxo to issue from.
+    fn funding_txid(mut self, funding_txid: Txid) -> Self {
+        self.funding_txid = Some(funding_txid);
         self
     }
 
@@ -71,9 +76,15 @@ impl Case {
         self
     }
 
-    /// `reissuance_amount`: the reissuance amount to build the transaction.
-    fn reissuance_amount(mut self, reissuance_amount: u64) -> Self {
-        self.reissuance_amount = reissuance_amount;
+    /// `token_amount`: amount of reissuance tokens minted by the initial issuance.
+    fn token_amount(mut self, token_amount: u64) -> Self {
+        self.token_amount = token_amount;
+        self
+    }
+
+    /// `amount_to_reissue`: reissued by spending the reissuance token.
+    fn amount_to_reissue(mut self, amount_to_reissue: u64) -> Self {
+        self.amount_to_reissue = amount_to_reissue;
         self
     }
 
@@ -101,22 +112,34 @@ impl Case {
         expect: Expect,
         contract_hash: [u8; 32],
     ) -> anyhow::Result<()> {
-        let funding_txid_for_issue = self.funding_txid_for_issue;
         let issuance_amount = self.issuance_amount;
-        let reissuance_amount = self.reissuance_amount;
+        let token_amount = self.token_amount;
+        let amount_to_reissue = self.amount_to_reissue;
 
-        run_with_issuance(
-            context,
-            program(),
-            self.witness,
-            expect,
-            Some((
-                funding_txid_for_issue,
-                issuance_amount,
-                reissuance_amount,
-                contract_hash,
-            )),
-        )
+        anyhow::ensure!(
+            amount_to_reissue == 0 || token_amount > 0,
+            "Reissuance needs a token to issue from"
+        );
+
+        let issuance_params = IssuanceParams {
+            funding_txid: self.funding_txid,
+            issuance_amount,
+            token_amount,
+            contract_hash,
+        };
+
+        let setup_param = if amount_to_reissue > 0 {
+            IssuanceSetup::Reissue(ReissuanceParams {
+                reissue_amount: amount_to_reissue,
+                initial_issuance: issuance_params,
+            })
+        } else if issuance_amount > 0 || token_amount > 0 {
+            IssuanceSetup::New(issuance_params)
+        } else {
+            IssuanceSetup::None
+        };
+
+        run_with_issuance(context, program(), self.witness, expect, setup_param)
     }
 }
 
@@ -124,16 +147,14 @@ fn calculate_entropy(
     context: &simplex::TestContext,
     contract_hash: [u8; 32],
 ) -> anyhow::Result<(AssetEntropy, Txid)> {
-    let funding_txid_for_issue = create_funding_utxo_for_issue(context)?;
+    let funding_txid = create_funding_utxo_for_issue(context)?;
 
-    let utxos = context
-        .get_default_signer()
-        .get_utxos_txid(funding_txid_for_issue)?;
-    let funding_utxo = search_utxo_by_txid(&funding_txid_for_issue, &utxos)?;
+    let utxos = context.get_default_signer().get_utxos_txid(funding_txid)?;
+    let funding_utxo = search_utxo_by_txid(&funding_txid, &utxos)?;
 
     let entropy = get_entropy(funding_utxo.outpoint, contract_hash);
 
-    Ok((entropy, funding_txid_for_issue))
+    Ok((entropy, funding_txid))
 }
 
 #[simplex::test]
@@ -148,13 +169,26 @@ fn is_issuance(context: simplex::TestContext) -> anyhow::Result<()> {
 }
 
 #[simplex::test]
+fn is_issuance_with_minting_token(context: simplex::TestContext) -> anyhow::Result<()> {
+    let contract_hash: [u8; 32] = rand::random();
+
+    case(IsIssuance)
+        .index(DEFAULT_ISSUANCE_INDEX)
+        .issuance_amount(10)
+        .token_amount(100)
+        .amount_to_reissue(0)
+        .expected_bool(true)
+        .run(&context, contract_hash)
+}
+
+#[simplex::test]
 fn is_issuance_no_issuance_false(context: simplex::TestContext) -> anyhow::Result<()> {
     let contract_hash: [u8; 32] = rand::random();
 
     case(IsIssuance)
         .index(DEFAULT_ISSUANCE_INDEX)
         .issuance_amount(0)
-        .reissuance_amount(0)
+        .token_amount(0)
         .expected_bool(false)
         .run(&context, contract_hash)
 }
@@ -166,20 +200,21 @@ fn is_issuance_only_reissuance_false(context: simplex::TestContext) -> anyhow::R
     case(IsIssuance)
         .index(DEFAULT_ISSUANCE_INDEX)
         .issuance_amount(0)
-        .reissuance_amount(10)
+        .token_amount(10)
+        .amount_to_reissue(100)
         .expected_bool(false)
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn is_issuance_nonexistent_input_false(context: simplex::TestContext) -> anyhow::Result<()> {
-    let input_index = 2;
+    let input_index = u32::MAX;
     let contract_hash: [u8; 32] = rand::random();
 
     case(IsIssuance)
         .index(input_index)
         .issuance_amount(100)
-        .reissuance_amount(0)
+        .token_amount(0)
         .expected_bool(false)
         .run(&context, contract_hash)
 }
@@ -202,19 +237,36 @@ fn is_reissuance(context: simplex::TestContext) -> anyhow::Result<()> {
     case(IsReissuance)
         .index(DEFAULT_ISSUANCE_INDEX)
         .issuance_amount(0)
-        .reissuance_amount(10)
+        .token_amount(10)
+        .amount_to_reissue(100)
         .expected_bool(true)
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
-fn is_reissuance_false_for_issuance(context: simplex::TestContext) -> anyhow::Result<()> {
+fn is_reissuance_new_issuance_false(context: simplex::TestContext) -> anyhow::Result<()> {
     let contract_hash: [u8; 32] = rand::random();
 
     case(IsReissuance)
         .index(DEFAULT_ISSUANCE_INDEX)
         .issuance_amount(10)
-        .reissuance_amount(0)
+        .token_amount(0)
+        .amount_to_reissue(0)
+        .expected_bool(false)
+        .run(&context, contract_hash)
+}
+
+#[simplex::test]
+fn is_reissuance_new_issuance_with_tokens_false(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let contract_hash: [u8; 32] = rand::random();
+
+    case(IsReissuance)
+        .index(DEFAULT_ISSUANCE_INDEX)
+        .issuance_amount(10)
+        .token_amount(1)
+        .amount_to_reissue(0)
         .expected_bool(false)
         .run(&context, contract_hash)
 }
@@ -226,28 +278,27 @@ fn is_reissuance_no_issuance_false(context: simplex::TestContext) -> anyhow::Res
     case(IsReissuance)
         .index(DEFAULT_ISSUANCE_INDEX)
         .issuance_amount(0)
-        .reissuance_amount(0)
+        .token_amount(0)
         .expected_bool(false)
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn is_reissuance_nonexistent_input_false(context: simplex::TestContext) -> anyhow::Result<()> {
-    let input_index = 2;
+    let input_index = u32::MAX;
     let contract_hash: [u8; 32] = rand::random();
 
     case(IsReissuance)
         .index(input_index)
-        .issuance_amount(0)
-        .reissuance_amount(100)
+        .issuance_amount(10)
+        .token_amount(1)
+        .amount_to_reissue(100)
         .expected_bool(false)
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn get_issuance_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
-    let issue_amount = 100;
-    let reissue_amount = 0;
     let contract_hash: [u8; 32] = rand::random();
 
     let (entropy, txid) = calculate_entropy(&context, contract_hash)?;
@@ -255,17 +306,30 @@ fn get_issuance_asset_id(context: simplex::TestContext) -> anyhow::Result<()> {
 
     case(GetIssuanceAssetId)
         .index(DEFAULT_ISSUANCE_INDEX)
-        .funding_txid_for_issue(txid)
-        .issuance_amount(issue_amount)
-        .reissuance_amount(reissue_amount)
+        .funding_txid(txid)
+        .issuance_amount(100)
+        .token_amount(0)
+        .expect(Some(asset_id))
+        .run(&context, contract_hash)
+}
+
+#[simplex::test]
+fn get_issuance_asset_id_with_token(context: simplex::TestContext) -> anyhow::Result<()> {
+    let contract_hash: [u8; 32] = rand::random();
+
+    let (entropy, txid) = calculate_entropy(&context, contract_hash)?;
+    let asset_id = get_asset_id(entropy).to_byte_array();
+
+    case(GetIssuanceAssetId)
+        .index(DEFAULT_ISSUANCE_INDEX)
+        .funding_txid(txid)
+        .token_amount(10)
         .expect(Some(asset_id))
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn get_issuance_asset_id_from_reissuance(context: simplex::TestContext) -> anyhow::Result<()> {
-    let issue_amount = 0;
-    let reissue_amount = 100;
     let contract_hash: [u8; 32] = rand::random();
 
     let (entropy, txid) = calculate_entropy(&context, contract_hash)?;
@@ -273,44 +337,39 @@ fn get_issuance_asset_id_from_reissuance(context: simplex::TestContext) -> anyho
 
     case(GetIssuanceAssetId)
         .index(DEFAULT_ISSUANCE_INDEX)
-        .funding_txid_for_issue(txid)
-        .issuance_amount(issue_amount)
-        .reissuance_amount(reissue_amount)
+        .funding_txid(txid)
+        .token_amount(10)
+        .amount_to_reissue(100)
         .expect(Some(asset_id))
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn get_issuance_asset_id_no_issuance(context: simplex::TestContext) -> anyhow::Result<()> {
-    let issue_amount = 0;
-    let reissue_amount = 0;
     let contract_hash: [u8; 32] = rand::random();
 
     case(GetIssuanceAssetId)
         .index(DEFAULT_ISSUANCE_INDEX)
-        .issuance_amount(issue_amount)
-        .reissuance_amount(reissue_amount)
+        .issuance_amount(0)
+        .token_amount(0)
         .expect(None)
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn get_issuance_asset_id_nonexistent_input(context: simplex::TestContext) -> anyhow::Result<()> {
-    let input_index = 2;
+    let input_index = u32::MAX;
     let contract_hash: [u8; 32] = rand::random();
 
     case(GetIssuanceAssetId)
         .index(input_index)
         .issuance_amount(100)
-        .reissuance_amount(0)
         .expect(None)
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn get_reissuance_token(context: simplex::TestContext) -> anyhow::Result<()> {
-    let issue_amount = 0;
-    let reissue_amount = 100;
     let contract_hash: [u8; 32] = rand::random();
 
     let (entropy, txid) = calculate_entropy(&context, contract_hash)?;
@@ -318,17 +377,16 @@ fn get_reissuance_token(context: simplex::TestContext) -> anyhow::Result<()> {
 
     case(GetReissuanceToken)
         .index(DEFAULT_ISSUANCE_INDEX)
-        .funding_txid_for_issue(txid)
-        .issuance_amount(issue_amount)
-        .reissuance_amount(reissue_amount)
+        .funding_txid(txid)
+        .issuance_amount(1)
+        .token_amount(10)
+        .amount_to_reissue(100)
         .expect(Some(token_id))
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn get_reissuance_token_from_issuance(context: simplex::TestContext) -> anyhow::Result<()> {
-    let issue_amount = 100;
-    let reissue_amount = 0;
     let contract_hash: [u8; 32] = rand::random();
 
     let (entropy, txid) = calculate_entropy(&context, contract_hash)?;
@@ -336,53 +394,87 @@ fn get_reissuance_token_from_issuance(context: simplex::TestContext) -> anyhow::
 
     case(GetReissuanceToken)
         .index(DEFAULT_ISSUANCE_INDEX)
-        .funding_txid_for_issue(txid)
-        .issuance_amount(issue_amount)
-        .reissuance_amount(reissue_amount)
+        .funding_txid(txid)
+        .issuance_amount(100)
+        .amount_to_reissue(0)
+        .expect(Some(token_id))
+        .run(&context, contract_hash)
+}
+
+#[simplex::test]
+fn get_reissuance_token_from_issuance_with_token(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let contract_hash: [u8; 32] = rand::random();
+
+    let (entropy, txid) = calculate_entropy(&context, contract_hash)?;
+    let token_id = get_token_id(entropy).to_byte_array();
+
+    case(GetReissuanceToken)
+        .index(DEFAULT_ISSUANCE_INDEX)
+        .funding_txid(txid)
+        .issuance_amount(100)
+        .token_amount(10)
+        .amount_to_reissue(0)
         .expect(Some(token_id))
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn get_reissuance_token_no_issuance(context: simplex::TestContext) -> anyhow::Result<()> {
-    let issue_amount = 0;
-    let reissue_amount = 0;
     let contract_hash: [u8; 32] = rand::random();
 
     case(GetReissuanceToken)
         .index(DEFAULT_ISSUANCE_INDEX)
-        .issuance_amount(issue_amount)
-        .reissuance_amount(reissue_amount)
+        .issuance_amount(0)
+        .token_amount(0)
         .expect(None)
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn get_reissuance_token_nonexistent_input(context: simplex::TestContext) -> anyhow::Result<()> {
-    let input_index = 2;
+    let input_index = u32::MAX;
     let contract_hash: [u8; 32] = rand::random();
 
     case(GetReissuanceToken)
         .index(input_index)
         .issuance_amount(0)
-        .reissuance_amount(100)
+        .token_amount(100)
         .expect(None)
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
-fn get_issuance_entropy_issuance(context: simplex::TestContext) -> anyhow::Result<()> {
+fn get_issuance_entropy_new_issuance(context: simplex::TestContext) -> anyhow::Result<()> {
     let contract_hash: [u8; 32] = rand::random();
-    let issue_amount = 10;
-    let reissue_amount = 0;
 
     let (expected_entropy, txid) = calculate_entropy(&context, contract_hash)?;
 
     case(GetIssuanceEntropy)
         .index(DEFAULT_ISSUANCE_INDEX)
-        .funding_txid_for_issue(txid)
-        .issuance_amount(issue_amount)
-        .reissuance_amount(reissue_amount)
+        .funding_txid(txid)
+        .issuance_amount(10)
+        .token_amount(0)
+        .amount_to_reissue(0)
+        .expect(Some(expected_entropy.to_byte_array()))
+        .run(&context, contract_hash)
+}
+
+#[simplex::test]
+fn get_issuance_entropy_new_issuance_with_token(
+    context: simplex::TestContext,
+) -> anyhow::Result<()> {
+    let contract_hash: [u8; 32] = rand::random();
+
+    let (expected_entropy, txid) = calculate_entropy(&context, contract_hash)?;
+
+    case(GetIssuanceEntropy)
+        .index(DEFAULT_ISSUANCE_INDEX)
+        .funding_txid(txid)
+        .issuance_amount(10)
+        .token_amount(100)
+        .amount_to_reissue(0)
         .expect(Some(expected_entropy.to_byte_array()))
         .run(&context, contract_hash)
 }
@@ -390,43 +482,40 @@ fn get_issuance_entropy_issuance(context: simplex::TestContext) -> anyhow::Resul
 #[simplex::test]
 fn get_issuance_entropy_reissuance(context: simplex::TestContext) -> anyhow::Result<()> {
     let contract_hash: [u8; 32] = rand::random();
-    let issue_amount = 0;
-    let reissue_amount = 100;
 
     let (expected_entropy, txid) = calculate_entropy(&context, contract_hash)?;
 
     case(GetIssuanceEntropy)
         .index(DEFAULT_ISSUANCE_INDEX)
-        .funding_txid_for_issue(txid)
-        .issuance_amount(issue_amount)
-        .reissuance_amount(reissue_amount)
+        .funding_txid(txid)
+        .issuance_amount(0)
+        .token_amount(100)
+        .amount_to_reissue(1000)
         .expect(Some(expected_entropy.to_byte_array()))
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn get_issuance_entropy_no_issuance(context: simplex::TestContext) -> anyhow::Result<()> {
-    let issue_amount = 0;
-    let reissue_amount = 0;
     let contract_hash: [u8; 32] = rand::random();
 
     case(GetIssuanceEntropy)
         .index(DEFAULT_ISSUANCE_INDEX)
-        .issuance_amount(issue_amount)
-        .reissuance_amount(reissue_amount)
+        .issuance_amount(0)
+        .token_amount(0)
         .expect(None)
         .run(&context, contract_hash)
 }
 
 #[simplex::test]
 fn get_issuance_entropy_nonexistent_input(context: simplex::TestContext) -> anyhow::Result<()> {
-    let input_index = 2;
+    let input_index = u32::MAX;
     let contract_hash: [u8; 32] = rand::random();
 
     case(GetIssuanceEntropy)
         .index(input_index)
         .issuance_amount(100)
-        .reissuance_amount(0)
+        .token_amount(0)
         .expect(None)
         .run(&context, contract_hash)
 }

@@ -13,6 +13,7 @@ use simplex::transaction::UTXO;
 
 use simplex::utils;
 
+use crate::common::core::IssuanceParams;
 use crate::common::core::tweak_script;
 use crate::common::core::{send_blinded, send_explicit, send_issued};
 use crate::common::helper::generate_u256;
@@ -180,8 +181,16 @@ pub fn create_utxos_with_new_asset(
         }
 
         if index == i {
-            let (txid, issued) =
-                send_issued(context, script, None, amount_to_send, 0, rand::random())?;
+            let (txid, issued) = send_issued(
+                context,
+                script,
+                &IssuanceParams {
+                    funding_txid: None,
+                    issuance_amount: amount_to_send,
+                    token_amount: 0,
+                    contract_hash: rand::random(),
+                },
+            )?;
             txids.push(txid);
             new_asset = Some(issued.asset_id);
         } else {

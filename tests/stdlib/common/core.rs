@@ -48,6 +48,32 @@ impl Expect {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct IssuanceParams {
+    pub funding_txid: Option<Txid>,
+    pub issuance_amount: u64,
+    pub token_amount: u64,
+    pub contract_hash: [u8; 32],
+}
+
+impl IssuanceParams {
+    fn to_input(&self) -> IssuanceInput {
+        IssuanceInput::new_issuance(self.issuance_amount, self.token_amount, self.contract_hash)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ReissuanceParams {
+    pub reissue_amount: u64,
+    pub initial_issuance: IssuanceParams,
+}
+
+pub enum IssuanceSetup {
+    None,
+    New(IssuanceParams),
+    Reissue(ReissuanceParams),
+}
+
 /// Send sats to the program's script so it has a UTXO to spend.
 pub fn fund(
     context: &simplex::TestContext,
@@ -89,40 +115,36 @@ pub fn send_blinded(
     Ok(receipt.txid())
 }
 
-/// Issue `amount_to_issue` of a new asset to the specified script, so the UTXO holds an asset that
-/// nothing else in the wallet has.
+/// Issue a new asset to the specified script.
 pub fn send_issued(
     context: &simplex::TestContext,
     to: &Script,
-    funding_txid_for_issue: Option<Txid>,
-    amount_to_issue: u64,
-    amount_to_reissue: u64,
-    contract_hash: [u8; 32],
+    params: &IssuanceParams,
 ) -> anyhow::Result<(Txid, IssuanceDetails)> {
     let signer = context.get_default_signer();
 
     // The specific UTXO for issuance or the largest signer's utxo
-    let funding = select_funding_utxo(context, signer, funding_txid_for_issue)?;
+    let funding = select_funding_utxo(context, signer, params.funding_txid)?;
 
     let mut ft = FinalTransaction::new();
 
     let issued = ft.add_issuance_input(
-        PartialInput::new(funding),
-        IssuanceInput::new_issuance(amount_to_issue, amount_to_reissue, contract_hash),
+        PartialInput::new(funding.clone()),
+        params.to_input(),
         Some(NativeSignature::Ecdsa),
     );
 
-    if amount_to_issue > 0 {
+    if params.issuance_amount > 0 {
         ft.add_output(PartialOutput::new(
             to.clone(),
-            amount_to_issue,
+            params.issuance_amount,
             issued.asset_id,
         ));
     }
 
-    if amount_to_reissue > 0 {
+    if params.token_amount > 0 {
         ft.add_output(
-            PartialOutput::new(to.clone(), amount_to_reissue, issued.inflation_asset_id)
+            PartialOutput::new(to.clone(), params.token_amount, issued.inflation_asset_id)
                 .with_blinding_key(signer.get_blinding_public_key()),
         );
     }
@@ -141,7 +163,7 @@ pub fn construct_final_tx<W>(
     data: Option<&[u8]>,
     txids: Vec<Txid>,
     program_for_test: Option<Program>,
-    issuance_params: Option<(Option<Txid>, u64, u64, [u8; 32])>,
+    issuance_params: IssuanceSetup,
 ) -> anyhow::Result<FinalTransaction>
 where
     W: Into<WitnessValues> + 'static,
@@ -220,9 +242,7 @@ where
         )?;
     }
 
-    if let Some(params) = issuance_params {
-        ft = add_issuance_to_ft(context, ft, params)?;
-    }
+    ft = add_issuance_to_ft(context, ft, issuance_params)?;
 
     if let Some(leftover_asset) = leftover_asset {
         ft.add_output(PartialOutput::new(default_script, 1, leftover_asset));
@@ -321,69 +341,79 @@ fn add_mirror_output(
 fn add_issuance_to_ft(
     context: &simplex::TestContext,
     mut ft: FinalTransaction,
-    issuance_params: (Option<Txid>, u64, u64, [u8; 32]),
+    setup_params: IssuanceSetup,
 ) -> anyhow::Result<FinalTransaction> {
     let signer = context.get_default_signer();
     let signer_script = signer.get_address().script_pubkey();
 
-    let funding_txid_for_issue = issuance_params.0;
-    let issuance_amount = issuance_params.1;
-    let reissuance_amount = issuance_params.2;
-    let contract_hash = issuance_params.3;
+    match setup_params {
+        IssuanceSetup::None => (),
+        IssuanceSetup::New(issuance_params) => {
+            let IssuanceParams {
+                funding_txid,
+                issuance_amount,
+                token_amount,
+                ..
+            } = issuance_params;
 
-    if reissuance_amount > 0 {
-        let (_, issuance_details) = send_issued(
-            context,
-            &signer_script,
-            funding_txid_for_issue,
-            issuance_amount,
-            reissuance_amount,
-            contract_hash,
-        )?;
+            let funding = select_funding_utxo(context, signer, funding_txid)?;
 
-        let reissuance_token_utxo = signer
-            .get_utxos_asset(issuance_details.inflation_asset_id)?
-            .first()
-            .expect("No utxo with reissuance token")
-            .clone();
+            let issued = ft.add_issuance_input(
+                PartialInput::new(funding),
+                issuance_params.to_input(),
+                Some(NativeSignature::Ecdsa),
+            );
 
-        ft.add_output(
-            PartialOutput::new(
-                signer_script.clone(),
-                reissuance_token_utxo.unblinded_amount(),
-                reissuance_token_utxo.unblinded_asset(),
-            )
-            .with_blinding_key(signer.get_blinding_public_key()),
-        );
+            if issuance_amount > 0 {
+                ft.add_output(PartialOutput::new(
+                    signer_script.clone(),
+                    issuance_amount,
+                    issued.asset_id,
+                ));
+            }
 
-        ft.add_issuance_input(
-            PartialInput::new(reissuance_token_utxo),
-            IssuanceInput::new_reissuance(
-                reissuance_amount,
-                issuance_details.asset_entropy.to_byte_array(),
-            ),
-            Some(NativeSignature::Ecdsa),
-        );
+            if token_amount > 0 {
+                ft.add_output(PartialOutput::new(
+                    signer_script,
+                    token_amount,
+                    issued.inflation_asset_id,
+                ));
+            }
+        }
+        IssuanceSetup::Reissue(reissuance_params) => {
+            let (_, issuance_details) =
+                send_issued(context, &signer_script, &reissuance_params.initial_issuance)?;
 
-        ft.add_output(PartialOutput::new(
-            signer_script,
-            reissuance_amount,
-            issuance_details.asset_id,
-        ));
-    } else if issuance_amount > 0 {
-        let funding = select_funding_utxo(context, signer, funding_txid_for_issue)?;
+            let utxos = signer.get_utxos_asset(issuance_details.inflation_asset_id)?;
 
-        let issued = ft.add_issuance_input(
-            PartialInput::new(funding),
-            IssuanceInput::new_issuance(issuance_amount, reissuance_amount, contract_hash),
-            Some(NativeSignature::Ecdsa),
-        );
+            let reissuance_token_utxo = utxos
+                .first()
+                .ok_or_else(|| anyhow::anyhow!("No utxo with reissuance token"))?;
 
-        ft.add_output(PartialOutput::new(
-            signer_script,
-            issuance_amount,
-            issued.asset_id,
-        ));
+            ft.add_output(
+                PartialOutput::new(
+                    signer_script.clone(),
+                    reissuance_token_utxo.unblinded_amount(),
+                    reissuance_token_utxo.unblinded_asset(),
+                )
+                .with_blinding_key(signer.get_blinding_public_key()),
+            );
+
+            ft.add_issuance_input(
+                PartialInput::new(reissuance_token_utxo.clone()),
+                IssuanceInput::new_reissuance(
+                    reissuance_params.reissue_amount,
+                    issuance_details.asset_entropy.to_byte_array(),
+                ),
+                Some(NativeSignature::Ecdsa),
+            );
+
+            ft.add_output(PartialOutput::new(
+                signer_script,
+                reissuance_params.reissue_amount,
+                issuance_details.asset_id,
+            ));
+        }
     }
 
     Ok(ft)
@@ -430,7 +460,7 @@ pub fn spend<W>(
     data: Option<&[u8]>,
     txids: Vec<Txid>,
     program_for_test: Option<Program>,
-    issuance_params: Option<(Option<Txid>, u64, u64, [u8; 32])>,
+    issuance_params: IssuanceSetup,
 ) -> anyhow::Result<String>
 where
     W: Into<WitnessValues> + 'static,
@@ -488,7 +518,15 @@ where
     W: Into<WitnessValues> + 'static,
 {
     fund(context, &program, DEFAULT_SEND_AMOUNT)?;
-    let result = spend(context, &program, witness, None, Vec::new(), None, None);
+    let result = spend(
+        context,
+        &program,
+        witness,
+        None,
+        Vec::new(),
+        None,
+        IssuanceSetup::None,
+    );
 
     assert_error_msg(result, expect)
 }
@@ -513,7 +551,7 @@ where
         Some(data),
         Vec::new(),
         None,
-        None,
+        IssuanceSetup::None,
     );
 
     assert_error_msg(result, expect)
@@ -538,7 +576,7 @@ where
         None,
         txids,
         program_for_test,
-        None,
+        IssuanceSetup::None,
     );
 
     assert_error_msg(result, expect)
@@ -550,7 +588,7 @@ pub fn run_with_issuance<W>(
     program: impl AsRef<Program>,
     witness: W,
     expect: Expect,
-    issuance_params: Option<(Option<Txid>, u64, u64, [u8; 32])>,
+    issuance_params: IssuanceSetup,
 ) -> anyhow::Result<()>
 where
     W: Into<WitnessValues> + 'static,
