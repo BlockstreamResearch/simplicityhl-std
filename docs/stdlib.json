@@ -469,6 +469,48 @@
     "description": "Return the logical XOR of the two given values."
   },
   {
+    "simplicityhl_name": "kind_of_issuance",
+    "section": "Issuance getters",
+    "input_type": "u32",
+    "output_type": "Option<bool>",
+    "description": "Returns Some(is_reissuance) if the specified input exists and has an issuance or reissuance, None otherwise. Some(false) is an issuance, Some(true) is a reissuance."
+  },
+  {
+    "simplicityhl_name": "is_issuance",
+    "section": "Issuance getters",
+    "input_type": "u32",
+    "output_type": "bool",
+    "description": "Returns true if the specified input exists and has a new issuance, false otherwise."
+  },
+  {
+    "simplicityhl_name": "is_reissuance",
+    "section": "Issuance getters",
+    "input_type": "u32",
+    "output_type": "bool",
+    "description": "Returns true if the specified input exists and has a reissuance, false otherwise."
+  },
+  {
+    "simplicityhl_name": "get_issuance_asset_id",
+    "section": "Issuance getters",
+    "input_type": "u32",
+    "output_type": "Option<ExplicitAsset>",
+    "description": "Returns `Some(asset_id)` of the asset issued or reissued by the specified input, or `None` if the input has no issuance or reissuance or does not exist."
+  },
+  {
+    "simplicityhl_name": "get_reissuance_token",
+    "section": "Issuance getters",
+    "input_type": "u32",
+    "output_type": "Option<ExplicitAsset>",
+    "description": "Returns `Some(token_id)` of the reissuance token for the asset issued or reissued by the specified input, or `None` if the input has no issuance or reissuance or does not exist."
+  },
+  {
+    "simplicityhl_name": "get_issuance_entropy",
+    "section": "Issuance getters",
+    "input_type": "u32",
+    "output_type": "Option<u256>",
+    "description": "Returns `Some(entropy)` of the issuance at the specified input, or `None` if the input has no issuance or reissuance or does not exist.\nNote: for a new issuance the entropy is derived from the spent outpoint and the contract hash; for a reissuance it is the entropy carried in the input."
+  },
+  {
     "simplicityhl_name": "get_entry_option",
     "section": "OP_RETURN",
     "input_type": "u32, u32",

@@ -13,7 +13,8 @@ use simplex::simplicityhl::elements::script::Builder;
 use simplex::simplicityhl::elements::{AssetId, Script, Sequence, Txid};
 use simplex::transaction::partial_input::IssuanceInput;
 use simplex::transaction::{
-    FinalTransaction, NativeSignature, PartialInput, PartialOutput, ProgramInput, UTXO,
+    FinalTransaction, IssuanceDetails, NativeSignature, PartialInput, PartialOutput, ProgramInput,
+    UTXO,
 };
 
 use simplicityhl_std::artifacts::tests::mock::derived_mock::MockWitness;
@@ -45,6 +46,32 @@ impl Expect {
             }
         }
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct IssuanceParams {
+    pub funding_txid: Option<Txid>,
+    pub issuance_amount: u64,
+    pub token_amount: u64,
+    pub contract_hash: [u8; 32],
+}
+
+impl IssuanceParams {
+    fn to_input(&self) -> IssuanceInput {
+        IssuanceInput::new_issuance(self.issuance_amount, self.token_amount, self.contract_hash)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ReissuanceParams {
+    pub reissue_amount: u64,
+    pub initial_issuance: IssuanceParams,
+}
+
+pub enum IssuanceSetup {
+    None,
+    New(IssuanceParams),
+    Reissue(ReissuanceParams),
 }
 
 /// Send sats to the program's script so it has a UTXO to spend.
@@ -88,40 +115,44 @@ pub fn send_blinded(
     Ok(receipt.txid())
 }
 
-/// Issue `amount_to_send` of a new asset to the specified script, so the UTXO holds an asset that
-/// nothing else in the wallet has.
+/// Issue a new asset to the specified script.
 pub fn send_issued(
     context: &simplex::TestContext,
     to: &Script,
-    amount_to_send: u64,
-) -> anyhow::Result<(Txid, AssetId)> {
+    params: &IssuanceParams,
+) -> anyhow::Result<(Txid, IssuanceDetails)> {
     let signer = context.get_default_signer();
-    // The largest UTXO, so the issuance never spends one of the small UTXOs a test created.
-    let funding = signer
-        .get_utxos_asset(context.get_network().policy_asset())?
-        .into_iter()
-        .map(|utxo| Ok((utxo.amount()?, utxo)))
-        .collect::<anyhow::Result<Vec<_>>>()?
-        .into_iter()
-        .max_by_key(|(amount, _)| *amount)
-        .map(|(_, utxo)| utxo)
-        .ok_or_else(|| anyhow::anyhow!("no policy asset UTXO to attach the issuance to"))?;
+
+    // The specific UTXO for issuance or the largest signer's utxo
+    let funding = select_funding_utxo(context, signer, params.funding_txid)?;
 
     let mut ft = FinalTransaction::new();
+
     let issued = ft.add_issuance_input(
-        PartialInput::new(funding),
-        IssuanceInput::new_issuance(amount_to_send, 0, rand::random()),
+        PartialInput::new(funding.clone()),
+        params.to_input(),
         Some(NativeSignature::Ecdsa),
     );
-    ft.add_output(PartialOutput::new(
-        to.clone(),
-        amount_to_send,
-        issued.asset_id,
-    ));
+
+    if params.issuance_amount > 0 {
+        ft.add_output(PartialOutput::new(
+            to.clone(),
+            params.issuance_amount,
+            issued.asset_id,
+        ));
+    }
+
+    if params.token_amount > 0 {
+        ft.add_output(
+            PartialOutput::new(to.clone(), params.token_amount, issued.inflation_asset_id)
+                .with_blinding_key(signer.get_blinding_public_key()),
+        );
+    }
 
     let receipt = signer.broadcast(&ft)?;
     receipt.wait()?;
-    Ok((receipt.txid(), issued.asset_id))
+
+    Ok((receipt.txid(), issued))
 }
 
 /// Construct the funded UTXO with `witness`.
@@ -132,6 +163,7 @@ pub fn construct_final_tx<W>(
     data: Option<&[u8]>,
     txids: Vec<Txid>,
     program_for_test: Option<Program>,
+    issuance_params: IssuanceSetup,
 ) -> anyhow::Result<FinalTransaction>
 where
     W: Into<WitnessValues> + 'static,
@@ -209,6 +241,8 @@ where
             policy_asset,
         )?;
     }
+
+    ft = add_issuance_to_ft(context, ft, issuance_params)?;
 
     if let Some(leftover_asset) = leftover_asset {
         ft.add_output(PartialOutput::new(default_script, 1, leftover_asset));
@@ -304,6 +338,110 @@ fn add_mirror_output(
     Ok((ft, leftover_asset))
 }
 
+fn add_issuance_to_ft(
+    context: &simplex::TestContext,
+    mut ft: FinalTransaction,
+    setup_params: IssuanceSetup,
+) -> anyhow::Result<FinalTransaction> {
+    let signer = context.get_default_signer();
+    let signer_script = signer.get_address().script_pubkey();
+
+    match setup_params {
+        IssuanceSetup::None => (),
+        IssuanceSetup::New(issuance_params) => {
+            let IssuanceParams {
+                funding_txid,
+                issuance_amount,
+                token_amount,
+                ..
+            } = issuance_params;
+
+            let funding = select_funding_utxo(context, signer, funding_txid)?;
+
+            let issued = ft.add_issuance_input(
+                PartialInput::new(funding),
+                issuance_params.to_input(),
+                Some(NativeSignature::Ecdsa),
+            );
+
+            if issuance_amount > 0 {
+                ft.add_output(PartialOutput::new(
+                    signer_script.clone(),
+                    issuance_amount,
+                    issued.asset_id,
+                ));
+            }
+
+            if token_amount > 0 {
+                ft.add_output(PartialOutput::new(
+                    signer_script,
+                    token_amount,
+                    issued.inflation_asset_id,
+                ));
+            }
+        }
+        IssuanceSetup::Reissue(reissuance_params) => {
+            let (_, issuance_details) =
+                send_issued(context, &signer_script, &reissuance_params.initial_issuance)?;
+
+            let utxos = signer.get_utxos_asset(issuance_details.inflation_asset_id)?;
+
+            let reissuance_token_utxo = utxos
+                .first()
+                .ok_or_else(|| anyhow::anyhow!("No utxo with reissuance token"))?;
+
+            ft.add_output(
+                PartialOutput::new(
+                    signer_script.clone(),
+                    reissuance_token_utxo.unblinded_amount(),
+                    reissuance_token_utxo.unblinded_asset(),
+                )
+                .with_blinding_key(signer.get_blinding_public_key()),
+            );
+
+            ft.add_issuance_input(
+                PartialInput::new(reissuance_token_utxo.clone()),
+                IssuanceInput::new_reissuance(
+                    reissuance_params.reissue_amount,
+                    issuance_details.asset_entropy.to_byte_array(),
+                ),
+                Some(NativeSignature::Ecdsa),
+            );
+
+            ft.add_output(PartialOutput::new(
+                signer_script,
+                reissuance_params.reissue_amount,
+                issuance_details.asset_id,
+            ));
+        }
+    }
+
+    Ok(ft)
+}
+
+fn select_funding_utxo(
+    context: &simplex::TestContext,
+    signer: &Signer,
+    txid: Option<Txid>,
+) -> anyhow::Result<UTXO> {
+    match txid {
+        Some(txid) => search_utxo_by_txid(&txid, &signer.get_utxos_txid(txid)?),
+        None => find_max_amount_utxo(context, signer),
+    }
+}
+
+fn find_max_amount_utxo(context: &simplex::TestContext, signer: &Signer) -> anyhow::Result<UTXO> {
+    signer
+        .get_utxos_asset(context.get_network().policy_asset())?
+        .into_iter()
+        .map(|utxo| Ok((utxo.amount()?, utxo)))
+        .collect::<anyhow::Result<Vec<_>>>()?
+        .into_iter()
+        .max_by_key(|(amount, _)| *amount)
+        .map(|(_, utxo)| utxo)
+        .ok_or_else(|| anyhow::anyhow!("No policy asset UTXO to attach the issuance to"))
+}
+
 /// Change the lowest bit of the last byte (used for test purposes).
 pub fn tweak_script(script: &Script) -> Script {
     let mut bytes = script.as_bytes().to_vec();
@@ -322,11 +460,20 @@ pub fn spend<W>(
     data: Option<&[u8]>,
     txids: Vec<Txid>,
     program_for_test: Option<Program>,
+    issuance_params: IssuanceSetup,
 ) -> anyhow::Result<String>
 where
     W: Into<WitnessValues> + 'static,
 {
-    let ft = construct_final_tx(context, program, witness, data, txids, program_for_test)?;
+    let ft = construct_final_tx(
+        context,
+        program,
+        witness,
+        data,
+        txids,
+        program_for_test,
+        issuance_params,
+    )?;
 
     Ok(context.get_default_signer().broadcast(&ft)?.to_string())
 }
@@ -371,7 +518,15 @@ where
     W: Into<WitnessValues> + 'static,
 {
     fund(context, &program, DEFAULT_SEND_AMOUNT)?;
-    let result = spend(context, &program, witness, None, Vec::new(), None);
+    let result = spend(
+        context,
+        &program,
+        witness,
+        None,
+        Vec::new(),
+        None,
+        IssuanceSetup::None,
+    );
 
     assert_error_msg(result, expect)
 }
@@ -389,7 +544,15 @@ where
     W: Into<WitnessValues> + 'static,
 {
     fund(context, &program, DEFAULT_SEND_AMOUNT)?;
-    let result = spend(context, &program, witness, Some(data), Vec::new(), None);
+    let result = spend(
+        context,
+        &program,
+        witness,
+        Some(data),
+        Vec::new(),
+        None,
+        IssuanceSetup::None,
+    );
 
     assert_error_msg(result, expect)
 }
@@ -406,7 +569,41 @@ pub fn run_with_inputs_outputs<W>(
 where
     W: Into<WitnessValues> + 'static,
 {
-    let result = spend(context, &program, witness, None, txids, program_for_test);
+    let result = spend(
+        context,
+        &program,
+        witness,
+        None,
+        txids,
+        program_for_test,
+        IssuanceSetup::None,
+    );
+
+    assert_error_msg(result, expect)
+}
+
+/// Spend with additional issuance input + assert the outcome.
+pub fn run_with_issuance<W>(
+    context: &simplex::TestContext,
+    program: impl AsRef<Program>,
+    witness: W,
+    expect: Expect,
+    issuance_params: IssuanceSetup,
+) -> anyhow::Result<()>
+where
+    W: Into<WitnessValues> + 'static,
+{
+    fund(context, &program, DEFAULT_SEND_AMOUNT)?;
+
+    let result = spend(
+        context,
+        &program,
+        witness,
+        None,
+        Vec::new(),
+        None,
+        issuance_params,
+    );
 
     assert_error_msg(result, expect)
 }
