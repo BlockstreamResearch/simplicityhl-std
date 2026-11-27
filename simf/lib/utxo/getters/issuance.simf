@@ -2,7 +2,7 @@ use crate::lib::binary::not;
 
 /// Returns Some(is_reissuance) if the specified input exists and has an issuance or reissuance, None otherwise.
 /// Some(false) is a new issuance, Some(true) is a reissuance.
-fn kind_of_issuance(input_index: u32) -> Option<bool> {
+pub fn kind_of_issuance(input_index: u32) -> Option<bool> {
     match jet::issuance(input_index) {
         Some(input: Option<bool>) => input,
         None => None,

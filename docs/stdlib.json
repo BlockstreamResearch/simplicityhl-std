@@ -511,6 +511,13 @@
     "description": "Return the logical XOR of the two given values."
   },
   {
+    "simplicityhl_name": "kind_of_issuance",
+    "section": "Issuance getters",
+    "input_type": "u32",
+    "output_type": "Option<bool>",
+    "description": "Returns Some(is_reissuance) if the specified input exists and has an issuance or reissuance, None otherwise. Some(false) is an issuance, Some(true) is a reissuance."
+  },
+  {
     "simplicityhl_name": "is_issuance",
     "section": "Issuance getters",
     "input_type": "u32",

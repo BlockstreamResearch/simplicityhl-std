@@ -20,6 +20,7 @@ use simplicityhl_std::artifacts::tests::utxo::getters::issuance::derived_issuanc
 use FunctionToTest::*;
 
 enum FunctionToTest {
+    KindOfIssuance,
     IsIssuance,
     IsReissuance,
     GetIssuanceAssetId,
@@ -47,6 +48,7 @@ fn case(function: FunctionToTest) -> Case {
         witness: TestIssuanceWitness {
             function_index: function as u8,
             input_index: 0,
+            expected_kind: None,
             expected_bool: false,
             expected_u256: None,
         },
@@ -94,9 +96,15 @@ impl Case {
         self
     }
 
-    /// `expected`: value the arm should produce.
-    fn expect(mut self, expected: Option<[u8; 32]>) -> Self {
-        self.witness.expected_u256 = expected;
+    /// `expected_kind`: the boolean option the arm should report.
+    fn expected_kind(mut self, expected_kind: Option<bool>) -> Self {
+        self.witness.expected_kind = expected_kind;
+        self
+    }
+
+    /// `expect: the optional 256-bit value (asset ID, token ID or entropy) the arm should return.
+    fn expect(mut self, expected_u256: Option<[u8; 32]>) -> Self {
+        self.witness.expected_u256 = expected_u256;
         self
     }
 
@@ -155,6 +163,68 @@ fn calculate_entropy(
     let entropy = get_entropy(funding_utxo.outpoint, contract_hash);
 
     Ok((entropy, funding_txid))
+}
+
+#[simplex::test]
+fn kind_of_issuance_new_issuance(context: simplex::TestContext) -> anyhow::Result<()> {
+    let contract_hash: [u8; 32] = rand::random();
+
+    case(KindOfIssuance)
+        .index(DEFAULT_ISSUANCE_INDEX)
+        .issuance_amount(1)
+        .expected_kind(Some(false))
+        .run(&context, contract_hash)
+}
+
+#[simplex::test]
+fn kind_of_issuance_reissuance(context: simplex::TestContext) -> anyhow::Result<()> {
+    let contract_hash: [u8; 32] = rand::random();
+
+    case(KindOfIssuance)
+        .index(DEFAULT_ISSUANCE_INDEX)
+        .issuance_amount(1)
+        .token_amount(1)
+        .amount_to_reissue(10)
+        .expected_kind(Some(true))
+        .run(&context, contract_hash)
+}
+
+#[simplex::test]
+fn kind_of_issuance_issuance_with_token(context: simplex::TestContext) -> anyhow::Result<()> {
+    let contract_hash: [u8; 32] = rand::random();
+
+    case(KindOfIssuance)
+        .index(DEFAULT_ISSUANCE_INDEX)
+        .issuance_amount(10)
+        .token_amount(100)
+        .amount_to_reissue(0)
+        .expected_kind(Some(false))
+        .run(&context, contract_hash)
+}
+
+#[simplex::test]
+fn kind_of_issuance_no_issuance_false(context: simplex::TestContext) -> anyhow::Result<()> {
+    let contract_hash: [u8; 32] = rand::random();
+
+    case(KindOfIssuance)
+        .index(DEFAULT_ISSUANCE_INDEX)
+        .issuance_amount(0)
+        .token_amount(0)
+        .expected_kind(None)
+        .run(&context, contract_hash)
+}
+
+#[simplex::test]
+fn kind_of_issuance_nonexistent_input_false(context: simplex::TestContext) -> anyhow::Result<()> {
+    let input_index = u32::MAX;
+    let contract_hash: [u8; 32] = rand::random();
+
+    case(KindOfIssuance)
+        .index(input_index)
+        .issuance_amount(100)
+        .token_amount(0)
+        .expected_kind(None)
+        .run(&context, contract_hash)
 }
 
 #[simplex::test]
@@ -257,7 +327,7 @@ fn is_reissuance_new_issuance_false(context: simplex::TestContext) -> anyhow::Re
 }
 
 #[simplex::test]
-fn is_reissuance_new_issuance_with_tokens_false(
+fn is_reissuance_new_issuance_with_token_false(
     context: simplex::TestContext,
 ) -> anyhow::Result<()> {
     let contract_hash: [u8; 32] = rand::random();
